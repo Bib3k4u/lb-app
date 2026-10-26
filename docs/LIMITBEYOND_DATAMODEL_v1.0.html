@@ -1,0 +1,1824 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LIMITBEYOND — Data Model &amp; Entity Relationships v1.0</title>
+<style>
+  @page { size:A4; margin:16mm 14mm; }
+  :root{--ink:#1a1d24;--muted:#5a6273;--rule:#d4d9e2;--accent:#0f3d5c;--accent-soft:#eef3f7;
+        --band:#f6f8fa;--warn:#8a5a00;--warn-soft:#fdf6e8;--bad:#9a2c2c;--bad-soft:#fdf0f0;
+        --good:#2b6a3f;--good-soft:#eff6f1;--pk:#0f3d5c;--fk:#8a5a00;--uq:#2b6a3f;}
+  *{box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:"Charter","Georgia","Times New Roman",serif;font-size:10pt;line-height:1.48;color:var(--ink);margin:0}
+  h1,h2,h3,h4,.sans{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+
+  .title-page{height:248mm;display:flex;flex-direction:column;justify-content:center;break-after:page}
+  .title-rule{height:4px;background:var(--accent);width:70px;margin-bottom:26px}
+  .product{font-size:40pt;letter-spacing:3px;font-weight:700;color:var(--accent);margin:0;line-height:1.05}
+  .product-sub{font-size:12pt;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 40px}
+  .doc-type{font-size:19pt;font-weight:600;margin:0 0 4px}
+  .doc-sub{font-size:11pt;color:var(--muted);margin:0 0 44px}
+  .meta-grid{display:grid;grid-template-columns:128px 1fr;row-gap:7px;font-size:10pt;max-width:460px}
+  .meta-grid dt{color:var(--muted)} .meta-grid dd{margin:0;font-weight:600}
+  .title-note{margin-top:42px;padding:12px 14px;background:var(--accent-soft);border-left:3px solid var(--accent);font-size:9.2pt;color:var(--muted);max-width:500px}
+
+  h2{font-size:14.5pt;color:var(--accent);border-bottom:2px solid var(--accent);padding-bottom:5px;margin:0 0 12px;break-before:page;break-after:avoid}
+  h2.continue{break-before:auto}
+  h3{font-size:11.3pt;margin:18px 0 6px;break-after:avoid}
+  h4{font-size:9.8pt;margin:13px 0 5px;color:var(--accent);text-transform:uppercase;letter-spacing:.6px;break-after:avoid}
+  p{margin:0 0 8px} ul,ol{margin:0 0 8px;padding-left:17px} li{margin-bottom:2px}
+
+  table{width:100%;border-collapse:collapse;font-size:8.6pt;margin:7px 0 13px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+  thead{display:table-header-group} tr{break-inside:avoid}
+  th{background:var(--accent);color:#fff;text-align:left;padding:4px 6px;font-weight:600;font-size:8.3pt}
+  td{padding:4px 6px;border-bottom:1px solid var(--rule);vertical-align:top}
+  tbody tr:nth-child(even){background:var(--band)}
+  td.id{font-weight:700;color:var(--accent);white-space:nowrap;font-size:8.2pt}
+  td.ctr{text-align:center;white-space:nowrap}
+  .mono{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:8pt}
+
+  pre{background:#f4f6f8;border:1px solid var(--rule);border-left:3px solid var(--accent);padding:8px 10px;
+      font-family:"SF Mono",Menlo,Consolas,monospace;font-size:7.4pt;line-height:1.42;margin:7px 0 11px;
+      break-inside:avoid;white-space:pre-wrap}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:8.3pt;background:#eef1f4;padding:0 3px;border-radius:2px}
+  pre code{background:none;padding:0;font-size:inherit}
+  .cm{color:var(--muted);font-style:italic} .kw{color:var(--accent);font-weight:600}
+
+  .note{background:var(--accent-soft);border-left:3px solid var(--accent);padding:8px 11px;margin:9px 0 13px;font-size:9.1pt;break-inside:avoid}
+  .note strong{color:var(--accent)}
+  .warn{background:var(--warn-soft);border-left:3px solid var(--warn);padding:8px 11px;margin:9px 0 13px;font-size:9.1pt;break-inside:avoid}
+  .warn strong{color:var(--warn)}
+  .never{background:var(--bad-soft);border-left:3px solid var(--bad);padding:8px 11px;margin:9px 0 13px;font-size:9.1pt;break-inside:avoid}
+  .never strong{color:var(--bad)}
+
+  /* ---- Entity cards ---- */
+  .ents{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:9px 0 13px}
+  .ents.two{grid-template-columns:repeat(2,1fr)}
+  .ent{border:1px solid var(--accent);border-radius:3px;overflow:hidden;break-inside:avoid;background:#fff}
+  .ent-head{background:var(--accent);color:#fff;padding:3px 7px;font-family:"SF Mono",Menlo,Consolas,monospace;
+            font-size:8pt;font-weight:700;letter-spacing:.2px}
+  .ent-head .sub{float:right;font-weight:400;opacity:.75;font-size:7pt;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+  .ent ul{list-style:none;margin:0;padding:4px 6px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:7.2pt;line-height:1.5}
+  .ent li{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .b{display:inline-block;width:19px;font-size:6.2pt;font-weight:700;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.2px}
+  .b.pk{color:var(--pk)} .b.fk{color:var(--fk)} .b.uq{color:var(--uq)} .b.no{color:var(--rule)}
+  .t{color:var(--muted);font-size:6.8pt}
+  .ent.core{border-width:2px}
+  .ent.sens .ent-head{background:var(--warn)}
+  .ent.sens{border-color:var(--warn)}
+
+  .leg{font-size:8.2pt;color:var(--muted);font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;margin:-6px 0 12px}
+
+  /* ---- Module map ---- */
+  .map{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0 14px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+  .mod{border:1px solid var(--accent);border-radius:3px;padding:6px 7px;font-size:7.8pt;background:#fff}
+  .mod b{display:block;color:var(--accent);font-size:8.4pt;margin-bottom:2px}
+  .mod .n{color:var(--muted);font-size:7pt}
+
+  .toc{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:9.4pt}
+  .toc ol{list-style:none;padding-left:0;counter-reset:sec}
+  .toc>ol>li{counter-increment:sec;padding:3.5px 0;border-bottom:1px dotted var(--rule);font-weight:600}
+  .toc>ol>li::before{content:counter(sec) ".  ";color:var(--accent)}
+  .toc ul{list-style:none;padding-left:18px;margin:3px 0 1px;font-weight:400;color:var(--muted);font-size:8.8pt}
+  .small{font-size:8.8pt;color:var(--muted)}
+  .end-mark{text-align:center;color:var(--muted);font-size:9pt;margin-top:24px;letter-spacing:3px}
+</style>
+</head>
+<body>
+
+<!-- ============ TITLE ============ -->
+<section class="title-page">
+  <div class="title-rule"></div>
+  <h1 class="product">LIMITBEYOND</h1>
+  <div class="product-sub">Fitness &amp; Gym Management Platform</div>
+  <div class="doc-type">Data Model &amp; Entity Relationships</div>
+  <div class="doc-sub">Version 1.0 &middot; 74 entities across 11 domains</div>
+  <dl class="meta-grid">
+    <dt>Document ID</dt><dd>LB-DATA-1.0</dd>
+    <dt>Status</dt><dd>Draft for review</dd>
+    <dt>Date</dt><dd>16 September 2026</dd>
+    <dt>Prepared by</dt><dd>Bibek Jha</dd>
+    <dt>Implements</dt><dd>LB-SRS-1.1 · LB-ARCH-1.0 · LB-ENG-1.0</dd>
+    <dt>Target</dt><dd>PostgreSQL 16 with Row-Level Security</dd>
+    <dt>Migrations</dt><dd>Flyway, forward-only</dd>
+  </dl>
+  <div class="title-note">
+    <strong>What this document fixes.</strong> Every table, every column that matters, every relationship and its cardinality, and the constraints that encode a requirement in the database rather than in application code. Where a design choice was available, the reasoning is stated — because the expensive mistakes in a schema are the ones made silently and discovered after there is production data sitting on top of them.
+  </div>
+</section>
+
+<!-- ============ TOC ============ -->
+<h2 class="continue">Table of Contents</h2>
+<div class="toc">
+<ol>
+  <li>Conventions and Design Principles</li>
+  <li>Domain Map and Cross-Domain Relationships</li>
+  <li>Domain 1 — Platform and Tenancy</li>
+  <li>Domain 2 — Identity and Authorisation</li>
+  <li>Domain 3 — People and Profiles
+    <ul><li>Including the universal fitness profile — the schema expression of FR-PFP-01</li></ul>
+  </li>
+  <li>Domain 4 — Billing and Memberships
+    <ul><li>Including gapless GST receipt numbering</li></ul>
+  </li>
+  <li>Domain 5 — Attendance</li>
+  <li>Domain 6 — Scheduling, Classes and Bookings
+    <ul><li>Including database-enforced capacity</li></ul>
+  </li>
+  <li>Domain 7 — Training: Exercises, Workouts, Nutrition</li>
+  <li>Domain 8 — Progress and Goals</li>
+  <li>Domain 9 — Engagement: Feedback, Notifications, WhatsApp</li>
+  <li>Domain 10 — Insights and AI</li>
+  <li>Domain 11 — Public Surface, SEO and Leads</li>
+  <li>Cross-Cutting Tables</li>
+  <li>Complete Relationship Matrix</li>
+  <li>Row-Level Security Application</li>
+  <li>Indexing Strategy</li>
+  <li>Migration Sequence by Phase</li>
+  <li>Enum Catalogue</li>
+  <li>Appendix A — Deviations from Earlier Documents</li>
+  <li>Appendix B — Amendments Required to SRS and Architecture</li>
+</ol>
+</div>
+
+<!-- ============ 1 ============ -->
+<h2>1. Conventions and Design Principles</h2>
+
+<h3>1.1 Naming</h3>
+<table>
+  <thead><tr><th style="width:120px">Object</th><th style="width:170px">Convention</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr><td>Table</td><td><code>snake_case</code>, plural</td><td><code>check_ins</code>, <code>pt_packages</code></td></tr>
+    <tr><td>Column</td><td><code>snake_case</code>, singular</td><td><code>occurred_at</code>, <code>credits_remaining</code></td></tr>
+    <tr><td>Primary key</td><td>Always <code>id</code></td><td><code>id uuid</code> (UUIDv7)</td></tr>
+    <tr><td>Foreign key</td><td><code>&lt;referenced_singular&gt;_id</code></td><td><code>location_id</code>, <code>trainer_user_id</code></td></tr>
+    <tr><td>Junction table</td><td>Both sides, alphabetical</td><td><code>exercise_muscle_groups</code></td></tr>
+    <tr><td>Boolean</td><td><code>is_</code> / <code>has_</code> prefix</td><td><code>is_published</code>, <code>has_waitlist</code></td></tr>
+    <tr><td>Timestamp</td><td><code>_at</code> suffix, always <code>timestamptz</code></td><td><code>created_at</code>, <code>revoked_at</code></td></tr>
+    <tr><td>Date only</td><td><code>_on</code> suffix, <code>date</code></td><td><code>valid_until_on</code>, <code>starts_on</code></td></tr>
+    <tr><td>Money</td><td><code>_minor</code> suffix, <code>bigint</code></td><td><code>amount_minor</code> (paise)</td></tr>
+    <tr><td>Index</td><td><code>idx_&lt;table&gt;_&lt;cols&gt;</code></td><td><code>idx_check_ins_user_occurred</code></td></tr>
+    <tr><td>Unique</td><td><code>uq_&lt;table&gt;_&lt;cols&gt;</code></td><td><code>uq_gyms_slug</code></td></tr>
+    <tr><td>Check</td><td><code>ck_&lt;table&gt;_&lt;rule&gt;</code></td><td><code>ck_pt_packages_credits_non_negative</code></td></tr>
+    <tr><td>RLS policy</td><td><code>p_&lt;table&gt;_isolation</code></td><td><code>p_check_ins_isolation</code></td></tr>
+  </tbody>
+</table>
+
+<h3>1.2 Principles</h3>
+<table>
+  <thead><tr><th class="id" style="width:62px">ID</th><th style="width:160px">Principle</th><th>Application</th></tr></thead>
+  <tbody>
+    <tr><td class="id">DM-01</td><td>Scope columns are mandatory</td><td>Every operational table carries <code>gym_id</code> and <code>location_id</code>, both <code>NOT NULL</code>. These are not conveniences — they are the columns RLS policies filter on, so a table missing them cannot be isolated.</td></tr>
+    <tr><td class="id">DM-02</td><td>Invariants live in constraints</td><td>If a rule can be a <code>CHECK</code>, a <code>UNIQUE</code>, a partial unique index or a foreign key, it is one. Application code can be bypassed by the next code path; the database cannot.</td></tr>
+    <tr><td class="id">DM-03</td><td>Money is never floating point</td><td><code>bigint</code> minor units plus an explicit currency column. No <code>float</code>, no <code>double</code>, no <code>real</code> anywhere near an amount.</td></tr>
+    <tr><td class="id">DM-04</td><td>Financial and factual history is append-only</td><td>Payments, attendance, credit movements and audit entries are never updated or deleted. Corrections are new rows referencing the original.</td></tr>
+    <tr><td class="id">DM-05</td><td>Ledger plus balance, not balance alone</td><td>Where a running total exists (PT credits, class packs), an immutable transaction ledger is the truth and the balance column is a locked, constrained cache of it. The ledger explains <em>how</em> a balance got there.</td></tr>
+    <tr><td class="id">DM-06</td><td>Soft delete for anything referenced</td><td><code>deleted_at timestamptz</code> on entities that history points at. A hard <code>DELETE</code> of a member orphans their attendance and payments.</td></tr>
+    <tr><td class="id">DM-07</td><td>Time is UTC, stored with zone</td><td><code>timestamptz</code> throughout, rendered in the tenant's timezone at the edge. A <code>timestamp</code> without zone is a future bug in a multi-timezone product.</td></tr>
+    <tr><td class="id">DM-08</td><td>Enums are Postgres types</td><td>Not free strings, not integer codes. Adding a value is a migration, which is correct — a new booking state should be a deliberate decision, not a typo someone inserted.</td></tr>
+    <tr><td class="id">DM-09</td><td><code>JSONB</code> only for genuinely variable shapes</td><td>Health screening answers, AI payloads, audit before/after, notification template variables. Never for data that is queried, joined or constrained.</td></tr>
+    <tr><td class="id">DM-10</td><td>No triggers, no stored procedures</td><td>Business logic lives in the application where it is testable and reviewable. Constraints are declarations, not logic, and are the one exception.</td></tr>
+  </tbody>
+</table>
+
+<h3>1.3 Columns present on every operational table</h3>
+<pre>id           uuid         <span class="kw">PRIMARY KEY</span>                <span class="cm">-- UUIDv7: unguessable, time-ordered</span>
+gym_id       uuid         <span class="kw">NOT NULL REFERENCES</span> gyms(id)
+location_id  uuid         <span class="kw">NOT NULL REFERENCES</span> locations(id)
+created_at   timestamptz  <span class="kw">NOT NULL DEFAULT</span> now()
+updated_at   timestamptz  <span class="kw">NOT NULL DEFAULT</span> now()
+created_by   uuid         <span class="kw">REFERENCES</span> users(id)      <span class="cm">-- null for system-generated rows</span>
+deleted_at   timestamptz                              <span class="cm">-- present where DM-06 applies</span></pre>
+<p class="small">Omitted from the entity cards that follow, to keep them readable. Assume all six unless a note says otherwise. Tables above the gym level — <code>gyms</code>, <code>users</code>, <code>subscription_offerings</code> — necessarily lack the scope columns and are called out where that applies.</p>
+
+<p class="leg"><strong>Entity card legend:</strong> <span class="b pk">PK</span> primary key &nbsp; <span class="b fk">FK</span> foreign key &nbsp; <span class="b uq">UQ</span> unique or part of a unique constraint &nbsp; <span style="border:2px solid var(--accent);padding:0 4px;border-radius:2px">bold border</span> core entity &nbsp; <span style="background:var(--warn);color:#fff;padding:0 4px;border-radius:2px">amber</span> holds sensitive personal data.</p>
+
+<!-- ============ 2 ============ -->
+<h2>2. Domain Map and Cross-Domain Relationships</h2>
+<p>Seventy-four entities across eleven domains. The domains correspond to the ten code modules of LB-ARCH-1.0 §4.3, plus the public surface introduced by the SEO and directory decision (§13).</p>
+
+<div class="map">
+  <div class="mod"><b>1 Platform</b><span class="n">6 entities</span><br>gyms, subscriptions, locations</div>
+  <div class="mod"><b>2 Identity</b><span class="n">7 entities</span><br>users, role grants, audit</div>
+  <div class="mod"><b>3 People</b><span class="n">8 entities</span><br>profiles, trainers, assignment</div>
+  <div class="mod"><b>4 Billing</b><span class="n">11 entities</span><br>plans, payments, credits</div>
+  <div class="mod"><b>5 Attendance</b><span class="n">3 entities</span><br>check-ins, QR secrets</div>
+  <div class="mod"><b>6 Scheduling</b><span class="n">8 entities</span><br>timetable, sessions, bookings</div>
+  <div class="mod"><b>7 Training</b><span class="n">15 entities</span><br>exercises, workouts, diet</div>
+  <div class="mod"><b>8 Progress</b><span class="n">3 entities</span><br>metrics, records, goals</div>
+  <div class="mod"><b>9 Engagement</b><span class="n">9 entities</span><br>feedback, notifications</div>
+  <div class="mod"><b>10 Insights</b><span class="n">2 entities</span><br>AI generations, snapshots</div>
+  <div class="mod" style="grid-column:span 2"><b>11 Public &amp; SEO</b><span class="n">4 entities</span><br>public pages, leads, redirects, content</div>
+  <div class="mod" style="grid-column:span 3"><b>Cross-cutting</b><span class="n">4 entities</span><br>job_queue, media_assets, idempotency_records, audit_log</div>
+</div>
+
+<h3>2.1 The three spine relationships</h3>
+<p>Almost everything in the schema hangs off three relationships. Getting these right is most of the design.</p>
+<table>
+  <thead><tr><th style="width:190px">Relationship</th><th style="width:60px">Card.</th><th>Why it is shaped this way</th></tr></thead>
+  <tbody>
+    <tr><td><code>gyms</code> → <code>locations</code></td><td>1 : N</td><td>A gym runs many locations. Every operational row carries both ids, not just <code>location_id</code>, even though location implies gym. The denormalisation is deliberate: RLS filters on <code>gym_id</code> first and a join to resolve it on every query would be ruinous.</td></tr>
+    <tr><td><code>users</code> → <code>role_grants</code></td><td>1 : N</td><td>Authority is a set of grants, never a column on the user. This is what allows Trainer + Location Admin simultaneously (<code>FR-AUTH-26</code>) and scoping per location (<code>FR-AUTH-28</code>). A <code>role</code> column on <code>users</code> could express neither.</td></tr>
+    <tr><td><code>users</code> → <code>fitness_profiles</code></td><td>1 : 1</td><td>Every account, whatever its role. Created with the user, never granted, never revoked (<code>FR-PFP-01</code>). This single relationship is what makes the dual-facet model real rather than aspirational.</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>The one relationship that does <em>not</em> exist, deliberately.</strong> There is no <code>members</code> table and no <code>member_id</code> anywhere. A member is a user holding a <code>MEMBER</code> role grant — nothing more. Had "member" been its own entity, staff could not train without a second account, and every training table would need a nullable second owner column. Modelling membership as a grant rather than an identity is what makes <code>FR-PFP-01</code> fall out naturally instead of needing special cases throughout.
+</div>
+
+<!-- ============ 3 ============ -->
+<h2>3. Domain 1 — Platform and Tenancy</h2>
+<p>The top of the hierarchy: the platform's gyms, their subscription lifecycle, and their physical locations. The two tables above gym scope — <code>gyms</code> and <code>subscription_offerings</code> — are the only operational tables without a <code>gym_id</code>, because one <em>is</em> the gym and the other is platform-wide catalogue.</p>
+
+<div class="ents">
+  <div class="ent core">
+    <div class="ent-head">gyms <span class="sub">tenant root</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b uq">UQ</span> slug <span class="t">citext</span></li>
+      <li><span class="b no"></span> legal_name <span class="t">text</span></li>
+      <li><span class="b no"></span> trading_name <span class="t">text</span></li>
+      <li><span class="b no"></span> gstin <span class="t">text</span></li>
+      <li><span class="b no"></span> state <span class="t">gym_state</span></li>
+      <li><span class="b no"></span> timezone <span class="t">text</span></li>
+      <li><span class="b no"></span> currency <span class="t">char(3)</span></li>
+      <li><span class="b fk">FK</span> logo_media_id</li>
+      <li><span class="b no"></span> verified_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> is_publicly_listed</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">subscription_offerings <span class="sub">platform</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b no"></span> name <span class="t">text</span></li>
+      <li><span class="b no"></span> term_months <span class="t">int</span></li>
+      <li><span class="b no"></span> price_minor <span class="t">bigint</span></li>
+      <li><span class="b no"></span> max_locations <span class="t">int</span></li>
+      <li><span class="b no"></span> max_members <span class="t">int</span></li>
+      <li><span class="b no"></span> is_active <span class="t">bool</span></li>
+    </ul>
+  </div>
+  <div class="ent core">
+    <div class="ent-head">gym_subscriptions</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id</li>
+      <li><span class="b fk">FK</span> offering_id</li>
+      <li><span class="b no"></span> starts_on <span class="t">date</span></li>
+      <li><span class="b no"></span> expires_on <span class="t">date</span></li>
+      <li><span class="b no"></span> grace_until_on <span class="t">date</span></li>
+      <li><span class="b no"></span> state <span class="t">subscription_state</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">subscription_payments</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> subscription_id</li>
+      <li><span class="b fk">FK</span> gym_id</li>
+      <li><span class="b no"></span> amount_minor <span class="t">bigint</span></li>
+      <li><span class="b no"></span> method <span class="t">payment_method</span></li>
+      <li><span class="b no"></span> reference <span class="t">text</span></li>
+      <li><span class="b no"></span> received_on <span class="t">date</span></li>
+      <li><span class="b fk">FK</span> recorded_by_user_id</li>
+    </ul>
+  </div>
+  <div class="ent core">
+    <div class="ent-head">locations</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id</li>
+      <li><span class="b uq">UQ</span> slug <span class="t">citext</span></li>
+      <li><span class="b no"></span> name <span class="t">text</span></li>
+      <li><span class="b no"></span> address_line1/2 <span class="t">text</span></li>
+      <li><span class="b no"></span> city, state, pincode</li>
+      <li><span class="b no"></span> geo <span class="t">geography(Point)</span></li>
+      <li><span class="b no"></span> checkin_radius_m <span class="t">int</span></li>
+      <li><span class="b no"></span> floor_capacity <span class="t">int</span></li>
+      <li><span class="b no"></span> is_publicly_listed</li>
+      <li><span class="b no"></span> closed_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">location_hours</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> location_id</li>
+      <li><span class="b uq">UQ</span> day_of_week <span class="t">int</span></li>
+      <li><span class="b no"></span> opens_at <span class="t">time</span></li>
+      <li><span class="b no"></span> closes_at <span class="t">time</span></li>
+      <li><span class="b no"></span> is_closed <span class="t">bool</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">location_closures</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> location_id</li>
+      <li><span class="b no"></span> closed_on <span class="t">date</span></li>
+      <li><span class="b no"></span> reason <span class="t">text</span></li>
+    </ul>
+  </div>
+</div>
+
+<h4>Relationships</h4>
+<table>
+  <thead><tr><th style="width:200px">From → To</th><th style="width:52px">Card.</th><th style="width:78px">On delete</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td><code>gyms</code> → <code>locations</code></td><td>1 : N</td><td>RESTRICT</td><td>A gym has at least one location; locations are closed, never deleted (<code>FR-ORG-14</code>).</td></tr>
+    <tr><td><code>gyms</code> → <code>gym_subscriptions</code></td><td>1 : N</td><td>RESTRICT</td><td>Successive terms. At most one in state <code>LIVE</code> — enforced by partial unique index.</td></tr>
+    <tr><td><code>subscription_offerings</code> → <code>gym_subscriptions</code></td><td>1 : N</td><td>RESTRICT</td><td>Offerings are retired, not deleted, so historical terms remain explicable.</td></tr>
+    <tr><td><code>gym_subscriptions</code> → <code>subscription_payments</code></td><td>1 : N</td><td>RESTRICT</td><td>Cash recorded by the Super Admin (<code>FR-SUB-02</code>). Append-only per <code>DM-04</code>.</td></tr>
+    <tr><td><code>locations</code> → <code>location_hours</code></td><td>1 : N</td><td>CASCADE</td><td>Exactly seven rows per location, one per weekday.</td></tr>
+    <tr><td><code>locations</code> → <code>location_closures</code></td><td>1 : N</td><td>CASCADE</td><td>Suppresses session generation (<code>FR-ORG-07</code>).</td></tr>
+  </tbody>
+</table>
+
+<h4>Constraints that encode a requirement</h4>
+<pre><span class="cm">-- FR-SUB-04: a gym has at most one live subscription at any time</span>
+<span class="kw">CREATE UNIQUE INDEX</span> uq_gym_subscriptions_live
+    <span class="kw">ON</span> gym_subscriptions (gym_id) <span class="kw">WHERE</span> state = 'LIVE';
+
+<span class="cm">-- §13: the public URL is /gyms/{gym-slug}/{location-slug}, so location slugs</span>
+<span class="cm">-- need only be unique within their gym, and gym slugs globally.</span>
+<span class="kw">CREATE UNIQUE INDEX</span> uq_locations_gym_slug <span class="kw">ON</span> locations (gym_id, slug);
+
+<span class="cm">-- Geofence radius must be sane: a 5km radius defeats the point (FR-ATT-02)</span>
+<span class="kw">ALTER TABLE</span> locations <span class="kw">ADD CONSTRAINT</span> ck_locations_radius
+    <span class="kw">CHECK</span> (checkin_radius_m <span class="kw">BETWEEN</span> 20 <span class="kw">AND</span> 500);</pre>
+<p class="small"><code>geography(Point,4326)</code> requires the PostGIS extension. It earns its place twice over: geofenced check-in needs an accurate distance calculation, and the public location pages need "gyms near me" ordering (§13). Computing great-circle distance in application code over a growing table would be both slower and wrong at the edges.</p>
+
+<!-- ============ 4 ============ -->
+<h2>4. Domain 2 — Identity and Authorisation</h2>
+<p>The most consequential design in the schema. Authority is modelled as grants with explicit location scope, because the SRS requires that a trainer promoted to Location Admin at one site holds no authority at a sibling (<code>FR-AUTH-18</code>, <code>FR-AUTH-28</code>).</p>
+
+<div class="ents">
+  <div class="ent core">
+    <div class="ent-head">users <span class="sub">no gym scope</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b uq">UQ</span> phone_e164 <span class="t">text</span></li>
+      <li><span class="b uq">UQ</span> email <span class="t">citext</span></li>
+      <li><span class="b no"></span> password_hash <span class="t">text</span></li>
+      <li><span class="b no"></span> first_name, last_name</li>
+      <li><span class="b no"></span> date_of_birth <span class="t">date</span></li>
+      <li><span class="b no"></span> gender <span class="t">gender</span></li>
+      <li><span class="b fk">FK</span> avatar_media_id</li>
+      <li><span class="b no"></span> state <span class="t">account_state</span></li>
+      <li><span class="b no"></span> phone_verified_at</li>
+      <li><span class="b no"></span> deleted_at</li>
+    </ul>
+  </div>
+  <div class="ent core">
+    <div class="ent-head">role_grants</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> user_id</li>
+      <li><span class="b fk uq">FK</span> gym_id</li>
+      <li><span class="b uq">UQ</span> role <span class="t">role_type</span></li>
+      <li><span class="b no"></span> is_gym_wide <span class="t">bool</span></li>
+      <li><span class="b fk">FK</span> granted_by_user_id</li>
+      <li><span class="b no"></span> granted_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> revoked_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> revoked_reason <span class="t">text</span></li>
+    </ul>
+  </div>
+  <div class="ent core">
+    <div class="ent-head">role_grant_locations</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> role_grant_id</li>
+      <li><span class="b fk uq">FK</span> location_id</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">refresh_tokens</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> user_id</li>
+      <li><span class="b uq">UQ</span> token_hash <span class="t">text</span></li>
+      <li><span class="b no"></span> device_label <span class="t">text</span></li>
+      <li><span class="b no"></span> expires_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> revoked_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">user_consents</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> user_id</li>
+      <li><span class="b no"></span> consent_type <span class="t">consent_type</span></li>
+      <li><span class="b no"></span> version <span class="t">text</span></li>
+      <li><span class="b no"></span> granted_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> withdrawn_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">otp_attempts <span class="sub">rate limiting</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b no"></span> identifier <span class="t">text</span></li>
+      <li><span class="b no"></span> channel <span class="t">otp_channel</span></li>
+      <li><span class="b no"></span> device_fingerprint</li>
+      <li><span class="b no"></span> attempted_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> was_successful <span class="t">bool</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">audit_log <span class="sub">append-only</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id <span class="t">nullable</span></li>
+      <li><span class="b fk">FK</span> actor_user_id</li>
+      <li><span class="b no"></span> action <span class="t">text</span></li>
+      <li><span class="b no"></span> subject_type <span class="t">text</span></li>
+      <li><span class="b no"></span> subject_id <span class="t">uuid</span></li>
+      <li><span class="b no"></span> before <span class="t">jsonb</span></li>
+      <li><span class="b no"></span> after <span class="t">jsonb</span></li>
+      <li><span class="b no"></span> reason <span class="t">text</span></li>
+      <li><span class="b no"></span> occurred_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+</div>
+
+<h4>Relationships</h4>
+<table>
+  <thead><tr><th style="width:200px">From → To</th><th style="width:52px">Card.</th><th style="width:78px">On delete</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td><code>users</code> → <code>role_grants</code></td><td>1 : N</td><td>CASCADE</td><td>A user may hold several grants across gyms and roles.</td></tr>
+    <tr><td><code>role_grants</code> → <code>role_grant_locations</code></td><td>1 : N</td><td>CASCADE</td><td>Empty set when <code>is_gym_wide</code>; otherwise the named locations.</td></tr>
+    <tr><td><code>locations</code> → <code>role_grant_locations</code></td><td>1 : N</td><td>RESTRICT</td><td>A location cannot be deleted while an admin is scoped to it.</td></tr>
+    <tr><td><code>users</code> → <code>role_grants</code> (granted_by)</td><td>1 : N</td><td>SET NULL</td><td>The delegation chain (<code>FR-AUTH-25</code>): who appointed whom.</td></tr>
+    <tr><td><code>users</code> → <code>refresh_tokens</code></td><td>1 : N</td><td>CASCADE</td><td>One per device; revocable individually or wholesale (<code>FR-AUTH-13</code>).</td></tr>
+    <tr><td><code>users</code> → <code>user_consents</code></td><td>1 : N</td><td>RESTRICT</td><td>Never deleted — consent history is a DPDP obligation.</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>Why a junction table rather than a <code>location_ids uuid[]</code> column.</strong> LB-ARCH-1.0 §5.2 sketched the scope as an array. A junction table is the better model and supersedes that sketch: an array cannot have a foreign key, so it will eventually hold the id of a deleted location with nothing to stop it; "which admins cover location X" is an indexed join rather than a full scan of an array column; and <code>RESTRICT</code> on the location FK prevents closing a location out from under its administrators. The RLS context still needs a fast list, so the session filter builds the location CSV once per request from this table — one indexed query, not a per-row join. Recorded in Appendix A.
+</div>
+
+<h4>Constraints</h4>
+<pre><span class="cm">-- FR-AUTH-11: one live grant of a given role per user per gym.</span>
+<span class="cm">-- Partial unique index, not a UNIQUE constraint: revoked grants stay as history</span>
+<span class="cm">-- and must not block a later re-grant of the same role.</span>
+<span class="kw">CREATE UNIQUE INDEX</span> uq_role_grants_live
+    <span class="kw">ON</span> role_grants (user_id, gym_id, role) <span class="kw">WHERE</span> revoked_at <span class="kw">IS NULL</span>;
+
+<span class="cm">-- FR-AUTH-18: only GYM_OWNER and SUPER_ADMIN may hold gym-wide scope.</span>
+<span class="kw">ALTER TABLE</span> role_grants <span class="kw">ADD CONSTRAINT</span> ck_role_grants_gym_wide_role
+    <span class="kw">CHECK</span> (<span class="kw">NOT</span> is_gym_wide <span class="kw">OR</span> role <span class="kw">IN</span> ('GYM_OWNER','SUPER_ADMIN'));
+
+<span class="cm">-- FR-AUTH-22: last-admin protection. A partial unique index cannot express</span>
+<span class="cm">-- "at least one", so this is enforced in the service layer under a lock on the</span>
+<span class="cm">-- gym row — one of the few invariants the database genuinely cannot hold.</span></pre>
+<div class="warn">
+  <strong>Where DM-02 does not reach.</strong> Last-admin protection is a <em>minimum cardinality</em> rule, and SQL constraints can only express maxima and shapes. It therefore lives in <code>IdentityService</code>, guarded by a row lock on the gym, with a dedicated concurrency test proving two simultaneous demotions cannot both succeed. Naming the exception matters: an invariant everyone assumes the database is holding, which it is not, is exactly how these fail.
+</div>
+
+<!-- ============ 5 ============ -->
+<h2>5. Domain 3 — People and Profiles</h2>
+<p>This domain contains the schema's most important single decision. <code>fitness_profiles</code> is 1:1 with <code>users</code> — not with members, not with a role — which is <code>FR-PFP-01</code> made structural. No query in the training or progress domains needs to know what role its owner holds.</p>
+
+<div class="ents">
+  <div class="ent core">
+    <div class="ent-head">fitness_profiles <span class="sub">1:1 users</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> user_id <span class="t">UNIQUE</span></li>
+      <li><span class="b no"></span> height_cm <span class="t">numeric(5,1)</span></li>
+      <li><span class="b no"></span> experience_level <span class="t">level</span></li>
+      <li><span class="b no"></span> primary_goal <span class="t">fitness_goal</span></li>
+      <li><span class="b no"></span> preferred_times <span class="t">jsonb</span></li>
+      <li><span class="b no"></span> dietary_pref <span class="t">dietary_preference</span></li>
+    </ul>
+  </div>
+  <div class="ent sens">
+    <div class="ent-head">health_screenings <span class="sub">sensitive</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> user_id</li>
+      <li><span class="b no"></span> answers <span class="t">jsonb</span></li>
+      <li><span class="b no"></span> injuries <span class="t">text</span></li>
+      <li><span class="b no"></span> conditions <span class="t">text</span></li>
+      <li><span class="b no"></span> medications <span class="t">text</span></li>
+      <li><span class="b no"></span> restrictions <span class="t">text</span></li>
+      <li><span class="b no"></span> completed_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> superseded_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">emergency_contacts</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> user_id</li>
+      <li><span class="b no"></span> name, relationship</li>
+      <li><span class="b no"></span> phone_e164 <span class="t">text</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">member_records <span class="sub">per gym</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> user_id</li>
+      <li><span class="b fk uq">FK</span> gym_id</li>
+      <li><span class="b fk">FK</span> primary_location_id</li>
+      <li><span class="b no"></span> joined_on <span class="t">date</span></li>
+      <li><span class="b no"></span> member_code <span class="t">text</span></li>
+      <li><span class="b no"></span> source <span class="t">member_source</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">member_location_access</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> member_record_id</li>
+      <li><span class="b fk uq">FK</span> location_id</li>
+      <li><span class="b fk">FK</span> granted_by_user_id</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">trainer_profiles</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> user_id</li>
+      <li><span class="b fk uq">FK</span> gym_id</li>
+      <li><span class="b no"></span> bio <span class="t">text</span></li>
+      <li><span class="b no"></span> years_experience <span class="t">int</span></li>
+      <li><span class="b no"></span> max_member_load <span class="t">int</span></li>
+      <li><span class="b no"></span> pt_rate_minor <span class="t">bigint</span></li>
+      <li><span class="b no"></span> is_publicly_listed</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">trainer_specialisations</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> trainer_profile_id</li>
+      <li><span class="b uq">UQ</span> specialisation <span class="t">enum</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">trainer_certifications</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> trainer_profile_id</li>
+      <li><span class="b no"></span> name, issuer <span class="t">text</span></li>
+      <li><span class="b no"></span> issued_on, expires_on</li>
+      <li><span class="b fk">FK</span> document_media_id</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">trainer_availability</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> trainer_profile_id</li>
+      <li><span class="b fk">FK</span> location_id</li>
+      <li><span class="b no"></span> day_of_week <span class="t">int</span></li>
+      <li><span class="b no"></span> starts_at, ends_at <span class="t">time</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">trainer_shifts</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> trainer_profile_id</li>
+      <li><span class="b fk">FK</span> location_id</li>
+      <li><span class="b no"></span> starts_at, ends_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">trainer_assignments</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> member_user_id</li>
+      <li><span class="b fk">FK</span> trainer_user_id</li>
+      <li><span class="b fk uq">FK</span> gym_id</li>
+      <li><span class="b no"></span> assigned_at, ended_at</li>
+      <li><span class="b fk">FK</span> assigned_by_user_id</li>
+    </ul>
+  </div>
+</div>
+
+<h4>Relationships</h4>
+<table>
+  <thead><tr><th style="width:200px">From → To</th><th style="width:52px">Card.</th><th style="width:78px">On delete</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td><code>users</code> → <code>fitness_profiles</code></td><td>1 : 1</td><td>CASCADE</td><td><strong>Every user, unconditionally.</strong> Created in the same transaction as the user (<code>FR-PFP-01</code>).</td></tr>
+    <tr><td><code>users</code> → <code>health_screenings</code></td><td>1 : N</td><td>CASCADE</td><td>Versioned: a new screening supersedes rather than overwrites, so a trainer can see what was true when a plan was written.</td></tr>
+    <tr><td><code>users</code> → <code>member_records</code></td><td>1 : N</td><td>CASCADE</td><td>One per gym the person is a member of. Holds the gym-specific facts a global user row must not.</td></tr>
+    <tr><td><code>member_records</code> → <code>member_location_access</code></td><td>1 : N</td><td>CASCADE</td><td>Explicit sibling-location grants only (<code>FR-ORG-05</code>) — never implicit.</td></tr>
+    <tr><td><code>users</code> → <code>trainer_profiles</code></td><td>1 : N</td><td>CASCADE</td><td>One per gym. A person may coach at more than one.</td></tr>
+    <tr><td><code>trainer_profiles</code> → <code>trainer_specialisations</code></td><td>1 : N</td><td>CASCADE</td><td>Drives class-type eligibility (<code>FR-CLS-01</code>) and public trainer listings.</td></tr>
+    <tr><td><code>trainer_profiles</code> → <code>trainer_availability</code></td><td>1 : N</td><td>CASCADE</td><td>Weekly recurring windows, per location. Constrains PT scheduling (<code>FR-PT-02</code>).</td></tr>
+    <tr><td><code>trainer_profiles</code> → <code>trainer_shifts</code></td><td>1 : N</td><td>CASCADE</td><td>Dated roster. Attendance is evaluated against it (<code>FR-ATT-09</code>).</td></tr>
+    <tr><td><code>users</code> ⇄ <code>users</code> via <code>trainer_assignments</code></td><td>M : N</td><td>RESTRICT</td><td>Member ↔ trainer over time. History preserved via <code>ended_at</code> (<code>FR-MEM-05</code>).</td></tr>
+  </tbody>
+</table>
+
+<pre><span class="cm">-- One live trainer per member per gym (FR-MEM-05)</span>
+<span class="kw">CREATE UNIQUE INDEX</span> uq_trainer_assignments_live
+    <span class="kw">ON</span> trainer_assignments (member_user_id, gym_id) <span class="kw">WHERE</span> ended_at <span class="kw">IS NULL</span>;
+
+<span class="cm">-- FR-PFP-08: nobody is their own trainer</span>
+<span class="kw">ALTER TABLE</span> trainer_assignments <span class="kw">ADD CONSTRAINT</span> ck_trainer_assignments_not_self
+    <span class="kw">CHECK</span> (member_user_id &lt;&gt; trainer_user_id);
+
+<span class="cm">-- FR-PFP-07: staff may be coached. Deliberately NO constraint requiring the</span>
+<span class="cm">-- member side to hold a MEMBER grant — adding one would break staff coaching,</span>
+<span class="cm">-- which is exactly the mistake this schema is shaped to prevent.</span></pre>
+
+<!-- ============ 6 ============ -->
+<h2>6. Domain 4 — Billing and Memberships</h2>
+<p>Money. Every design choice here favours auditability over convenience: ledgers rather than mutable balances, allocations rather than a single payment-to-thing pointer, and gapless receipt numbering because GST requires it.</p>
+
+<div class="ents">
+  <div class="ent core">
+    <div class="ent-head">plans <span class="sub">gym-wide</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id</li>
+      <li><span class="b no"></span> name <span class="t">text</span></li>
+      <li><span class="b no"></span> duration_months <span class="t">int</span></li>
+      <li><span class="b no"></span> price_minor <span class="t">bigint</span></li>
+      <li><span class="b no"></span> includes_group_classes</li>
+      <li><span class="b no"></span> is_active <span class="t">bool</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">plan_locations</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> plan_id</li>
+      <li><span class="b fk uq">FK</span> location_id</li>
+    </ul>
+  </div>
+  <div class="ent core">
+    <div class="ent-head">memberships</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> member_record_id</li>
+      <li><span class="b fk">FK</span> plan_id</li>
+      <li><span class="b no"></span> starts_on, expires_on</li>
+      <li><span class="b no"></span> price_agreed_minor</li>
+      <li><span class="b no"></span> discount_minor</li>
+      <li><span class="b no"></span> state <span class="t">membership_state</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">membership_freezes</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> membership_id</li>
+      <li><span class="b no"></span> freeze_from, freeze_to</li>
+      <li><span class="b no"></span> days_extended <span class="t">int</span></li>
+      <li><span class="b no"></span> reason <span class="t">text</span></li>
+    </ul>
+  </div>
+  <div class="ent core">
+    <div class="ent-head">pt_packages</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> member_user_id</li>
+      <li><span class="b fk">FK</span> trainer_user_id</li>
+      <li><span class="b no"></span> credits_total <span class="t">int</span></li>
+      <li><span class="b no"></span> credits_remaining <span class="t">int</span></li>
+      <li><span class="b no"></span> price_minor <span class="t">bigint</span></li>
+      <li><span class="b no"></span> valid_until_on <span class="t">date</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">pt_credit_transactions</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> pt_package_id</li>
+      <li><span class="b no"></span> delta <span class="t">int</span></li>
+      <li><span class="b no"></span> reason <span class="t">credit_reason</span></li>
+      <li><span class="b fk">FK</span> pt_appointment_id</li>
+      <li><span class="b no"></span> occurred_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">class_packs</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> member_record_id</li>
+      <li><span class="b fk">FK</span> class_type_id <span class="t">null</span></li>
+      <li><span class="b no"></span> entries_total <span class="t">int</span></li>
+      <li><span class="b no"></span> entries_remaining <span class="t">int</span></li>
+      <li><span class="b no"></span> valid_until_on <span class="t">date</span></li>
+    </ul>
+  </div>
+  <div class="ent core">
+    <div class="ent-head">payments <span class="sub">append-only</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> member_record_id</li>
+      <li><span class="b no"></span> amount_minor <span class="t">bigint</span></li>
+      <li><span class="b no"></span> currency <span class="t">char(3)</span></li>
+      <li><span class="b no"></span> method <span class="t">payment_method</span></li>
+      <li><span class="b no"></span> reference <span class="t">text</span></li>
+      <li><span class="b no"></span> received_on <span class="t">date</span></li>
+      <li><span class="b fk">FK</span> collected_by_user_id</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">payment_allocations</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> payment_id</li>
+      <li><span class="b no"></span> target_type <span class="t">enum</span></li>
+      <li><span class="b no"></span> target_id <span class="t">uuid</span></li>
+      <li><span class="b no"></span> amount_minor <span class="t">bigint</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">receipts</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> payment_id</li>
+      <li><span class="b uq">UQ</span> receipt_number <span class="t">text</span></li>
+      <li><span class="b no"></span> financial_year <span class="t">text</span></li>
+      <li><span class="b no"></span> taxable_minor, cgst, sgst, igst</li>
+      <li><span class="b no"></span> hsn_sac <span class="t">text</span></li>
+      <li><span class="b fk">FK</span> pdf_media_id</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">receipt_sequences</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> gym_id</li>
+      <li><span class="b uq">UQ</span> financial_year <span class="t">text</span></li>
+      <li><span class="b no"></span> last_number <span class="t">bigint</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">refunds</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> payment_id</li>
+      <li><span class="b no"></span> amount_minor <span class="t">bigint</span></li>
+      <li><span class="b no"></span> reason <span class="t">text</span></li>
+      <li><span class="b fk">FK</span> approved_by_user_id</li>
+    </ul>
+  </div>
+</div>
+
+<h4>Relationships</h4>
+<table>
+  <thead><tr><th style="width:200px">From → To</th><th style="width:52px">Card.</th><th style="width:78px">On delete</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td><code>gyms</code> → <code>plans</code></td><td>1 : N</td><td>RESTRICT</td><td>Gym-wide catalogue, Gym Owner only (<code>FR-ORG-12</code>).</td></tr>
+    <tr><td><code>plans</code> ⇄ <code>locations</code></td><td>M : N</td><td>CASCADE</td><td>A plan may be valid at some locations only.</td></tr>
+    <tr><td><code>member_records</code> → <code>memberships</code></td><td>1 : N</td><td>RESTRICT</td><td>Successive terms. At most one active — partial unique index.</td></tr>
+    <tr><td><code>memberships</code> → <code>membership_freezes</code></td><td>1 : N</td><td>CASCADE</td><td>Each freeze extends <code>expires_on</code> by <code>days_extended</code> (<code>FR-BIL-08</code>).</td></tr>
+    <tr><td><code>pt_packages</code> → <code>pt_credit_transactions</code></td><td>1 : N</td><td>RESTRICT</td><td><strong>The ledger is the truth</strong> (<code>DM-05</code>); <code>credits_remaining</code> is its locked cache.</td></tr>
+    <tr><td><code>payments</code> → <code>payment_allocations</code></td><td>1 : N</td><td>RESTRICT</td><td>One payment may settle a membership and a PT package at once. This is what makes partial payment and dues computable (<code>FR-BIL-04</code>).</td></tr>
+    <tr><td><code>payments</code> → <code>receipts</code></td><td>1 : 1</td><td>RESTRICT</td><td>Every recorded payment produces exactly one receipt (<code>FR-BIL-05</code>).</td></tr>
+    <tr><td><code>payments</code> → <code>refunds</code></td><td>1 : N</td><td>RESTRICT</td><td>Never mutate the original (<code>DM-04</code>, <code>FR-BIL-12</code>).</td></tr>
+  </tbody>
+</table>
+
+<div class="warn">
+  <strong>Gapless receipt numbering, and why a Postgres <code>SEQUENCE</code> will not do.</strong> GST requires invoice numbers to be consecutive with no gaps. A <code>SEQUENCE</code> is explicitly non-transactional — it does not roll back — so an aborted transaction permanently burns a number and leaves a hole. The <code>receipt_sequences</code> table exists solely to provide a number that <em>is</em> transactional: increment it under a row lock in the same transaction as the receipt insert, and a rollback returns the number. Slower than a sequence, and correct, which is the trade that matters when a tax authority is the audience.
+</div>
+<pre><span class="cm">-- Gapless allocation, inside the receipt-creating transaction</span>
+<span class="kw">UPDATE</span> receipt_sequences
+   <span class="kw">SET</span> last_number = last_number + 1
+ <span class="kw">WHERE</span> gym_id = ? <span class="kw">AND</span> financial_year = ?
+<span class="kw">RETURNING</span> last_number;                 <span class="cm">-- row-locked; rolls back with the transaction</span>
+
+<span class="cm">-- Only one active membership per member (FR-BIL-02)</span>
+<span class="kw">CREATE UNIQUE INDEX</span> uq_memberships_active
+    <span class="kw">ON</span> memberships (member_record_id) <span class="kw">WHERE</span> state = 'ACTIVE';
+
+<span class="cm">-- FR-BIL-10: the balance cache can never go negative or exceed the total</span>
+<span class="kw">ALTER TABLE</span> pt_packages <span class="kw">ADD CONSTRAINT</span> ck_pt_packages_credits
+    <span class="kw">CHECK</span> (credits_remaining &gt;= 0 <span class="kw">AND</span> credits_remaining &lt;= credits_total);
+
+<span class="cm">-- A payment may never be over-allocated across its targets</span>
+<span class="cm">-- (sum of allocations &lt;= payment amount) — enforced in service under lock,</span>
+<span class="cm">-- since SQL cannot express a cross-row aggregate constraint.</span></pre>
+
+<!-- ============ 7 ============ -->
+<h2>7. Domain 5 — Attendance</h2>
+<p>Small domain, high write volume, and the one most exposed to offline replay. Its correctness rests entirely on the idempotency constraint.</p>
+
+<div class="ents">
+  <div class="ent core">
+    <div class="ent-head">check_ins <span class="sub">append-only</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id, location_id</li>
+      <li><span class="b fk uq">FK</span> user_id</li>
+      <li><span class="b no"></span> occurred_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> checked_out_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> method <span class="t">checkin_method</span></li>
+      <li><span class="b no"></span> purpose <span class="t">checkin_purpose</span></li>
+      <li><span class="b fk">FK</span> session_id <span class="t">null</span></li>
+      <li><span class="b fk">FK</span> recorded_by_user_id</li>
+      <li><span class="b no"></span> is_deferred <span class="t">bool</span></li>
+      <li><span class="b no"></span> distance_m <span class="t">int</span></li>
+      <li><span class="b no"></span> is_flagged <span class="t">bool</span></li>
+      <li><span class="b uq">UQ</span> idempotency_key <span class="t">text</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">location_qr_secrets</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> location_id</li>
+      <li><span class="b no"></span> secret <span class="t">bytea</span></li>
+      <li><span class="b no"></span> rotation_seconds <span class="t">int</span></li>
+      <li><span class="b no"></span> rotated_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">attendance_streaks <span class="sub">derived</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> user_id</li>
+      <li><span class="b fk uq">FK</span> gym_id</li>
+      <li><span class="b no"></span> current_streak <span class="t">int</span></li>
+      <li><span class="b no"></span> longest_streak <span class="t">int</span></li>
+      <li><span class="b no"></span> last_check_in_on <span class="t">date</span></li>
+      <li><span class="b no"></span> habitual_hour <span class="t">int</span></li>
+    </ul>
+  </div>
+</div>
+
+<h4>Relationships and constraints</h4>
+<table>
+  <thead><tr><th style="width:200px">From → To</th><th style="width:52px">Card.</th><th style="width:78px">On delete</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td><code>users</code> → <code>check_ins</code></td><td>1 : N</td><td>RESTRICT</td><td>Never deleted. A member's attendance history outlives their membership.</td></tr>
+    <tr><td><code>locations</code> → <code>check_ins</code></td><td>1 : N</td><td>RESTRICT</td><td></td></tr>
+    <tr><td><code>sessions</code> → <code>check_ins</code></td><td>1 : N</td><td>SET NULL</td><td>Set when the arrival is for a booked class (<code>FR-ATT-12</code>); null for a general gym visit.</td></tr>
+    <tr><td><code>locations</code> → <code>location_qr_secrets</code></td><td>1 : N</td><td>CASCADE</td><td>Rotating signing key. History retained briefly so a code scanned moments before rotation still validates.</td></tr>
+    <tr><td><code>users</code> → <code>attendance_streaks</code></td><td>1 : 1 per gym</td><td>CASCADE</td><td>Derived, recomputed by the <code>StreakRecalc</code> job. Safe to rebuild from <code>check_ins</code> at any time.</td></tr>
+  </tbody>
+</table>
+<pre><span class="cm">-- FR-ATT-05 + ADR-06: the single constraint that makes offline replay safe.</span>
+<span class="cm">-- The client reuses one key across every retry, so a duplicate submission</span>
+<span class="cm">-- collides here and the service returns the original row instead of inserting.</span>
+<span class="kw">ALTER TABLE</span> check_ins <span class="kw">ADD CONSTRAINT</span> uq_check_ins_idempotency
+    <span class="kw">UNIQUE</span> (user_id, idempotency_key);
+
+<span class="cm">-- FR-ATT-13: attendance purpose keeps trainer utilisation honest.</span>
+<span class="cm">-- Without it, a trainer's own workout inflates both staffing and footfall.</span>
+<span class="cm">-- checkin_purpose: 'SHIFT' | 'PERSONAL_WORKOUT' | 'BOTH'</span></pre>
+<div class="note">
+  <strong><code>habitual_hour</code> is not decoration.</strong> It is the derived field that makes <code>FR-WA-06</code> possible — the WhatsApp nudge sent at the member's usual gym time on a day they have not come. Computed by the streak job as the modal check-in hour over a trailing window, it is stored rather than calculated on demand because the nudge job scans every member each hour and cannot afford an aggregate per user.
+</div>
+
+<!-- ============ 8 ============ -->
+<h2>8. Domain 6 — Scheduling, Classes and Bookings</h2>
+<p>The most concurrency-sensitive domain, and the clearest justification for the single-transaction monolith of ADR-01. Capacity is enforced by the database, not by the application checking and hoping.</p>
+
+<div class="ents">
+  <div class="ent">
+    <div class="ent-head">class_types</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id</li>
+      <li><span class="b uq">UQ</span> slug <span class="t">citext</span></li>
+      <li><span class="b no"></span> name <span class="t">text</span></li>
+      <li><span class="b no"></span> duration_minutes <span class="t">int</span></li>
+      <li><span class="b no"></span> default_capacity <span class="t">int</span></li>
+      <li><span class="b no"></span> intensity <span class="t">intensity</span></li>
+      <li><span class="b no"></span> required_specialisation</li>
+      <li><span class="b no"></span> is_publicly_listed</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">rooms</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> location_id</li>
+      <li><span class="b no"></span> name <span class="t">text</span></li>
+      <li><span class="b no"></span> capacity <span class="t">int</span></li>
+    </ul>
+  </div>
+  <div class="ent core">
+    <div class="ent-head">timetable_entries <span class="sub">recurrence rule</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> location_id</li>
+      <li><span class="b fk">FK</span> class_type_id</li>
+      <li><span class="b fk">FK</span> trainer_user_id</li>
+      <li><span class="b fk">FK</span> room_id <span class="t">null</span></li>
+      <li><span class="b no"></span> day_of_week <span class="t">int</span></li>
+      <li><span class="b no"></span> starts_at <span class="t">time</span></li>
+      <li><span class="b no"></span> capacity <span class="t">int</span></li>
+      <li><span class="b no"></span> delivery_mode <span class="t">enum</span></li>
+      <li><span class="b no"></span> effective_from/to <span class="t">date</span></li>
+    </ul>
+  </div>
+  <div class="ent core">
+    <div class="ent-head">sessions <span class="sub">occurrence</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> timetable_entry_id <span class="t">null</span></li>
+      <li><span class="b fk">FK</span> location_id, class_type_id</li>
+      <li><span class="b fk">FK</span> trainer_user_id</li>
+      <li><span class="b no"></span> starts_at, ends_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> capacity <span class="t">int</span></li>
+      <li><span class="b no"></span> booked_count <span class="t">int</span></li>
+      <li><span class="b no"></span> state <span class="t">session_state</span></li>
+      <li><span class="b no"></span> delivery_mode <span class="t">enum</span></li>
+      <li><span class="b no"></span> meeting_url <span class="t">text</span></li>
+      <li><span class="b no"></span> meeting_passcode</li>
+      <li><span class="b no"></span> recording_url <span class="t">text</span></li>
+    </ul>
+  </div>
+  <div class="ent core">
+    <div class="ent-head">bookings</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> session_id</li>
+      <li><span class="b fk uq">FK</span> user_id</li>
+      <li><span class="b no"></span> state <span class="t">booking_state</span></li>
+      <li><span class="b no"></span> waitlist_position <span class="t">int</span></li>
+      <li><span class="b no"></span> booked_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> cancelled_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> was_late_cancel <span class="t">bool</span></li>
+      <li><span class="b fk">FK</span> class_pack_id <span class="t">null</span></li>
+      <li><span class="b uq">UQ</span> idempotency_key</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">pt_appointments</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> pt_package_id</li>
+      <li><span class="b fk">FK</span> member_user_id</li>
+      <li><span class="b fk">FK</span> trainer_user_id</li>
+      <li><span class="b fk">FK</span> location_id</li>
+      <li><span class="b no"></span> starts_at, ends_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> state <span class="t">appointment_state</span></li>
+      <li><span class="b no"></span> notes <span class="t">text</span></li>
+      <li><span class="b no"></span> completed_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">session_ratings</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> session_id</li>
+      <li><span class="b fk uq">FK</span> user_id</li>
+      <li><span class="b no"></span> rating <span class="t">int</span></li>
+      <li><span class="b no"></span> comment <span class="t">text</span></li>
+    </ul>
+  </div>
+</div>
+
+<h4>Relationships</h4>
+<table>
+  <thead><tr><th style="width:200px">From → To</th><th style="width:52px">Card.</th><th style="width:78px">On delete</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td><code>timetable_entries</code> → <code>sessions</code></td><td>1 : N</td><td>SET NULL</td><td>Sessions are <strong>materialised, not computed</strong>. <code>FR-CLS-04</code> requires amending a single occurrence without disturbing the pattern, which a computed view could not express. <code>SET NULL</code> lets a generated session survive deletion of its rule.</td></tr>
+    <tr><td><code>sessions</code> → <code>bookings</code></td><td>1 : N</td><td>RESTRICT</td><td>Capacity-constrained. See the constraint below.</td></tr>
+    <tr><td><code>class_types</code> → <code>sessions</code></td><td>1 : N</td><td>RESTRICT</td><td></td></tr>
+    <tr><td><code>users</code> → <code>sessions</code> (trainer)</td><td>1 : N</td><td>RESTRICT</td><td>Substitution rewrites this pointer (<code>FR-CLS-12</code>).</td></tr>
+    <tr><td><code>class_packs</code> → <code>bookings</code></td><td>1 : N</td><td>SET NULL</td><td>Set when an entry was consumed; restored on session cancellation (<code>FR-CLS-13</code>).</td></tr>
+    <tr><td><code>pt_packages</code> → <code>pt_appointments</code></td><td>1 : N</td><td>RESTRICT</td><td>Completion writes a <code>-1</code> row to the credit ledger (<code>FR-PT-03</code>).</td></tr>
+    <tr><td><code>sessions</code> → <code>session_ratings</code></td><td>1 : N</td><td>CASCADE</td><td>One rating per attendee per session.</td></tr>
+  </tbody>
+</table>
+
+<div class="never">
+  <strong>How capacity is actually enforced.</strong> <code>booked_count</code> is denormalised onto <code>sessions</code> specifically so that a <code>CHECK</code> constraint can police it. The booking transaction locks the session row, increments the counter, and inserts the booking; if the increment would breach capacity the constraint aborts the whole transaction. This is what makes <code>NFR-PRF-05</code> a database guarantee rather than an application intention — twenty concurrent requests for one remaining place produce exactly one booking, with no application-level coordination.
+</div>
+<pre><span class="cm">-- The constraint that cannot be argued with</span>
+<span class="kw">ALTER TABLE</span> sessions <span class="kw">ADD CONSTRAINT</span> ck_sessions_capacity
+    <span class="kw">CHECK</span> (booked_count &gt;= 0 <span class="kw">AND</span> booked_count &lt;= capacity);
+
+<span class="cm">-- FR-CLS-06: one live booking per person per session. Partial unique index,</span>
+<span class="cm">-- so a cancelled booking does not block re-booking the same session.</span>
+<span class="kw">CREATE UNIQUE INDEX</span> uq_bookings_live
+    <span class="kw">ON</span> bookings (session_id, user_id)
+ <span class="kw">WHERE</span> state <span class="kw">IN</span> ('BOOKED','WAITLISTED');
+
+<span class="cm">-- FR-CLS-14: no double-booked trainer or room. GiST exclusion over time ranges —</span>
+<span class="cm">-- the database refuses overlap outright rather than the application checking for it.</span>
+<span class="kw">ALTER TABLE</span> sessions <span class="kw">ADD CONSTRAINT</span> ex_sessions_trainer_overlap
+    <span class="kw">EXCLUDE USING GIST</span> (
+        trainer_user_id <span class="kw">WITH</span> =,
+        tstzrange(starts_at, ends_at) <span class="kw">WITH</span> &amp;&amp;
+    ) <span class="kw">WHERE</span> (state &lt;&gt; 'CANCELLED');
+
+<span class="cm">-- FR-CLS-07: waitlist order is unique within a session</span>
+<span class="kw">CREATE UNIQUE INDEX</span> uq_bookings_waitlist_position
+    <span class="kw">ON</span> bookings (session_id, waitlist_position) <span class="kw">WHERE</span> state = 'WAITLISTED';</pre>
+<p class="small">The <code>EXCLUDE USING GIST</code> constraint requires the <code>btree_gist</code> extension. It is worth enabling for this one constraint alone: trainer double-booking is otherwise a check that must be remembered in every code path that creates or reschedules a session, and forgetting it produces a trainer expected in two rooms at once.</p>
+
+<!-- ============ 9 ============ -->
+<h2>9. Domain 7 — Training: Exercises, Workouts and Nutrition</h2>
+<p>The largest domain, and the one that must never branch on role. Every table here is keyed by <code>user_id</code>, not by a member identifier — the schema-level expression of <code>FR-PFP-01</code>.</p>
+
+<h3>9.1 Exercise catalogue</h3>
+<div class="ents">
+  <div class="ent">
+    <div class="ent-head">muscle_groups</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b uq">UQ</span> slug <span class="t">citext</span></li>
+      <li><span class="b no"></span> name <span class="t">text</span></li>
+      <li><span class="b no"></span> body_region <span class="t">enum</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">equipment</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b uq">UQ</span> slug <span class="t">citext</span></li>
+      <li><span class="b no"></span> name <span class="t">text</span></li>
+    </ul>
+  </div>
+  <div class="ent core">
+    <div class="ent-head">exercises</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id <span class="t">null = global</span></li>
+      <li><span class="b uq">UQ</span> slug <span class="t">citext</span></li>
+      <li><span class="b no"></span> name <span class="t">text</span></li>
+      <li><span class="b no"></span> discipline <span class="t">enum</span></li>
+      <li><span class="b no"></span> difficulty <span class="t">level</span></li>
+      <li><span class="b no"></span> instructions <span class="t">text[]</span></li>
+      <li><span class="b fk">FK</span> demo_media_id</li>
+      <li><span class="b no"></span> is_publicly_listed</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">exercise_muscle_groups</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> exercise_id</li>
+      <li><span class="b fk uq">FK</span> muscle_group_id</li>
+      <li><span class="b no"></span> role <span class="t">PRIMARY|SECONDARY</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">exercise_equipment</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> exercise_id</li>
+      <li><span class="b fk uq">FK</span> equipment_id</li>
+    </ul>
+  </div>
+</div>
+<div class="note">
+  <strong><code>gym_id</code> is nullable on <code>exercises</code>, uniquely in this schema.</strong> A null means a platform-curated global exercise visible to every gym; a value means a gym's own addition (<code>FR-EXR-03</code>). This is the single deliberate exception to <code>DM-01</code>, and it requires its RLS policy to admit nulls explicitly — <code>gym_id IS NULL OR gym_id = current_setting(...)</code>. Missing that clause is an easy mistake whose symptom is an empty exercise library, so it is called out in §16.
+</div>
+
+<h3>9.2 Workouts</h3>
+<div class="ents">
+  <div class="ent">
+    <div class="ent-head">workout_templates</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id</li>
+      <li><span class="b fk">FK</span> author_user_id</li>
+      <li><span class="b no"></span> name <span class="t">text</span></li>
+      <li><span class="b no"></span> estimated_minutes <span class="t">int</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">template_exercises</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> workout_template_id</li>
+      <li><span class="b fk">FK</span> exercise_id</li>
+      <li><span class="b no"></span> position <span class="t">int</span></li>
+      <li><span class="b no"></span> rest_seconds <span class="t">int</span></li>
+      <li><span class="b no"></span> notes <span class="t">text</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">template_sets <span class="sub">prescribed</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> template_exercise_id</li>
+      <li><span class="b no"></span> set_number <span class="t">int</span></li>
+      <li><span class="b no"></span> target_reps <span class="t">int</span></li>
+      <li><span class="b no"></span> target_weight_kg <span class="t">numeric</span></li>
+      <li><span class="b no"></span> target_seconds <span class="t">int</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">routines</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id</li>
+      <li><span class="b fk">FK</span> author_user_id</li>
+      <li><span class="b no"></span> name <span class="t">text</span></li>
+      <li><span class="b no"></span> weeks <span class="t">int</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">routine_days</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> routine_id</li>
+      <li><span class="b uq">UQ</span> week_number <span class="t">int</span></li>
+      <li><span class="b uq">UQ</span> day_of_week <span class="t">int</span></li>
+      <li><span class="b fk">FK</span> workout_template_id</li>
+      <li><span class="b no"></span> load_multiplier <span class="t">numeric</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">routine_assignments</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> routine_id</li>
+      <li><span class="b fk">FK</span> user_id</li>
+      <li><span class="b fk">FK</span> assigned_by_user_id</li>
+      <li><span class="b no"></span> starts_on, ends_on <span class="t">date</span></li>
+      <li><span class="b no"></span> state <span class="t">enum</span></li>
+    </ul>
+  </div>
+  <div class="ent core">
+    <div class="ent-head">workout_logs</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> user_id</li>
+      <li><span class="b fk">FK</span> routine_assignment_id <span class="t">null</span></li>
+      <li><span class="b fk">FK</span> workout_template_id <span class="t">null</span></li>
+      <li><span class="b fk">FK</span> location_id</li>
+      <li><span class="b no"></span> performed_at <span class="t">tstz</span></li>
+      <li><span class="b no"></span> duration_minutes <span class="t">int</span></li>
+      <li><span class="b no"></span> is_deferred <span class="t">bool</span></li>
+      <li><span class="b uq">UQ</span> idempotency_key</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">workout_log_sets</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> workout_log_id</li>
+      <li><span class="b fk">FK</span> exercise_id</li>
+      <li><span class="b no"></span> set_number <span class="t">int</span></li>
+      <li><span class="b no"></span> reps <span class="t">int</span></li>
+      <li><span class="b no"></span> weight_kg <span class="t">numeric(6,2)</span></li>
+      <li><span class="b no"></span> seconds <span class="t">int</span></li>
+      <li><span class="b no"></span> rpe <span class="t">numeric(3,1)</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">personal_records <span class="sub">derived</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> user_id</li>
+      <li><span class="b fk uq">FK</span> exercise_id</li>
+      <li><span class="b uq">UQ</span> record_type <span class="t">enum</span></li>
+      <li><span class="b no"></span> value <span class="t">numeric</span></li>
+      <li><span class="b fk">FK</span> workout_log_set_id</li>
+      <li><span class="b no"></span> achieved_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+</div>
+
+<h3>9.3 Nutrition</h3>
+<div class="ents">
+  <div class="ent">
+    <div class="ent-head">diet_plans</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> user_id</li>
+      <li><span class="b fk">FK</span> author_user_id</li>
+      <li><span class="b no"></span> objective <span class="t">text</span></li>
+      <li><span class="b no"></span> starts_on, ends_on</li>
+      <li><span class="b no"></span> state <span class="t">enum</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">diet_plan_versions</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> diet_plan_id</li>
+      <li><span class="b uq">UQ</span> version_number <span class="t">int</span></li>
+      <li><span class="b no"></span> change_reason <span class="t">text</span></li>
+      <li><span class="b no"></span> kcal_target <span class="t">int</span></li>
+      <li><span class="b no"></span> protein/carbs/fat_g</li>
+      <li><span class="b fk">FK</span> ai_generation_id <span class="t">null</span></li>
+      <li><span class="b fk">FK</span> approved_by_user_id</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">diet_plan_meals</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> diet_plan_version_id</li>
+      <li><span class="b no"></span> meal_type <span class="t">enum</span></li>
+      <li><span class="b no"></span> time_of_day <span class="t">time</span></li>
+      <li><span class="b no"></span> notes <span class="t">text</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">diet_plan_items</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> diet_plan_meal_id</li>
+      <li><span class="b fk">FK</span> food_id <span class="t">null</span></li>
+      <li><span class="b no"></span> free_text <span class="t">text</span></li>
+      <li><span class="b no"></span> quantity <span class="t">numeric</span></li>
+      <li><span class="b no"></span> unit <span class="t">text</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">foods <span class="sub">Phase 4</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b uq">UQ</span> slug <span class="t">citext</span></li>
+      <li><span class="b no"></span> name <span class="t">text</span></li>
+      <li><span class="b no"></span> portion_g <span class="t">numeric</span></li>
+      <li><span class="b no"></span> kcal, protein, carbs, fat</li>
+      <li><span class="b no"></span> region <span class="t">text</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">diet_adherence_logs <span class="sub">Phase 4</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> user_id</li>
+      <li><span class="b fk">FK</span> diet_plan_meal_id</li>
+      <li><span class="b no"></span> logged_on <span class="t">date</span></li>
+      <li><span class="b no"></span> adherence <span class="t">enum</span></li>
+    </ul>
+  </div>
+  <div class="ent sens">
+    <div class="ent-head">diet_consultations</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> user_id</li>
+      <li><span class="b fk">FK</span> gym_id</li>
+      <li><span class="b no"></span> subject <span class="t">text</span></li>
+      <li><span class="b no"></span> state <span class="t">enum</span></li>
+    </ul>
+  </div>
+  <div class="ent sens">
+    <div class="ent-head">consultation_messages</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> diet_consultation_id</li>
+      <li><span class="b fk">FK</span> author_user_id</li>
+      <li><span class="b no"></span> body <span class="t">text</span></li>
+      <li><span class="b fk">FK</span> attachment_media_id</li>
+      <li><span class="b no"></span> sent_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+</div>
+
+<h4>Key relationships</h4>
+<table>
+  <thead><tr><th style="width:200px">From → To</th><th style="width:52px">Card.</th><th style="width:78px">On delete</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td><code>exercises</code> ⇄ <code>muscle_groups</code></td><td>M : N</td><td>CASCADE</td><td>Junction carries <code>role</code> — the same exercise is primary for one group and secondary for another, which a plain join table could not express.</td></tr>
+    <tr><td><code>workout_templates</code> → <code>template_exercises</code> → <code>template_sets</code></td><td>1:N:N</td><td>CASCADE</td><td>Prescription. Three levels because sets within an exercise vary independently.</td></tr>
+    <tr><td><code>routines</code> → <code>routine_days</code></td><td>1 : N</td><td>CASCADE</td><td>Unique on (routine, week, weekday). <code>load_multiplier</code> expresses progressive overload (<code>FR-WKT-10</code>) without duplicating templates per week.</td></tr>
+    <tr><td><code>users</code> → <code>workout_logs</code></td><td>1 : N</td><td>RESTRICT</td><td><strong>Keyed on user, not member.</strong> Staff training uses the identical path.</td></tr>
+    <tr><td><code>workout_logs</code> → <code>workout_log_sets</code></td><td>1 : N</td><td>CASCADE</td><td>What was actually performed, against what was prescribed.</td></tr>
+    <tr><td><code>diet_plans</code> → <code>diet_plan_versions</code></td><td>1 : N</td><td>CASCADE</td><td>Versioning per <code>FR-NUT-04</code>: meals hang off the <em>version</em>, so revising preserves the prior plan intact.</td></tr>
+    <tr><td><code>diet_plan_versions</code> → <code>diet_plan_meals</code> → <code>diet_plan_items</code></td><td>1:N:N</td><td>CASCADE</td><td></td></tr>
+    <tr><td><code>foods</code> → <code>diet_plan_items</code></td><td>1 : N</td><td>SET NULL</td><td>Nullable: Phase 2 plans use <code>free_text</code>; Phase 4 links to the food database without migrating old plans.</td></tr>
+  </tbody>
+</table>
+<pre><span class="cm">-- FR-WKT-07: one record per user per exercise per type, replaced when beaten</span>
+<span class="kw">CREATE UNIQUE INDEX</span> uq_personal_records
+    <span class="kw">ON</span> personal_records (user_id, exercise_id, record_type);
+
+<span class="cm">-- An item is either a catalogue food or free text — never neither</span>
+<span class="kw">ALTER TABLE</span> diet_plan_items <span class="kw">ADD CONSTRAINT</span> ck_diet_plan_items_has_content
+    <span class="kw">CHECK</span> (food_id <span class="kw">IS NOT NULL OR</span> free_text <span class="kw">IS NOT NULL</span>);
+
+<span class="cm">-- FR-AI-03: an AI-drafted plan version cannot be visible without human approval</span>
+<span class="kw">ALTER TABLE</span> diet_plan_versions <span class="kw">ADD CONSTRAINT</span> ck_diet_versions_ai_approved
+    <span class="kw">CHECK</span> (ai_generation_id <span class="kw">IS NULL OR</span> approved_by_user_id <span class="kw">IS NOT NULL</span>);</pre>
+<div class="note">
+  <strong>That last constraint is worth dwelling on.</strong> <code>FR-AI-03</code> says no AI-generated content reaches a member without recorded human approval. Expressed as a <code>CHECK</code>, it becomes impossible to violate — an AI-sourced plan version without an approver cannot be inserted at all. A requirement that would otherwise depend on every future code path remembering it is instead held by the database permanently. This is <code>DM-02</code> at its most valuable.
+</div>
+
+<!-- ============ 10 ============ -->
+<h2>10. Domain 8 — Progress and Goals</h2>
+<p>Progress photographs are out of scope, so this domain reduces to numeric measurement over time — which is also the shape that charts and analytics actually want.</p>
+<div class="ents">
+  <div class="ent core">
+    <div class="ent-head">body_metrics</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> user_id</li>
+      <li><span class="b uq">UQ</span> metric_type <span class="t">metric_type</span></li>
+      <li><span class="b uq">UQ</span> recorded_on <span class="t">date</span></li>
+      <li><span class="b no"></span> value <span class="t">numeric(7,2)</span></li>
+      <li><span class="b no"></span> unit <span class="t">text</span></li>
+      <li><span class="b fk">FK</span> recorded_by_user_id</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">goals</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> user_id</li>
+      <li><span class="b no"></span> goal_type <span class="t">enum</span></li>
+      <li><span class="b no"></span> metric_type <span class="t">null</span></li>
+      <li><span class="b no"></span> target_value <span class="t">numeric</span></li>
+      <li><span class="b no"></span> target_on <span class="t">date</span></li>
+      <li><span class="b no"></span> state <span class="t">enum</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">measurement_reminders</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> user_id</li>
+      <li><span class="b no"></span> cadence_days <span class="t">int</span></li>
+      <li><span class="b no"></span> last_prompted_on <span class="t">date</span></li>
+    </ul>
+  </div>
+</div>
+<div class="note">
+  <strong>Why one narrow table rather than a wide one.</strong> The obvious alternative is a <code>progress_entries</code> table with a column per measurement — <code>weight_kg</code>, <code>chest_cm</code>, <code>waist_cm</code> and so on. The narrow <code>(metric_type, value)</code> shape wins on three counts: adding a measurement is a new enum value rather than a schema migration and a nullable column on every historical row; charting a single metric is an indexed filter rather than a column projection with nulls; and a member who records only weight does not create a row that is 90% null. The cost is that fetching every metric for one date is a pivot — done once in the query layer, and worth it.
+</div>
+<pre><span class="cm">-- One value per metric per day per person; re-entry updates rather than duplicates</span>
+<span class="kw">CREATE UNIQUE INDEX</span> uq_body_metrics_daily
+    <span class="kw">ON</span> body_metrics (user_id, metric_type, recorded_on);
+
+<span class="cm">-- Reject physiologically impossible values — catches unit confusion (lb entered as kg)</span>
+<span class="kw">ALTER TABLE</span> body_metrics <span class="kw">ADD CONSTRAINT</span> ck_body_metrics_sane
+    <span class="kw">CHECK</span> (value &gt; 0 <span class="kw">AND</span> value &lt; 1000);</pre>
+
+<!-- ============ 11 ============ -->
+<h2>11. Domain 9 — Engagement</h2>
+<div class="ents">
+  <div class="ent">
+    <div class="ent-head">feedback</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id, location_id</li>
+      <li><span class="b fk">FK</span> author_user_id</li>
+      <li><span class="b no"></span> category <span class="t">enum</span></li>
+      <li><span class="b no"></span> body <span class="t">text</span></li>
+      <li><span class="b no"></span> state <span class="t">enum</span></li>
+      <li><span class="b no"></span> is_anonymous <span class="t">bool</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">feedback_responses</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> feedback_id</li>
+      <li><span class="b fk">FK</span> author_user_id</li>
+      <li><span class="b no"></span> body <span class="t">text</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">coaching_notes <span class="sub">staff → member</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> recipient_user_id</li>
+      <li><span class="b fk">FK</span> author_user_id</li>
+      <li><span class="b no"></span> note_type <span class="t">enum</span></li>
+      <li><span class="b no"></span> body <span class="t">text</span></li>
+      <li><span class="b no"></span> is_internal <span class="t">bool</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">announcements</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id</li>
+      <li><span class="b fk">FK</span> location_id <span class="t">null = all</span></li>
+      <li><span class="b no"></span> title, body <span class="t">text</span></li>
+      <li><span class="b no"></span> published_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">notifications</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> recipient_user_id</li>
+      <li><span class="b no"></span> event_type <span class="t">enum</span></li>
+      <li><span class="b no"></span> channel <span class="t">enum</span></li>
+      <li><span class="b no"></span> payload <span class="t">jsonb</span></li>
+      <li><span class="b no"></span> delivery_state <span class="t">enum</span></li>
+      <li><span class="b no"></span> read_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">notification_preferences</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> user_id</li>
+      <li><span class="b uq">UQ</span> category <span class="t">enum</span></li>
+      <li><span class="b no"></span> via_push, via_whatsapp</li>
+      <li><span class="b no"></span> quiet_from, quiet_to <span class="t">time</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">device_tokens</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> user_id</li>
+      <li><span class="b uq">UQ</span> expo_push_token <span class="t">text</span></li>
+      <li><span class="b no"></span> platform <span class="t">enum</span></li>
+      <li><span class="b no"></span> revoked_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">whatsapp_messages</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> recipient_user_id</li>
+      <li><span class="b no"></span> template_name <span class="t">text</span></li>
+      <li><span class="b no"></span> variables <span class="t">jsonb</span></li>
+      <li><span class="b no"></span> provider_message_id</li>
+      <li><span class="b no"></span> delivery_state <span class="t">enum</span></li>
+      <li><span class="b no"></span> sent_on <span class="t">date</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">message_templates</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id <span class="t">null = default</span></li>
+      <li><span class="b uq">UQ</span> event_type, channel</li>
+      <li><span class="b no"></span> body <span class="t">text</span></li>
+    </ul>
+  </div>
+</div>
+<pre><span class="cm">-- FR-WA-10: per-member daily cap on outbound WhatsApp. The index makes the</span>
+<span class="cm">-- "how many today" check cheap enough to run before every send.</span>
+<span class="kw">CREATE INDEX</span> idx_whatsapp_messages_daily_cap
+    <span class="kw">ON</span> whatsapp_messages (recipient_user_id, sent_on);
+
+<span class="cm">-- FR-FBK-09: anonymous feedback still records its author for abuse handling,</span>
+<span class="cm">-- but the flag governs disclosure. Never omit author_user_id to achieve anonymity —</span>
+<span class="cm">-- an unattributable complaint cannot be investigated or followed up.</span></pre>
+
+<!-- ============ 12 ============ -->
+<h2>12. Domain 10 — Insights and AI</h2>
+<div class="ents two">
+  <div class="ent">
+    <div class="ent-head">ai_generations <span class="sub">audit of every call</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id</li>
+      <li><span class="b fk">FK</span> subject_user_id</li>
+      <li><span class="b fk">FK</span> requested_by_user_id</li>
+      <li><span class="b no"></span> feature <span class="t">ai_feature</span></li>
+      <li><span class="b no"></span> model <span class="t">text</span></li>
+      <li><span class="b no"></span> prompt_inputs <span class="t">jsonb</span></li>
+      <li><span class="b no"></span> output <span class="t">jsonb</span></li>
+      <li><span class="b no"></span> state <span class="t">DRAFT|APPROVED|REJECTED</span></li>
+      <li><span class="b fk">FK</span> approved_by_user_id</li>
+      <li><span class="b no"></span> approved_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">report_snapshots <span class="sub">materialised</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id</li>
+      <li><span class="b fk">FK</span> location_id <span class="t">null</span></li>
+      <li><span class="b no"></span> report_type <span class="t">enum</span></li>
+      <li><span class="b no"></span> period_start, period_end</li>
+      <li><span class="b no"></span> data <span class="t">jsonb</span></li>
+      <li><span class="b no"></span> computed_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+</div>
+<p><code>ai_generations</code> satisfies <code>FR-AI-06</code> — every generation logged with inputs, output, model and approver. It is also the table that makes provider replacement safe: because the model name is recorded per generation, a change of provider leaves history explicable rather than mysterious. <code>report_snapshots</code> backs <code>NFR-PRF-06</code>'s asynchronous escape for reports too heavy to compute inside a request.</p>
+
+<!-- ============ 13 ============ -->
+<h2>13. Domain 11 — Public Surface, SEO and Leads</h2>
+<div class="note">
+  <strong>New in this document.</strong> The public directory and lead capture were out of scope in LB-SRS-1.1. The decision to build a Next.js public surface on a single domain brings both back. The schema consequence is small and mostly consists of fields the entities should arguably have had anyway — a slug, a publish flag, and somewhere to put a meta description.
+</div>
+
+<h3>13.1 How SEO fields are carried</h3>
+<p>Not a polymorphic <code>seo_metadata</code> table. Slugs need per-entity unique constraints and foreign-key-backed lookups, and a generic key-value table gives neither. The fields live on the entities that have public pages:</p>
+<table>
+  <thead><tr><th style="width:120px">Entity</th><th style="width:210px">Public URL</th><th>SEO columns</th></tr></thead>
+  <tbody>
+    <tr><td><code>gyms</code></td><td><code>/gyms/{gym-slug}</code></td><td><code>slug</code> (globally unique), <code>is_publicly_listed</code>, <code>meta_title</code>, <code>meta_description</code>, <code>og_media_id</code></td></tr>
+    <tr><td><code>locations</code></td><td><code>/gyms/{gym-slug}/{location-slug}</code></td><td><code>slug</code> (unique within gym), <code>is_publicly_listed</code>, <code>meta_title</code>, <code>meta_description</code>, plus address and <code>geo</code> already present</td></tr>
+    <tr><td><code>class_types</code></td><td><code>/classes/{class-slug}</code></td><td><code>slug</code>, <code>is_publicly_listed</code>, <code>description</code></td></tr>
+    <tr><td><code>trainer_profiles</code></td><td><code>/gyms/{gym}/trainers/{user-slug}</code></td><td><code>is_publicly_listed</code>, <code>bio</code></td></tr>
+    <tr><td><code>exercises</code></td><td><code>/exercises/{exercise-slug}</code></td><td><code>slug</code>, <code>is_publicly_listed</code> — a genuinely large long-tail surface</td></tr>
+  </tbody>
+</table>
+
+<h3>13.2 New entities</h3>
+<div class="ents">
+  <div class="ent core">
+    <div class="ent-head">leads <span class="sub">public write path</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id, location_id</li>
+      <li><span class="b no"></span> name <span class="t">text</span></li>
+      <li><span class="b no"></span> phone_e164 <span class="t">text</span></li>
+      <li><span class="b no"></span> email <span class="t">citext</span></li>
+      <li><span class="b no"></span> interest <span class="t">lead_interest</span></li>
+      <li><span class="b fk">FK</span> class_type_id <span class="t">null</span></li>
+      <li><span class="b no"></span> message <span class="t">text</span></li>
+      <li><span class="b no"></span> source <span class="t">lead_source</span></li>
+      <li><span class="b no"></span> state <span class="t">lead_state</span></li>
+      <li><span class="b fk">FK</span> assigned_to_user_id</li>
+      <li><span class="b fk">FK</span> converted_user_id</li>
+      <li><span class="b no"></span> ip_hash <span class="t">text</span></li>
+      <li><span class="b uq">UQ</span> idempotency_key</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">lead_activities</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> lead_id</li>
+      <li><span class="b fk">FK</span> actor_user_id</li>
+      <li><span class="b no"></span> activity <span class="t">enum</span></li>
+      <li><span class="b no"></span> note <span class="t">text</span></li>
+      <li><span class="b no"></span> next_follow_up_on</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">content_pages <span class="sub">blog / marketing</span></div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b uq">UQ</span> slug <span class="t">citext</span></li>
+      <li><span class="b no"></span> title, excerpt <span class="t">text</span></li>
+      <li><span class="b no"></span> body_markdown <span class="t">text</span></li>
+      <li><span class="b no"></span> meta_title/description</li>
+      <li><span class="b fk">FK</span> hero_media_id</li>
+      <li><span class="b no"></span> published_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">url_redirects</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b uq">UQ</span> from_path <span class="t">text</span></li>
+      <li><span class="b no"></span> to_path <span class="t">text</span></li>
+      <li><span class="b no"></span> status_code <span class="t">int</span></li>
+    </ul>
+  </div>
+</div>
+
+<h4>Relationships</h4>
+<table>
+  <thead><tr><th style="width:200px">From → To</th><th style="width:52px">Card.</th><th style="width:78px">On delete</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td><code>locations</code> → <code>leads</code></td><td>1 : N</td><td>RESTRICT</td><td>A lead always belongs to the location whose public page produced it.</td></tr>
+    <tr><td><code>leads</code> → <code>lead_activities</code></td><td>1 : N</td><td>CASCADE</td><td>The follow-up pipeline visible in the admin console.</td></tr>
+    <tr><td><code>leads</code> → <code>users</code> (converted)</td><td>N : 1</td><td>SET NULL</td><td>Set when a lead registers, closing the funnel loop and making conversion rate measurable.</td></tr>
+  </tbody>
+</table>
+
+<div class="warn">
+  <strong><code>leads</code> is the only table in the schema written by unauthenticated traffic.</strong> That makes it the platform's sole public attack surface and it needs treating as such: a per-IP and per-phone rate limit, a CAPTCHA or equivalent on the form, a honeypot field, server-side validation of the phone format, and a hashed IP stored for abuse investigation rather than the raw address. Note also that RLS cannot protect the insert — there is no authenticated context to filter on — so the <code>gym_id</code> and <code>location_id</code> are derived server-side from the page's slug, never accepted from the request body. A client-supplied <code>gym_id</code> here would let anyone inject leads into any gym's pipeline.
+</div>
+
+<h3>13.3 Structured data generated from these tables</h3>
+<table>
+  <thead><tr><th style="width:150px">Schema.org type</th><th style="width:170px">Built from</th><th>What it earns</th></tr></thead>
+  <tbody>
+    <tr><td><code>LocalBusiness</code> / <code>ExerciseGym</code></td><td><code>locations</code> + <code>location_hours</code></td><td>Map pack eligibility, opening hours and address shown directly in results. The single highest-value markup for "gym near me".</td></tr>
+    <tr><td><code>Schedule</code> / <code>Event</code></td><td><code>sessions</code> + <code>class_types</code></td><td>Class times eligible for rich results — genuinely rare among gym sites, and a real differentiator.</td></tr>
+    <tr><td><code>Person</code></td><td><code>trainer_profiles</code></td><td>Trainer pages that can rank on name searches.</td></tr>
+    <tr><td><code>AggregateRating</code></td><td><code>session_ratings</code></td><td>Star ratings in results. Only where ratings are genuine — fabricating these is both a policy violation and a manual-action risk.</td></tr>
+    <tr><td><code>Article</code></td><td><code>content_pages</code></td><td>Blog eligibility.</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <strong>Why the schema is the SEO strategy.</strong> Every one of the markup types above is generated from data the platform already holds for operational reasons. Fifty gyms with three locations each is 150 <code>LocalBusiness</code> pages with real addresses, real hours and a live timetable — all on one domain, all compounding its authority. That is a content position most gym websites cannot reach, and it costs no writing. The blog is the only part that requires ongoing effort, which is precisely why it is the lowest priority of the four public surfaces.
+</div>
+
+<!-- ============ 14 ============ -->
+<h2>14. Cross-Cutting Tables</h2>
+<div class="ents">
+  <div class="ent core">
+    <div class="ent-head">media_assets</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk">FK</span> gym_id <span class="t">null</span></li>
+      <li><span class="b uq">UQ</span> public_id <span class="t">text</span></li>
+      <li><span class="b no"></span> sensitivity <span class="t">PUBLIC|SENSITIVE</span></li>
+      <li><span class="b no"></span> delivery_type <span class="t">text</span></li>
+      <li><span class="b no"></span> content_type, bytes</li>
+      <li><span class="b no"></span> width, height <span class="t">int</span></li>
+      <li><span class="b fk">FK</span> uploaded_by_user_id</li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">job_queue</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b no"></span> job_type <span class="t">text</span></li>
+      <li><span class="b no"></span> payload <span class="t">jsonb</span></li>
+      <li><span class="b no"></span> state <span class="t">job_state</span></li>
+      <li><span class="b no"></span> priority <span class="t">int</span></li>
+      <li><span class="b no"></span> run_after <span class="t">tstz</span></li>
+      <li><span class="b no"></span> attempts <span class="t">int</span></li>
+      <li><span class="b no"></span> last_error <span class="t">text</span></li>
+    </ul>
+  </div>
+  <div class="ent">
+    <div class="ent-head">idempotency_records</div>
+    <ul>
+      <li><span class="b pk">PK</span> id <span class="t">uuid</span></li>
+      <li><span class="b fk uq">FK</span> user_id</li>
+      <li><span class="b uq">UQ</span> idempotency_key <span class="t">text</span></li>
+      <li><span class="b no"></span> endpoint <span class="t">text</span></li>
+      <li><span class="b no"></span> response_status <span class="t">int</span></li>
+      <li><span class="b no"></span> response_body <span class="t">jsonb</span></li>
+      <li><span class="b no"></span> expires_at <span class="t">tstz</span></li>
+    </ul>
+  </div>
+</div>
+<div class="never">
+  <strong><code>media_assets.public_id</code> is the schema's enforcement of NN-4.</strong> There is no URL column anywhere in this database — not here, not on <code>users</code>, not on <code>exercises</code>. Every media reference is a foreign key to this table, and every URL is constructed at read time from the <code>public_id</code> plus the sensitivity rules. Because there is nowhere to <em>put</em> a full Cloudinary URL, the rule cannot be broken by forgetting it. The <code>sensitivity</code> column is likewise not advisory: <code>MediaService</code> reads it to decide signed versus public delivery.
+</div>
+<pre><span class="cm">-- ADR-09: the whole job queue mechanism in one index</span>
+<span class="kw">CREATE INDEX</span> idx_job_queue_claimable
+    <span class="kw">ON</span> job_queue (priority <span class="kw">DESC</span>, run_after)
+ <span class="kw">WHERE</span> state = 'PENDING';                <span class="cm">-- partial: pending rows are a tiny slice</span>
+
+<span class="cm">-- Generic idempotency for endpoints without their own natural key.</span>
+<span class="cm">-- check_ins, workout_logs, bookings and leads carry their own (see each domain);</span>
+<span class="cm">-- this table serves everything else and expires after 24 hours.</span>
+<span class="kw">CREATE UNIQUE INDEX</span> uq_idempotency_records
+    <span class="kw">ON</span> idempotency_records (user_id, idempotency_key);</pre>
+
+<!-- ============ 15 ============ -->
+<h2>15. Complete Relationship Matrix</h2>
+<p>Every relationship crossing a domain boundary. Within-domain relationships are in each domain's own section.</p>
+<table>
+  <thead><tr><th style="width:170px">Parent</th><th style="width:170px">Child</th><th style="width:46px">Card.</th><th style="width:66px">On del.</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>gyms</code></td><td>all gym-scoped tables</td><td>1 : N</td><td>RESTRICT</td><td>Tenant root. The <code>gym_id</code> every RLS policy filters on.</td></tr>
+    <tr><td><code>locations</code></td><td>all location-scoped tables</td><td>1 : N</td><td>RESTRICT</td><td>The isolation boundary of <code>CON-09</code>.</td></tr>
+    <tr><td><code>users</code></td><td><code>fitness_profiles</code></td><td>1 : 1</td><td>CASCADE</td><td>Universal, per <code>FR-PFP-01</code>.</td></tr>
+    <tr><td><code>users</code></td><td><code>role_grants</code></td><td>1 : N</td><td>CASCADE</td><td>All authority.</td></tr>
+    <tr><td><code>users</code></td><td><code>check_ins</code>, <code>workout_logs</code>, <code>body_metrics</code>, <code>goals</code>, <code>diet_plans</code>, <code>bookings</code></td><td>1 : N</td><td>RESTRICT</td><td>Personal training data — keyed on user, never on a member entity.</td></tr>
+    <tr><td><code>users</code></td><td><code>member_records</code>, <code>trainer_profiles</code></td><td>1 : N</td><td>CASCADE</td><td>Per-gym facets of one person.</td></tr>
+    <tr><td><code>member_records</code></td><td><code>memberships</code>, <code>payments</code>, <code>class_packs</code></td><td>1 : N</td><td>RESTRICT</td><td>Commercial relationship with one gym.</td></tr>
+    <tr><td><code>sessions</code></td><td><code>bookings</code>, <code>check_ins</code>, <code>session_ratings</code></td><td>1 : N</td><td>RESTRICT / SET NULL</td><td>Attendance links both to session and location.</td></tr>
+    <tr><td><code>pt_packages</code></td><td><code>pt_appointments</code>, <code>pt_credit_transactions</code></td><td>1 : N</td><td>RESTRICT</td><td>Credits consumed on completion.</td></tr>
+    <tr><td><code>exercises</code></td><td><code>template_exercises</code>, <code>workout_log_sets</code>, <code>personal_records</code></td><td>1 : N</td><td>RESTRICT</td><td>Catalogue referenced by prescription and by performance.</td></tr>
+    <tr><td><code>media_assets</code></td><td><code>users</code>, <code>gyms</code>, <code>exercises</code>, <code>receipts</code>, <code>content_pages</code>, <code>consultation_messages</code>, <code>trainer_certifications</code></td><td>1 : N</td><td>SET NULL</td><td>All media by reference. No URL is ever stored (<code>NN-4</code>).</td></tr>
+    <tr><td><code>ai_generations</code></td><td><code>diet_plan_versions</code></td><td>1 : N</td><td>SET NULL</td><td>Provenance, with approval enforced by <code>CHECK</code>.</td></tr>
+    <tr><td><code>leads</code></td><td><code>users</code> (converted)</td><td>N : 1</td><td>SET NULL</td><td>Closes the public funnel.</td></tr>
+    <tr><td><code>users</code></td><td><code>audit_log</code> (actor)</td><td>1 : N</td><td>RESTRICT</td><td>Never deleted — the audit trail outlives the account.</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <strong>Reading the delete rules.</strong> <code>RESTRICT</code> dominates on purpose: almost nothing in this schema should be deletable while history references it. <code>CASCADE</code> appears only where the child has no independent meaning (a grant's locations, a template's sets). <code>SET NULL</code> appears where the reference is provenance rather than dependency — a session surviving its timetable rule, a booking surviving its class pack. If a new relationship seems to want <code>CASCADE</code> on something a member might later ask about, it wants <code>RESTRICT</code> and a soft delete instead.
+</div>
+
+<!-- ============ 16 ============ -->
+<h2>16. Row-Level Security Application</h2>
+<p>Three policy shapes cover all 74 tables. Every table gets exactly one, in the same migration that creates it (<code>LB-ENG-1.0</code> §6).</p>
+<table>
+  <thead><tr><th style="width:130px">Shape</th><th style="width:180px">Applies to</th><th>Rule</th></tr></thead>
+  <tbody>
+    <tr><td><strong>A — gym + location</strong></td><td>The majority: <code>check_ins</code>, <code>bookings</code>, <code>sessions</code>, <code>memberships</code>, <code>payments</code>, <code>leads</code> …</td><td>Super Admin bypass, or matching <code>gym_id</code> and either gym-wide scope or a matching <code>location_id</code>.</td></tr>
+    <tr><td><strong>B — gym only</strong></td><td>Gym-wide entities: <code>plans</code>, <code>class_types</code>, <code>routines</code>, <code>message_templates</code></td><td>Super Admin bypass, or matching <code>gym_id</code>. No location clause — these are gym-wide by definition (<code>FR-ORG-12</code>).</td></tr>
+    <tr><td><strong>C — user-owned</strong></td><td>Personal data: <code>fitness_profiles</code>, <code>body_metrics</code>, <code>workout_logs</code>, <code>health_screenings</code></td><td>Own rows always; otherwise only if the caller administers or is assigned to that user's location. This is where the permission matrix of <code>LB-ENG-1.0</code> §13 is enforced at the data layer.</td></tr>
+  </tbody>
+</table>
+<pre><span class="cm">-- Shape A, the standard case</span>
+<span class="kw">CREATE POLICY</span> p_bookings_isolation <span class="kw">ON</span> bookings <span class="kw">USING</span> (
+    current_setting('app.is_super_admin', <span class="kw">true</span>)::boolean <span class="kw">IS TRUE</span>
+ <span class="kw">OR</span> (gym_id = current_setting('app.gym_id', <span class="kw">true</span>)::uuid
+     <span class="kw">AND</span> (current_setting('app.gym_wide', <span class="kw">true</span>)::boolean <span class="kw">IS TRUE</span>
+          <span class="kw">OR</span> location_id = <span class="kw">ANY</span>(string_to_array(
+               current_setting('app.location_ids', <span class="kw">true</span>), ',')::uuid[])))
+);
+
+<span class="cm">-- The exception: exercises, where NULL gym_id means the global catalogue.</span>
+<span class="cm">-- Omitting the IS NULL branch yields an empty exercise library — an easy</span>
+<span class="cm">-- mistake with a confusing symptom, so it has its own test.</span>
+<span class="kw">CREATE POLICY</span> p_exercises_isolation <span class="kw">ON</span> exercises <span class="kw">USING</span> (
+    gym_id <span class="kw">IS NULL</span>
+ <span class="kw">OR</span> current_setting('app.is_super_admin', <span class="kw">true</span>)::boolean <span class="kw">IS TRUE</span>
+ <span class="kw">OR</span> gym_id = current_setting('app.gym_id', <span class="kw">true</span>)::uuid
+);</pre>
+<div class="warn">
+  <strong>Tables deliberately exempt from RLS.</strong> <code>users</code> (a person may belong to several gyms; scoping happens through <code>role_grants</code> and <code>member_records</code>), <code>subscription_offerings</code> and <code>content_pages</code> (platform-wide), <code>muscle_groups</code>, <code>equipment</code> and <code>foods</code> (global reference data), and <code>job_queue</code> (accessed only by workers using a dedicated role). Each exemption is a deliberate decision recorded in the migration that creates the table, never an omission — and the isolation test suite asserts the exempt list explicitly, so adding a table to it requires changing a test.
+</div>
+
+<!-- ============ 17 ============ -->
+<h2>17. Indexing Strategy</h2>
+<table>
+  <thead><tr><th style="width:170px">Access pattern</th><th style="width:210px">Index</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>RLS filtering — every query</td><td><code>(gym_id, location_id)</code> on every scoped table</td><td>Load-bearing, not incidental: the policy predicate is evaluated per row, so without this every query degrades to a scan.</td></tr>
+    <tr><td>Attendance history, streaks</td><td><code>(user_id, occurred_at DESC)</code></td><td>The member's most-viewed screen.</td></tr>
+    <tr><td>Footfall reporting</td><td><code>(location_id, occurred_at DESC)</code></td><td>Admin dashboard, hourly and daily rollups.</td></tr>
+    <tr><td>Timetable browse</td><td><code>(location_id, starts_at)</code> partial where not cancelled</td><td>Serves both the app and the public location page.</td></tr>
+    <tr><td>Booking lookups</td><td><code>(session_id, state)</code>, <code>(user_id, booked_at DESC)</code></td><td>Roster views and the member's own schedule.</td></tr>
+    <tr><td>Expiry sweeps</td><td>Partial on <code>(expires_on)</code> where state active</td><td>Keeps the nightly job cheap as history accumulates.</td></tr>
+    <tr><td>Job claiming</td><td><code>(priority DESC, run_after)</code> partial where pending</td><td>What makes <code>SKIP LOCKED</code> polling inexpensive.</td></tr>
+    <tr><td>Workout history</td><td><code>(user_id, performed_at DESC)</code></td><td>Personal records derived by window function, not stored redundantly.</td></tr>
+    <tr><td>Metric charting</td><td><code>(user_id, metric_type, recorded_on)</code></td><td>Doubles as the daily uniqueness constraint.</td></tr>
+    <tr><td>Public slug lookup</td><td><code>(slug)</code> unique on gyms, class_types, exercises, content_pages</td><td>Every public page render begins with a slug resolution.</td></tr>
+    <tr><td>"Gyms near me"</td><td>GiST on <code>locations(geo)</code></td><td>Geofence validation and public proximity search, same index.</td></tr>
+    <tr><td>Lead abuse checks</td><td><code>(ip_hash, created_at)</code>, <code>(phone_e164, created_at)</code></td><td>Rate limiting on the one unauthenticated write path.</td></tr>
+  </tbody>
+</table>
+<p class="small">No partitioning at the SRS's stated volumes — 5 million attendance rows and 20 million workout sets are unremarkable for Postgres on modest hardware. Monthly range partitioning of <code>check_ins</code> and <code>workout_log_sets</code> is the first move if it ever becomes necessary, and nothing in this schema prevents adding it later.</p>
+
+<!-- ============ 18 ============ -->
+<h2>18. Migration Sequence by Phase</h2>
+<table>
+  <thead><tr><th style="width:52px">Phase</th><th style="width:70px">Tables</th><th>Contents</th></tr></thead>
+  <tbody>
+    <tr><td class="id">V1</td><td>4</td><td>Extensions (<code>pgcrypto</code>, <code>citext</code>, <code>postgis</code>, <code>btree_gist</code>), the two database roles, all enum types, <code>media_assets</code>, <code>job_queue</code>, <code>idempotency_records</code>, <code>audit_log</code>.</td></tr>
+    <tr><td class="id">V2</td><td>13</td><td><strong>Phase 1 — platform and identity.</strong> <code>gyms</code>, <code>locations</code>, <code>location_hours</code>, <code>location_closures</code>, subscriptions and payments, <code>users</code>, <code>role_grants</code>, <code>role_grant_locations</code>, <code>refresh_tokens</code>, <code>user_consents</code>, <code>otp_attempts</code>.</td></tr>
+    <tr><td class="id">V3</td><td>9</td><td><strong>Phase 1 — people.</strong> <code>fitness_profiles</code> (with users, never after), <code>health_screenings</code>, <code>emergency_contacts</code>, <code>member_records</code>, <code>member_location_access</code>, trainer tables, <code>trainer_assignments</code>.</td></tr>
+    <tr><td class="id">V4</td><td>11</td><td><strong>Phase 1 — billing.</strong> Plans, memberships, freezes, payments, allocations, receipts, <code>receipt_sequences</code>, refunds. PT and class-pack tables created now, used in Phase 2.</td></tr>
+    <tr><td class="id">V5</td><td>3</td><td><strong>Phase 1 — attendance.</strong> <code>check_ins</code>, <code>location_qr_secrets</code>, <code>attendance_streaks</code>.</td></tr>
+    <tr><td class="id">V6</td><td>5</td><td><strong>Phase 1 — engagement core.</strong> <code>notifications</code>, <code>notification_preferences</code>, <code>device_tokens</code>, <code>message_templates</code>, <code>announcements</code>.</td></tr>
+    <tr><td class="id">V7</td><td>14</td><td><strong>Phase 2 — training.</strong> Exercise catalogue and seed data, workout templates, routines, logs, personal records, diet plans and consultations.</td></tr>
+    <tr><td class="id">V8</td><td>6</td><td><strong>Phase 2 — progress and feedback.</strong> <code>body_metrics</code>, <code>goals</code>, <code>measurement_reminders</code>, <code>feedback</code>, <code>feedback_responses</code>, <code>coaching_notes</code>.</td></tr>
+    <tr><td class="id">V9</td><td>7</td><td><strong>Phase 3 — scheduling.</strong> <code>class_types</code>, <code>rooms</code>, <code>timetable_entries</code>, <code>sessions</code>, <code>bookings</code>, <code>pt_appointments</code>, <code>session_ratings</code>.</td></tr>
+    <tr><td class="id">V10</td><td>4</td><td><strong>Phase 3/4 — public surface.</strong> <code>leads</code>, <code>lead_activities</code>, <code>content_pages</code>, <code>url_redirects</code>, plus SEO columns added to existing entities.</td></tr>
+    <tr><td class="id">V11</td><td>4</td><td><strong>Phase 4 — insights and AI.</strong> <code>ai_generations</code>, <code>report_snapshots</code>, <code>whatsapp_messages</code>, <code>foods</code> and <code>diet_adherence_logs</code>.</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <strong>Two sequencing rules worth stating.</strong> First, <code>fitness_profiles</code> is created in the same migration as <code>users</code>, never later — if the two can exist apart even briefly, code will be written that assumes a user might not have one, and <code>FR-PFP-01</code> starts leaking exceptions. Second, tables whose rows arrive in a later phase (PT packages in V4, class packs before scheduling exists) are still created early where they are referenced by foreign keys — it is far cheaper than adding the constraint afterwards against live data.
+</div>
+
+<!-- ============ 19 ============ -->
+<h2>19. Enum Catalogue</h2>
+<table>
+  <thead><tr><th style="width:150px">Type</th><th>Values</th></tr></thead>
+  <tbody>
+    <tr><td><code>gym_state</code></td><td>PENDING_VERIFICATION · VERIFIED · LIVE · LAPSED · SUSPENDED · CLOSED</td></tr>
+    <tr><td><code>subscription_state</code></td><td>PENDING · LIVE · GRACE · LAPSED · CANCELLED</td></tr>
+    <tr><td><code>account_state</code></td><td>PENDING_VERIFICATION · ACTIVE · SUSPENDED · DEACTIVATED</td></tr>
+    <tr><td><code>role_type</code></td><td>SUPER_ADMIN · GYM_OWNER · LOCATION_ADMIN · TRAINER · MEMBER</td></tr>
+    <tr><td><code>membership_state</code></td><td>PENDING · ACTIVE · FROZEN · EXPIRED · CANCELLED</td></tr>
+    <tr><td><code>payment_method</code></td><td>CASH · UPI · CARD · BANK_TRANSFER · CHEQUE</td></tr>
+    <tr><td><code>checkin_method</code></td><td>QR · GEOFENCE · MANUAL</td></tr>
+    <tr><td><code>checkin_purpose</code></td><td>SHIFT · PERSONAL_WORKOUT · BOTH</td></tr>
+    <tr><td><code>session_state</code></td><td>SCHEDULED · IN_PROGRESS · COMPLETED · CANCELLED</td></tr>
+    <tr><td><code>booking_state</code></td><td>BOOKED · WAITLISTED · CANCELLED · ATTENDED · NO_SHOW</td></tr>
+    <tr><td><code>appointment_state</code></td><td>SCHEDULED · COMPLETED · CANCELLED · NO_SHOW</td></tr>
+    <tr><td><code>delivery_mode</code></td><td>ON_SITE · ONLINE · HYBRID</td></tr>
+    <tr><td><code>credit_reason</code></td><td>PURCHASE · SESSION_COMPLETED · LATE_CANCEL · EXPIRY · ADJUSTMENT · REFUND</td></tr>
+    <tr><td><code>metric_type</code></td><td>WEIGHT_KG · BODY_FAT_PCT · CHEST_CM · WAIST_CM · HIP_CM · ARM_CM · THIGH_CM · NECK_CM</td></tr>
+    <tr><td><code>record_type</code></td><td>MAX_WEIGHT · MAX_REPS · MAX_VOLUME · BEST_TIME</td></tr>
+    <tr><td><code>level</code></td><td>BEGINNER · INTERMEDIATE · ADVANCED</td></tr>
+    <tr><td><code>discipline</code></td><td>STRENGTH · CARDIO · FUNCTIONAL · YOGA · MOBILITY · MEDITATION · DANCE</td></tr>
+    <tr><td><code>meal_type</code></td><td>BREAKFAST · MID_MORNING · LUNCH · SNACK · DINNER · POST_WORKOUT</td></tr>
+    <tr><td><code>dietary_preference</code></td><td>VEGETARIAN · VEGAN · EGGETARIAN · NON_VEGETARIAN · JAIN</td></tr>
+    <tr><td><code>feedback_category</code></td><td>FACILITY · EQUIPMENT · TRAINER · CLEANLINESS · BILLING · APPLICATION · OTHER</td></tr>
+    <tr><td><code>lead_state</code></td><td>NEW · CONTACTED · TRIAL_BOOKED · TRIAL_ATTENDED · CONVERTED · LOST</td></tr>
+    <tr><td><code>lead_source</code></td><td>LOCATION_PAGE · GYM_PAGE · CLASS_PAGE · BLOG · DIRECT · REFERRAL</td></tr>
+    <tr><td><code>job_state</code></td><td>PENDING · CLAIMED · SUCCEEDED · FAILED · DEAD</td></tr>
+    <tr><td><code>ai_feature</code></td><td>WORKOUT_PROGRESSION · DIET_DRAFT · PROGRESS_NARRATIVE · CHURN_RISK</td></tr>
+    <tr><td><code>consent_type</code></td><td>TERMS · PRIVACY · MARKETING · WHATSAPP</td></tr>
+  </tbody>
+</table>
+<p class="small">Twenty-five enum types. Each is a deliberate closed set, and extending one is a migration — which is the point (<code>DM-08</code>). Note that <code>consent_type</code> separates <code>MARKETING</code> and <code>WHATSAPP</code> from <code>TERMS</code> and <code>PRIVACY</code>: <code>NFR-PRV-06</code> requires marketing consent be held separately from the consent to operate the service, and one enum value is the cheapest possible way to make that impossible to conflate.</p>
+
+<!-- ============ 20 ============ -->
+<h2>20. Appendix A — Deviations from Earlier Documents</h2>
+<table>
+  <thead><tr><th style="width:150px">Deviation</th><th style="width:150px">Earlier</th><th>Now, and why</th></tr></thead>
+  <tbody>
+    <tr><td>Role grant location scope</td><td>LB-ARCH §5.2 sketched <code>location_ids uuid[]</code></td><td><code>role_grant_locations</code> junction table. An array cannot carry a foreign key, so it will eventually reference a deleted location; the junction gives referential integrity, an indexed reverse lookup, and <code>RESTRICT</code> protection when closing a location. The RLS context builds its CSV from this table once per request.</td></tr>
+    <tr><td>Booking uniqueness</td><td>LB-ARCH §5.2 used <code>UNIQUE NULLS NOT DISTINCT</code></td><td>Partial unique index on live states. Clearer intent, works on any Postgres version, and correctly permits re-booking after cancellation.</td></tr>
+    <tr><td>No <code>members</code> table</td><td>Implied by the SRS's language</td><td>A member is a user with a <code>MEMBER</code> grant. <code>member_records</code> holds only the per-gym commercial facts. This is what lets staff train without a second account (§2.1).</td></tr>
+    <tr><td>Progress model</td><td>SRS M13 listed photographs</td><td>Photographs removed per your instruction. <code>body_metrics</code> is narrow rather than wide — see §10.</td></tr>
+    <tr><td>PostGIS dependency</td><td>Not mentioned in LB-ARCH</td><td>Added. Geofence distance and public proximity search both need real geography; approximating in application code is slower and wrong at the edges.</td></tr>
+    <tr><td>Web stack</td><td>LB-ARCH §2 specified React + Vite for the console</td><td><strong>Next.js</strong>, one app with a public SSG/ISR zone and an authenticated client-rendered console. Required by the SEO decision; the console gets <code>noindex</code>.</td></tr>
+  </tbody>
+</table>
+
+<h2 class="continue">21. Appendix B — Amendments Required to SRS and Architecture</h2>
+<p>Accumulating alongside the items already in LB-ARCH Appendix B and LB-ENG Appendix D. The SRS remains at v1.1 until you call for the v1.2 pass.</p>
+<table>
+  <thead><tr><th style="width:110px">Document</th><th style="width:150px">Item</th><th>Amendment</th></tr></thead>
+  <tbody>
+    <tr><td>LB-SRS-1.1 §10</td><td>"A public marketing website and lead management funnel" listed as out of scope</td><td><strong>Remove from Out of Scope.</strong> Both are now in scope: a public directory on one domain, and lead capture from location pages. Add functional requirements for the public surface and the lead pipeline, and note that <code>leads</code> is the only unauthenticated write path in the system.</td></tr>
+    <tr><td>LB-SRS-1.1 M13</td><td>Progress photographs</td><td>Withdraw <code>FR-PRG-03</code> and the photograph elements of <code>FR-PRG-06</code>/<code>FR-PRG-07</code> (already logged in LB-ENG Appendix D).</td></tr>
+    <tr><td>LB-ARCH-1.0 §2</td><td>Web console stack</td><td>Change React + Vite to Next.js, one app, two zones. Note the <code>noindex</code> on authenticated routes and ISR revalidation for public pages.</td></tr>
+    <tr><td>LB-ARCH-1.0 ADR-03</td><td>Postgres extensions</td><td>Record <code>postgis</code> and <code>btree_gist</code> as required, with the constraints that depend on them (geofencing, proximity search, trainer overlap exclusion).</td></tr>
+    <tr><td>LB-ARCH-1.0 §5.2</td><td>Schema sketch</td><td>Superseded in full by this document. Retain the sketch for context, mark it illustrative.</td></tr>
+    <tr><td>LB-SRS-1.1 <code>OPN-04</code></td><td>A person belonging to more than one gym</td><td><strong>Still open, and this schema now shows exactly what it costs.</strong> <code>users</code> is deliberately gym-agnostic and <code>role_grants</code>, <code>member_records</code> and <code>trainer_profiles</code> are all per-gym, so the data model already supports it. What does not is the RLS context, which assumes one active <code>gym_id</code> per request. Resolving it means a gym-switching claim in the token — a contained change, but one that must be made before <code>identity</code> is built.</td></tr>
+  </tbody>
+</table>
+
+<div class="note" style="margin-top:18px">
+  <strong>What to do with this document.</strong> It is the input to the Flyway migrations, and the migrations are the executable form of it — so when the two disagree, the migrations win and this document is corrected in the same pull request. The parts most worth re-reading before writing any code are §16 (every table needs its policy, in the same migration) and §15's note on delete rules, because both describe mistakes that are cheap now and very expensive once there is production data resting on them.
+</div>
+
+<div class="end-mark">— END OF DOCUMENT —</div>
+</body>
+</html>

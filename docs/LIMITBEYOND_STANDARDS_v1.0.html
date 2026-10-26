@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LIMITBEYOND — Engineering Standards &amp; Implementation Guide v1.0</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+  :root {
+    --ink:#1a1d24; --muted:#5a6273; --rule:#d4d9e2; --accent:#0f3d5c;
+    --accent-soft:#eef3f7; --band:#f6f8fa; --warn:#8a5a00; --warn-soft:#fdf6e8;
+    --bad:#9a2c2c; --bad-soft:#fdf0f0; --good:#2b6a3f; --good-soft:#eff6f1;
+  }
+  * { box-sizing:border-box; }
+  html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body { font-family:"Charter","Georgia","Times New Roman",serif; font-size:10.2pt; line-height:1.5; color:var(--ink); margin:0; }
+  h1,h2,h3,h4,.sans { font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; }
+
+  .title-page { height:245mm; display:flex; flex-direction:column; justify-content:center; break-after:page; }
+  .title-rule { height:4px; background:var(--accent); width:70px; margin-bottom:26px; }
+  .product { font-size:40pt; letter-spacing:3px; font-weight:700; color:var(--accent); margin:0; line-height:1.05; }
+  .product-sub { font-size:12pt; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin:10px 0 40px; }
+  .doc-type { font-size:19pt; font-weight:600; margin:0 0 4px; }
+  .doc-sub { font-size:11pt; color:var(--muted); margin:0 0 46px; }
+  .meta-grid { display:grid; grid-template-columns:130px 1fr; row-gap:7px; font-size:10pt; max-width:450px; }
+  .meta-grid dt { color:var(--muted); }
+  .meta-grid dd { margin:0; font-weight:600; }
+  .title-note { margin-top:44px; padding:12px 14px; background:var(--accent-soft); border-left:3px solid var(--accent); font-size:9.2pt; color:var(--muted); max-width:495px; }
+
+  h2 { font-size:15pt; color:var(--accent); border-bottom:2px solid var(--accent); padding-bottom:5px; margin:0 0 14px; break-before:page; break-after:avoid; }
+  h2.continue { break-before:auto; }
+  h3 { font-size:11.6pt; margin:20px 0 7px; break-after:avoid; }
+  h4 { font-size:10pt; margin:14px 0 5px; color:var(--accent); text-transform:uppercase; letter-spacing:0.6px; break-after:avoid; }
+  p { margin:0 0 9px; }
+  ul,ol { margin:0 0 9px; padding-left:18px; }
+  li { margin-bottom:3px; }
+
+  table { width:100%; border-collapse:collapse; font-size:8.9pt; margin:8px 0 14px; font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; }
+  thead { display:table-header-group; }
+  tr { break-inside:avoid; }
+  th { background:var(--accent); color:#fff; text-align:left; padding:5px 7px; font-weight:600; font-size:8.6pt; }
+  td { padding:5px 7px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  tbody tr:nth-child(even) { background:var(--band); }
+  td.id { font-weight:700; color:var(--accent); white-space:nowrap; font-size:8.4pt; }
+  td.ctr { text-align:center; white-space:nowrap; }
+  .w-id { width:66px; }
+  .yes { color:var(--good); font-weight:700; }
+  .no  { color:var(--bad);  font-weight:700; }
+  .part{ color:var(--warn); font-weight:700; }
+
+  pre { background:#f4f6f8; border:1px solid var(--rule); border-left:3px solid var(--accent); padding:9px 11px;
+        font-family:"SF Mono",Menlo,Consolas,monospace; font-size:7.6pt; line-height:1.45; margin:8px 0 12px;
+        break-inside:avoid; white-space:pre-wrap; }
+  pre.bad { border-left-color:var(--bad); background:var(--bad-soft); }
+  pre.good { border-left-color:var(--good); background:var(--good-soft); }
+  code { font-family:"SF Mono",Menlo,Consolas,monospace; font-size:8.5pt; background:#eef1f4; padding:0 3px; border-radius:2px; }
+  pre code { background:none; padding:0; font-size:inherit; }
+  .cm { color:var(--muted); font-style:italic; }
+  .kw { color:var(--accent); font-weight:600; }
+
+  .note { background:var(--accent-soft); border-left:3px solid var(--accent); padding:9px 12px; margin:10px 0 14px; font-size:9.3pt; break-inside:avoid; }
+  .note strong { color:var(--accent); }
+  .warn { background:var(--warn-soft); border-left:3px solid var(--warn); padding:9px 12px; margin:10px 0 14px; font-size:9.3pt; break-inside:avoid; }
+  .warn strong { color:var(--warn); }
+  .never { background:var(--bad-soft); border-left:3px solid var(--bad); padding:9px 12px; margin:10px 0 14px; font-size:9.3pt; break-inside:avoid; }
+  .never strong { color:var(--bad); }
+
+  .rule-box { border:1px solid var(--rule); border-radius:3px; margin:10px 0 14px; break-inside:avoid; }
+  .rule-head { background:var(--band); border-bottom:1px solid var(--rule); padding:5px 10px;
+               font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; font-size:9.2pt; font-weight:600; color:var(--accent); }
+  .rule-head .tag { float:right; font-size:7.4pt; background:var(--accent); color:#fff; padding:1px 6px; border-radius:8px; letter-spacing:.3px; font-weight:600; }
+  .rule-head .tag.auto { background:var(--good); }
+  .rule-body { padding:8px 11px; font-size:9.3pt; }
+
+  .small { font-size:9pt; color:var(--muted); }
+  .legend { font-size:8.6pt; color:var(--muted); font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; margin:-6px 0 14px; }
+  .toc { font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; font-size:9.6pt; }
+  .toc ol { list-style:none; padding-left:0; counter-reset:sec; }
+  .toc > ol > li { counter-increment:sec; padding:4px 0; border-bottom:1px dotted var(--rule); font-weight:600; }
+  .toc > ol > li::before { content:counter(sec) ".  "; color:var(--accent); }
+  .toc ul { list-style:none; padding-left:20px; margin:4px 0 2px; font-weight:400; color:var(--muted); font-size:9pt; }
+  .end-mark { text-align:center; color:var(--muted); font-size:9pt; margin-top:26px; letter-spacing:3px; }
+  .cols2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+</style>
+</head>
+<body>
+
+<!-- ================= TITLE ================= -->
+<section class="title-page">
+  <div class="title-rule"></div>
+  <h1 class="product">LIMITBEYOND</h1>
+  <div class="product-sub">Fitness &amp; Gym Management Platform</div>
+  <div class="doc-type">Engineering Standards &amp; Implementation Guide</div>
+  <div class="doc-sub">Version 1.0 &middot; How code is written, reviewed and enforced</div>
+  <dl class="meta-grid">
+    <dt>Document ID</dt><dd>LB-ENG-1.0</dd>
+    <dt>Status</dt><dd>Draft for review</dd>
+    <dt>Date</dt><dd>16 September 2026</dd>
+    <dt>Prepared by</dt><dd>Bibek Jha</dd>
+    <dt>Implements</dt><dd>LB-SRS-1.1 · LB-ARCH-1.0</dd>
+    <dt>Applies to</dt><dd>Backend, mobile app, web console, CI</dd>
+    <dt>Companion file</dt><dd><code>CLAUDE.md</code> — Appendix C</dd>
+  </dl>
+  <div class="title-note">
+    <strong>How to use this document.</strong> The SRS said what to build; the architecture said how to shape it. This says how to write it, so that a module built in Phase 4 looks like one built in Phase 1 and the security properties hold in both. Rules marked <span class="sans" style="font-size:8pt;background:var(--good);color:#fff;padding:1px 6px;border-radius:8px">AUTOMATED</span> are enforced by tooling in CI — those are the ones that will still be true in a year. Rules that rely on discipline are kept few on purpose.
+  </div>
+</section>
+
+<!-- ================= TOC ================= -->
+<h2 class="continue">Table of Contents</h2>
+<div class="toc">
+<ol>
+  <li>Principles and How Rules Are Enforced</li>
+  <li>Repository and Project Structure</li>
+  <li>Backend Standards — Java and Spring
+    <ul><li>3.1 Layering &middot; 3.2 Module boundaries &middot; 3.3 Reference implementations &middot; 3.4 Transactions &middot; 3.5 Errors &middot; 3.6 Validation &middot; 3.7 Nullability and immutability</li></ul>
+  </li>
+  <li>The Five Non-Negotiables
+    <ul><li>The rules that, if broken, silently produce a security or correctness defect</li></ul>
+  </li>
+  <li>API Design Conventions</li>
+  <li>Database Standards</li>
+  <li>Security Coding Standards</li>
+  <li>Mobile Standards — React Native and Expo</li>
+  <li>Testing Strategy</li>
+  <li>Automated Quality Gates</li>
+  <li>Git Workflow and Code Review</li>
+  <li>Observability Standards</li>
+  <li>The Permission Matrix</li>
+  <li>Appendix A — Code Review Checklist</li>
+  <li>Appendix B — Definition of Done</li>
+  <li>Appendix C — <code>CLAUDE.md</code> Agent Ruleset</li>
+  <li>Appendix D — SRS Amendments Required</li>
+</ol>
+</div>
+
+<!-- ================= 1 ================= -->
+<h2>1. Principles and How Rules Are Enforced</h2>
+
+<h3>1.1 Why this document is short on style and long on safety</h3>
+<p>Most of what is usually called a coding standard — brace placement, import order, line length — is settled here by running a formatter and never discussing it again. Spotless and Prettier reformat on commit; nobody reviews whitespace. What remains is the small set of rules where getting it wrong produces a defect that testing will not catch and a reviewer will not notice.</p>
+<p>This system has an unusual concentration of those. Row-Level Security fails <em>open</em> when misconfigured, which means a broken isolation boundary looks exactly like a working one until a gym sees another gym's members. A media upload with the wrong delivery type produces a permanent public URL for a member's receipt or identity document. A <code>SET</code> where <code>SET LOCAL</code> belonged leaks tenant context between pooled connections. None of these throw an exception. All of them pass a happy-path test.</p>
+<p>Section 4 collects those into five rules. If you read nothing else in this document, read that.</p>
+
+<h3>1.2 Rule categories</h3>
+<table>
+  <thead><tr><th style="width:110px">Marking</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><span class="sans" style="font-size:7.6pt;background:var(--good);color:#fff;padding:1px 6px;border-radius:8px">AUTOMATED</span></td><td>Enforced by a tool in CI. Violating it fails the build. Preferred wherever a rule can be expressed mechanically — a convention nothing enforces decays within months.</td></tr>
+    <tr><td><span class="sans" style="font-size:7.6pt;background:var(--accent);color:#fff;padding:1px 6px;border-radius:8px">REVIEW</span></td><td>Checked by a human at pull request. Kept deliberately few, because attention is finite and spending it on formatting means not spending it on authorisation.</td></tr>
+    <tr><td><span class="sans" style="font-size:7.6pt;background:var(--bad);color:#fff;padding:1px 6px;border-radius:8px">CRITICAL</span></td><td>A rule whose violation is a security or data-integrity defect. These are both automated and reviewed, and they are the only rules in this document that may never be waived for expedience.</td></tr>
+  </tbody>
+</table>
+
+<h3>1.3 Principles</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th style="width:170px">Principle</th><th>In practice</th></tr></thead>
+  <tbody>
+    <tr><td class="id">ENG-01</td><td>Make the wrong thing hard to write</td><td>Prefer a design where the unsafe path does not compile or does not exist over one where it is merely discouraged. A <code>MediaService</code> that requires a sensitivity argument beats a comment asking people to remember.</td></tr>
+    <tr><td class="id">ENG-02</td><td>Automate the rule or drop it</td><td>If a convention cannot be machine-checked and is not security-critical, it is a preference, not a standard. Write it down only if it earns the attention.</td></tr>
+    <tr><td class="id">ENG-03</td><td>Explicit over clever</td><td>This codebase will be read by its author months later and by an AI agent with no memory. Obvious code with a boring name beats a concise idiom that needs explaining.</td></tr>
+    <tr><td class="id">ENG-04</td><td>The test suite is the specification</td><td>Requirements traceability lives in test names. A test called <code>locationAdminCannotReadSiblingLocationMembers</code> is the executable form of <code>NFR-SEC-01a</code> and is what makes the claim defensible.</td></tr>
+    <tr><td class="id">ENG-05</td><td>One way to do each thing</td><td>One error model, one pagination shape, one way to acquire tenant context, one way to enqueue a job. Variation without reason is a cost with no benefit.</td></tr>
+    <tr><td class="id">ENG-06</td><td>Fail closed, loudly</td><td>Missing authorisation context yields zero rows and an error, never an unfiltered query. Ambiguity resolves toward refusal.</td></tr>
+  </tbody>
+</table>
+
+<!-- ================= 2 ================= -->
+<h2>2. Repository and Project Structure</h2>
+
+<h3>2.1 One repository</h3>
+<p>A single repository holds the backend, the mobile app, the web console and infrastructure. The decisive reason is the generated API client: backend and clients change together, and a monorepo lets one pull request carry an endpoint change and the regenerated client that consumes it. Split repositories would make that two coordinated merges and an interval during which they disagree.</p>
+<pre>limitbeyond/
+├── backend/                  <span class="cm">// Spring Boot, Maven</span>
+├── mobile/                   <span class="cm">// React Native + Expo</span>
+├── web/                      <span class="cm">// React + Vite admin console</span>
+├── packages/api-client/      <span class="cm">// GENERATED from OpenAPI — never hand-edited</span>
+├── infra/                    <span class="cm">// Dockerfiles, compose, deploy scripts</span>
+├── docs/                     <span class="cm">// SRS, architecture, this document, ADRs</span>
+├── .github/workflows/        <span class="cm">// CI pipelines</span>
+└── CLAUDE.md                 <span class="cm">// agent ruleset — Appendix C</span></pre>
+
+<h3>2.2 Backend package structure</h3>
+<p>Packages follow the ten architectural modules of LB-ARCH-1.0 §4.3, not technical layers. A module owns its controllers, services, entities and repositories together; there is no global <code>controllers</code> package. This is what lets Spring Modulith verify boundaries at build time.</p>
+<pre>com.limitbeyond
+├── platform/      identity/      org/         people/      billing/
+├── attendance/    scheduling/    training/    engagement/  insights/
+└── shared/        <span class="cm">// cross-cutting only: audit, error model, RLS context, job queue</span>
+
+<span class="cm">// Inside every module, the same shape:</span>
+attendance/
+├── AttendanceModule.java        <span class="cm">// @ApplicationModule — declares allowed dependencies</span>
+├── api/                         <span class="cm">// PUBLIC: what other modules may use</span>
+│   ├── AttendanceFacade.java    <span class="cm">//   interface, the only entry point</span>
+│   └── CheckInRecorded.java     <span class="cm">//   published event (record)</span>
+├── web/                         <span class="cm">// package-private: controllers, request/response DTOs</span>
+├── domain/                      <span class="cm">// package-private: entities, value objects, invariants</span>
+├── internal/                    <span class="cm">// package-private: service implementations</span>
+└── persistence/                 <span class="cm">// package-private: repositories</span></pre>
+<div class="rule-box">
+  <div class="rule-head">Rule ENG-2.1 — Only <code>api/</code> is public<span class="tag auto">AUTOMATED</span></div>
+  <div class="rule-body">Every class outside a module's <code>api/</code> package is package-private. A module reaching into another's <code>domain</code>, <code>internal</code> or <code>persistence</code> fails the Modulith verification test and the build. <strong>Why:</strong> boundaries decay silently under delivery pressure, and restoring them later costs far more than maintaining them. Making the compiler the enforcer removes the judgement call entirely.</div>
+</div>
+
+<h3>2.3 Mobile structure</h3>
+<pre>mobile/
+├── app/                     <span class="cm">// expo-router: file-based routes only, no logic</span>
+│   ├── (auth)/  (training)/  (member)/  (trainer)/  (admin)/  (superadmin)/
+│   └── checkin/
+├── features/                <span class="cm">// feature modules: hooks, components, local logic</span>
+│   ├── attendance/  workouts/  progress/  bookings/  billing/
+├── lib/
+│   ├── api/                 <span class="cm">// re-exports packages/api-client + interceptors</span>
+│   ├── db/                  <span class="cm">// expo-sqlite + Drizzle: schema, outbox</span>
+│   ├── sync/                <span class="cm">// outbox drain, retry, idempotency</span>
+│   ├── auth/                <span class="cm">// secure token storage, refresh, grant-aware nav</span>
+│   └── media/               <span class="cm">// Cloudinary upload + URL construction</span>
+├── components/ui/           <span class="cm">// design-system primitives, no business logic</span>
+└── theme/</pre>
+<div class="rule-box">
+  <div class="rule-head">Rule ENG-2.2 — Route files contain no logic<span class="tag">REVIEW</span></div>
+  <div class="rule-body">A file under <code>app/</code> renders a screen component from <code>features/</code> and nothing else — no data fetching, no business logic, no conditionals beyond a permission guard. <strong>Why:</strong> routes are the hardest part of the app to test; keeping them empty makes the testable part the part that matters.</div>
+</div>
+
+<!-- ================= 3 ================= -->
+<h2>3. Backend Standards — Java and Spring</h2>
+
+<h3>3.1 Layering</h3>
+<p>Three layers, one direction of travel: <strong>web → service → persistence</strong>. Skipping a layer is not permitted, and neither is travelling back up.</p>
+<table>
+  <thead><tr><th style="width:96px">Layer</th><th>May do</th><th>Must never do</th></tr></thead>
+  <tbody>
+    <tr><td><strong>web</strong></td><td>Deserialise and validate input, call exactly one service method, map the result to a response DTO, set the status code.</td><td>Touch a repository. Contain business rules. Open a transaction. Decide authorisation.</td></tr>
+    <tr><td><strong>service</strong></td><td>Enforce authorisation, own the transaction boundary, apply business rules, orchestrate repositories, publish events, enqueue jobs.</td><td>Reference <code>HttpServletRequest</code>, response DTOs, or any web type. Return entities outside the module.</td></tr>
+    <tr><td><strong>persistence</strong></td><td>Query and persist. Own no logic beyond query construction.</td><td>Call a service. Perform authorisation. Be referenced from <code>web</code>.</td></tr>
+  </tbody>
+</table>
+<div class="rule-box">
+  <div class="rule-head">Rule ENG-3.1 — Authorisation lives in the service layer<span class="tag" style="background:var(--bad)">CRITICAL</span></div>
+  <div class="rule-body">Every service method that reads or writes tenant data begins with an authorisation check naming the permission and the location it applies at. Not in the controller — controllers are added, forgotten and duplicated; a service method is the single chokepoint every caller passes through. <strong>Why:</strong> <code>FR-AUTH-28</code> requires authority be evaluated <em>per location</em>. One central evaluation is auditable; scattered annotations are not.</div>
+</div>
+
+<h3>3.2 Reference implementation — controller</h3>
+<pre>@RestController
+@RequestMapping("/api/v1/locations/{locationId}/check-ins")
+@RequiredArgsConstructor
+<span class="kw">class</span> CheckInController {                      <span class="cm">// package-private: nothing outside needs it</span>
+
+    <span class="kw">private final</span> AttendanceFacade attendance;
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    CheckInResponse record(@PathVariable LocationId locationId,
+                           @Valid @RequestBody CheckInRequest request) {
+        <span class="cm">// No logic. No authorisation. No repository. One call, one mapping.</span>
+        <span class="kw">return</span> CheckInResponse.from(
+            attendance.recordCheckIn(locationId, request.toCommand()));
+    }
+}</pre>
+
+<h3>3.3 Reference implementation — service</h3>
+<pre>@Service
+@RequiredArgsConstructor
+<span class="kw">class</span> CheckInService <span class="kw">implements</span> AttendanceFacade {
+
+    <span class="kw">private final</span> AttendanceRepository attendanceRepo;
+    <span class="kw">private final</span> MembershipFacade memberships;      <span class="cm">// another module's api/ — allowed</span>
+    <span class="kw">private final</span> JobQueue jobs;
+    <span class="kw">private final</span> AuthContext auth;
+
+    @Override
+    @Transactional                                     <span class="cm">// the ONLY place a transaction starts</span>
+    <span class="kw">public</span> CheckIn recordCheckIn(LocationId locationId, RecordCheckInCommand cmd) {
+
+        auth.require(Permission.RECORD_CHECK_IN, locationId);   <span class="cm">// ENG-3.1, always first</span>
+
+        <span class="cm">// Idempotency before side effects — a replayed offline submission</span>
+        <span class="cm">// must return the original result, not create a second row (FR-ATT-05).</span>
+        Optional&lt;CheckIn&gt; existing =
+            attendanceRepo.findByUserAndIdempotencyKey(cmd.userId(), cmd.idempotencyKey());
+        <span class="kw">if</span> (existing.isPresent()) <span class="kw">return</span> existing.get();
+
+        Membership membership = memberships.activeFor(cmd.userId(), locationId)
+            .orElseThrow(() -&gt; <span class="kw">new</span> MembershipNotActiveException(cmd.userId()));
+
+        <span class="cm">// Domain invariants belong to the domain object, not to this method.</span>
+        CheckIn checkIn = CheckIn.record(cmd, membership, auth.currentUser());
+
+        attendanceRepo.save(checkIn);
+
+        <span class="cm">// Enqueued IN THIS TRANSACTION: a rollback removes the job too (ADR-09).</span>
+        jobs.enqueue(<span class="kw">new</span> RecalculateStreak(cmd.userId()));
+
+        <span class="kw">return</span> checkIn;
+    }
+}</pre>
+
+<h3>3.4 Transactions</h3>
+<table>
+  <thead><tr><th style="width:190px">Rule</th><th>Reason</th></tr></thead>
+  <tbody>
+    <tr><td><code>@Transactional</code> on service methods only</td><td>Controllers and repositories must not define transaction scope. One boundary per business operation keeps the atomicity story legible.</td></tr>
+    <tr><td>Never call an external service inside a transaction</td><td>Twilio, Cloudinary and Expo calls hold a database connection open for the duration of a network round trip. Enqueue a job instead; the job runs after commit.</td></tr>
+    <tr><td>Use <code>lockForUpdate</code> for contended rows</td><td>Session capacity and credit balances are contended. A read-then-write without a lock is a lost update under concurrency, which is exactly what <code>NFR-PRF-05</code> forbids.</td></tr>
+    <tr><td>Read-only operations use <code>@Transactional(readOnly = true)</code></td><td>Signals intent and lets the driver optimise. It is also where the RLS context is set, so even reads must be transactional.</td></tr>
+  </tbody>
+</table>
+
+<h3>3.5 Error handling</h3>
+<p>One exception hierarchy, one response shape. Errors carry a stable machine-readable code; messages are for humans and may change without notice.</p>
+<pre><span class="cm">// shared/error/DomainException.java</span>
+<span class="kw">public abstract class</span> DomainException <span class="kw">extends</span> RuntimeException {
+    <span class="kw">public abstract</span> ErrorCode code();      <span class="cm">// stable, documented, client-switchable</span>
+    <span class="kw">public abstract</span> HttpStatus status();
+}
+
+<span class="cm">// One handler, RFC 7807 Problem Details, for the entire application</span>
+@RestControllerAdvice
+<span class="kw">class</span> GlobalExceptionHandler {
+
+    @ExceptionHandler(DomainException.class)
+    ProblemDetail handle(DomainException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(ex.status());
+        pd.setTitle(ex.code().title());
+        pd.setDetail(ex.getMessage());
+        pd.setProperty("code", ex.code().name());           <span class="cm">// clients switch on this</span>
+        pd.setProperty("correlationId", MDC.get("correlationId"));
+        <span class="kw">return</span> pd;
+    }
+
+    @ExceptionHandler(Exception.class)
+    ProblemDetail handleUnexpected(Exception ex) {
+        log.error("Unhandled exception", ex);               <span class="cm">// full detail to logs…</span>
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        pd.setDetail("An unexpected error occurred.");      <span class="cm">// …nothing internal to the client</span>
+        pd.setProperty("correlationId", MDC.get("correlationId"));
+        <span class="kw">return</span> pd;
+    }
+}</pre>
+<div class="rule-box">
+  <div class="rule-head">Rule ENG-3.2 — Never leak internals in an error response<span class="tag" style="background:var(--bad)">CRITICAL</span></div>
+  <div class="rule-body">Stack traces, SQL, class names and upstream provider messages never reach a client. The correlation ID is the bridge: the user reports it, and it locates the full detail in the logs. <strong>Why:</strong> error responses are the most reliable reconnaissance surface an attacker has, and the most common accidental disclosure path.</div>
+</div>
+
+<h3>3.6 Validation — two distinct kinds</h3>
+<table>
+  <thead><tr><th style="width:120px">Kind</th><th style="width:130px">Where</th><th>What it checks</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Input validation</strong></td><td>Request DTO, Bean Validation annotations</td><td>Shape: required, length, format, range. Cheap, mechanical, rejects malformed requests with 400 before any logic runs.</td></tr>
+    <tr><td><strong>Domain invariants</strong></td><td>Inside the domain object, in its constructor or factory</td><td>Truths that must hold for the object to be valid at all: credits never negative, a session's end after its start, a booking's location matching its session's. Enforced at construction so an invalid instance cannot exist.</td></tr>
+  </tbody>
+</table>
+<pre><span class="cm">// Domain invariant enforced at construction — an invalid PtPackage is unconstructible</span>
+<span class="kw">public record</span> PtPackage(PackageId id, UserId member, TrainerId trainer,
+                         <span class="kw">int</span> creditsTotal, <span class="kw">int</span> creditsRemaining, LocalDate validUntil) {
+    <span class="kw">public</span> PtPackage {
+        <span class="kw">if</span> (creditsRemaining &lt; 0)
+            <span class="kw">throw new</span> IllegalArgumentException("credits cannot be negative");
+        <span class="kw">if</span> (creditsRemaining &gt; creditsTotal)
+            <span class="kw">throw new</span> IllegalArgumentException("remaining cannot exceed total");
+    }
+    <span class="kw">public</span> PtPackage consumeOne() {
+        <span class="kw">if</span> (creditsRemaining == 0) <span class="kw">throw new</span> NoCreditsRemainingException(id);
+        <span class="kw">return new</span> PtPackage(id, member, trainer, creditsTotal, creditsRemaining - 1, validUntil);
+    }
+}</pre>
+<p class="small">Note the database also carries <code>CHECK (credits_remaining &gt;= 0)</code>. The redundancy is deliberate: the domain object gives a good error message, the constraint guarantees the rule even if a future code path forgets it.</p>
+
+<h3>3.7 Nullability, immutability and naming</h3>
+<table>
+  <thead><tr><th style="width:170px">Rule</th><th>Reason</th></tr></thead>
+  <tbody>
+    <tr><td><code>Optional</code> for return values, never for fields or parameters</td><td>Its purpose is expressing "may be absent" at a call site. As a field it adds indirection and breaks serialisation.</td></tr>
+    <tr><td>Records for DTOs, commands, events and value objects</td><td>Immutable by construction, concise, with correct <code>equals</code> for free. Use a class only when JPA requires one.</td></tr>
+    <tr><td>Typed identifiers, not raw <code>UUID</code></td><td><code>UserId</code> and <code>LocationId</code> are different types, so passing one where the other belongs will not compile. Given how many identifiers this domain juggles, this catches a real and otherwise silent class of bug.</td></tr>
+    <tr><td>No abbreviations in names</td><td><code>membership</code>, not <code>mbrshp</code>. The cost is keystrokes; the benefit is every future reader, human or agent.</td></tr>
+    <tr><td>Boolean methods read as assertions</td><td><code>isActive()</code>, <code>hasCreditsRemaining()</code>, <code>canBookAt(location)</code>.</td></tr>
+    <tr><td>Test names are sentences</td><td><code>locationAdminCannotReadSiblingLocationMembers()</code>. Per <code>ENG-04</code>, the test list should read as a specification.</td></tr>
+  </tbody>
+</table>
+
+<!-- ================= 4 ================= -->
+<h2>4. The Five Non-Negotiables</h2>
+<p>Each of these, if broken, produces a defect that compiles, passes ordinary tests, and shows no symptom until it matters. They are the reason this document exists.</p>
+
+<div class="never">
+  <strong>NN-1 — Use <code>SET LOCAL</code>, never <code>SET</code>, for RLS context.</strong><br>
+  Connections are pooled. Plain <code>SET</code> persists on the connection after your request completes, so the next request — potentially serving a different gym — inherits your tenant context and reads their data. <code>SET LOCAL</code> is transaction-scoped and discarded on commit or rollback, which is the only reason pooling is safe here. Never write a bare <code>SET</code> against the application datasource.
+</div>
+<div class="never">
+  <strong>NN-2 — The application never connects as the table owner.</strong><br>
+  A table owner bypasses RLS policies by default. If <code>lb_app</code> owns the tables, every policy is inert and the system appears to work perfectly while enforcing nothing. Two roles: <code>lb_migrator</code> owns the schema and runs Flyway; <code>lb_app</code> owns nothing and serves requests. Every table also carries <code>FORCE ROW LEVEL SECURITY</code>.
+</div>
+<div class="never">
+  <strong>NN-3 — Sensitive media is never uploaded with Cloudinary's default type.</strong><br>
+  The default <code>upload</code> type yields a permanent, public, unrevocable URL. Applied to a receipt or an identity document that is a privacy breach which deleting the database row does not undo, because the URL may already be cached or shared. All uploads go through <code>MediaService</code>, which takes sensitivity as a required argument. There is no other upload path.
+</div>
+<div class="never">
+  <strong>NN-4 — Store Cloudinary <code>public_id</code>, never a full URL.</strong><br>
+  URLs are constructed at read time. A stored URL embeds the provider in every row referencing an image, turning a provider change from a one-class edit into a data rewrite — and it bypasses the signing logic that <code>NN-3</code> depends on.
+</div>
+<div class="never">
+  <strong>NN-5 — Every tenant-scoped service method authorises before it acts.</strong><br>
+  <code>auth.require(permission, locationId)</code> is the first statement. RLS is the second line of defence, not the first; relying on it alone means an authorisation bug degrades silently into "returns nothing" instead of failing loudly, and write paths are not protected by read policies at all.
+</div>
+
+<h3>4.1 The RLS context implementation</h3>
+<pre><span class="cm">// shared/rls/RlsContextAspect.java — applied to every request-bound transaction</span>
+@Aspect @Component @RequiredArgsConstructor
+<span class="kw">public class</span> RlsContextAspect {
+
+    <span class="kw">private final</span> JdbcTemplate jdbc;
+    <span class="kw">private final</span> AuthContextProvider authProvider;
+
+    @Before("@annotation(org.springframework.transaction.annotation.Transactional)")
+    <span class="kw">public void</span> applyContext() {
+        AuthContext ctx = authProvider.current();
+
+        <span class="cm">// SET LOCAL — transaction-scoped. See NN-1. A bare SET here is a data breach.</span>
+        jdbc.update("SET LOCAL app.gym_id = ?",         ctx.gymId().value());
+        jdbc.update("SET LOCAL app.location_ids = ?",   ctx.locationIdsCsv());
+        jdbc.update("SET LOCAL app.gym_wide = ?",       ctx.isGymOwner());
+        jdbc.update("SET LOCAL app.is_super_admin = ?", ctx.isSuperAdmin());
+    }
+}</pre>
+<div class="warn">
+  <strong>Why missing context is safe.</strong> The policies read <code>current_setting('app.gym_id', true)</code> — the <code>true</code> makes a missing setting return <code>NULL</code> rather than raising. A <code>NULL</code> comparison matches no rows, so a query that somehow escaped the aspect returns empty rather than unfiltered. That is <code>ENG-06</code> in concrete form: the failure mode is refusal, and it is immediately obvious in a test.
+</div>
+
+<!-- ================= 5 ================= -->
+<h2>5. API Design Conventions</h2>
+<table>
+  <thead><tr><th style="width:130px">Concern</th><th>Convention</th></tr></thead>
+  <tbody>
+    <tr><td>Base path</td><td><code>/api/v1</code>. The version is in the path and increments only on a breaking change. Old app builds stay in circulation for weeks after a store release (<code>NFR-MNT-04</code>), so v1 must keep working long after v2 ships.</td></tr>
+    <tr><td>Resource naming</td><td>Plural nouns, kebab-case: <code>/check-ins</code>, <code>/pt-packages</code>. Never verbs — the method is the verb.</td></tr>
+    <tr><td>Location scoping</td><td>Location-scoped resources nest under their location: <code>/api/v1/locations/{locationId}/members</code>. This makes the scope explicit in the route and gives the service its authorisation argument directly, rather than inferring it.</td></tr>
+    <tr><td>State transitions</td><td>A sub-resource, not a verb endpoint: <code>POST /bookings/{id}/cancellation</code> rather than <code>/cancelBooking</code>.</td></tr>
+    <tr><td>Status codes</td><td>200 read, 201 create with <code>Location</code>, 204 delete, 400 malformed, 401 unauthenticated, 403 unauthorised, 404 absent <em>or invisible</em>, 409 state conflict, 422 valid but rejected by a business rule, 429 rate-limited.</td></tr>
+    <tr><td>404 versus 403</td><td>A resource outside the caller's location scope returns <strong>404, not 403</strong>. A 403 confirms the resource exists, which leaks the existence of another gym's data — the exact thing <code>NFR-SEC-01a</code> forbids.</td></tr>
+    <tr><td>Pagination</td><td>Cursor-based: <code>?cursor=&amp;limit=</code>, returning <code>{ items, nextCursor }</code>. Offset pagination skips and duplicates rows as data shifts beneath it, which attendance and bookings do constantly.</td></tr>
+    <tr><td>Idempotency</td><td><code>Idempotency-Key</code> header required on every <code>POST</code> that the mobile client may retry. The server stores it and returns the original result on replay.</td></tr>
+    <tr><td>Dates</td><td>ISO-8601 with offset, always UTC on the wire. Never a bare local date-time — a gym in a different timezone is a supported case.</td></tr>
+    <tr><td>Money</td><td>Integer minor units (paise) with an explicit currency. Never a floating-point type anywhere near money.</td></tr>
+    <tr><td>Naming in JSON</td><td><code>camelCase</code>, matching TypeScript. Configured once on the serialiser, never per-field.</td></tr>
+  </tbody>
+</table>
+
+<!-- ================= 6 ================= -->
+<h2>6. Database Standards</h2>
+<table>
+  <thead><tr><th style="width:150px">Rule</th><th>Detail</th></tr></thead>
+  <tbody>
+    <tr><td>Naming</td><td><code>snake_case</code>; plural tables (<code>check_ins</code>); singular columns; foreign keys <code>&lt;entity&gt;_id</code>; indexes <code>idx_&lt;table&gt;_&lt;cols&gt;</code>; constraints <code>ck_</code>/<code>uq_</code>/<code>fk_</code>.</td></tr>
+    <tr><td>Required columns</td><td>Every operational table: <code>id uuid</code> (UUIDv7), <code>gym_id uuid NOT NULL</code>, <code>location_id uuid NOT NULL</code>, <code>created_at</code>, <code>updated_at</code>, <code>created_by</code>. The scoping columns are not optional — they are what the RLS policies filter on.</td></tr>
+    <tr><td>Enums</td><td>Postgres enum types, not strings. Adding a value is a migration, which is correct: a new booking state should be a deliberate schema decision.</td></tr>
+    <tr><td>Soft delete</td><td><code>deleted_at timestamptz</code> on entities <code>FR-ADM-03</code> covers. Never <code>DELETE</code> a member, payment or attendance row.</td></tr>
+    <tr><td>Migrations</td><td>Flyway, forward-only, one logical change each. <code>V&lt;n&gt;__&lt;description&gt;.sql</code>. A migration merged to main is immutable — corrections are new migrations.</td></tr>
+    <tr><td>Every new table</td><td>The same migration that creates a table must enable and force RLS and attach its policy. A table without a policy is a leak waiting to happen, so the two are never separated.</td></tr>
+    <tr><td>No business logic in the database</td><td>No triggers, no stored procedures — with one exception: constraints expressing invariants (<code>CHECK</code>, <code>UNIQUE</code>, foreign keys), which are declarations rather than logic and belong there.</td></tr>
+  </tbody>
+</table>
+<pre><span class="cm">-- The standard shape of a create-table migration. Both halves, always together.</span>
+<span class="kw">CREATE TABLE</span> check_ins (
+    id              uuid        <span class="kw">PRIMARY KEY</span>,
+    gym_id          uuid        <span class="kw">NOT NULL REFERENCES</span> gyms(id),
+    location_id     uuid        <span class="kw">NOT NULL REFERENCES</span> locations(id),
+    user_id         uuid        <span class="kw">NOT NULL REFERENCES</span> users(id),
+    occurred_at     timestamptz <span class="kw">NOT NULL</span>,
+    method          checkin_method  <span class="kw">NOT NULL</span>,
+    purpose         checkin_purpose <span class="kw">NOT NULL</span>,
+    idempotency_key text        <span class="kw">NOT NULL</span>,
+    created_at      timestamptz <span class="kw">NOT NULL DEFAULT</span> now(),
+    <span class="kw">CONSTRAINT</span> uq_check_ins_idempotency <span class="kw">UNIQUE</span> (user_id, idempotency_key)
+);
+
+<span class="kw">CREATE INDEX</span> idx_check_ins_user_occurred  <span class="kw">ON</span> check_ins (user_id, occurred_at <span class="kw">DESC</span>);
+<span class="kw">CREATE INDEX</span> idx_check_ins_gym_location   <span class="kw">ON</span> check_ins (gym_id, location_id);
+
+<span class="cm">-- Not optional, not a later migration, not a separate ticket:</span>
+<span class="kw">ALTER TABLE</span> check_ins <span class="kw">ENABLE ROW LEVEL SECURITY</span>;
+<span class="kw">ALTER TABLE</span> check_ins <span class="kw">FORCE  ROW LEVEL SECURITY</span>;
+<span class="kw">CREATE POLICY</span> p_check_ins_isolation <span class="kw">ON</span> check_ins <span class="kw">USING</span> (
+    current_setting('app.is_super_admin', <span class="kw">true</span>)::boolean <span class="kw">IS TRUE</span>
+    <span class="kw">OR</span> (gym_id = current_setting('app.gym_id', <span class="kw">true</span>)::uuid
+        <span class="kw">AND</span> (current_setting('app.gym_wide', <span class="kw">true</span>)::boolean <span class="kw">IS TRUE</span>
+             <span class="kw">OR</span> location_id = <span class="kw">ANY</span>(string_to_array(
+                  current_setting('app.location_ids', <span class="kw">true</span>), ',')::uuid[])))
+);</pre>
+
+<!-- ================= 7 ================= -->
+<h2>7. Security Coding Standards</h2>
+<table>
+  <thead><tr><th style="width:150px">Area</th><th>Standard</th></tr></thead>
+  <tbody>
+    <tr><td>SQL</td><td>Parameterised queries or JPA only. String concatenation into SQL fails review unconditionally.</td></tr>
+    <tr><td>Passwords</td><td>Argon2id via Spring Security's encoder. Never a custom hash, never MD5 or SHA for credentials.</td></tr>
+    <tr><td>Tokens on device</td><td><code>expo-secure-store</code> (Keychain / Keystore). Never <code>AsyncStorage</code>, which is unencrypted plaintext readable on a rooted device.</td></tr>
+    <tr><td>Secrets</td><td>Injected from Secrets Manager at runtime. Never in source, never in the image, never in <code>application.properties</code>. A committed secret is rotated, not deleted — git history is forever.</td></tr>
+    <tr><td>Rate limiting</td><td>Auth, OTP issuance and check-in are rate-limited per account and per device (<code>NFR-SEC-08</code>). OTP is the expensive one: each request costs real money.</td></tr>
+    <tr><td>QR payloads</td><td>Fixed and printable, but signed and location-scoped. Every scan must include device coordinates validated against the location geofence, so a photographed code cannot be used away from the gym (<code>NFR-SEC-10</code>).</td></tr>
+    <tr><td>Dependencies</td><td>Dependabot plus OWASP dependency-check in CI, failing the build on high severity.</td></tr>
+    <tr><td>CORS</td><td>Explicit origin allowlist. Never <code>*</code> on an authenticated API.</td></tr>
+  </tbody>
+</table>
+<div class="never">
+  <strong>Never logged, at any level, in any environment:</strong> passwords, OTP codes, access or refresh tokens, full mobile numbers (last four digits only), health screening content, diet plan content, Cloudinary signed URLs, and API keys. Logs are shipped to third-party services, retained for months, and read by people who have no business seeing any of it. Log the <em>identifier</em>, never the <em>content</em>.
+</div>
+<div class="cols2">
+<pre class="bad"><span class="cm">// WRONG — three separate disclosures</span>
+log.info("Login for {} with otp {}",
+         user.phoneNumber(), otp);
+log.debug("Health: {}", member.healthScreening());</pre>
+<pre class="good"><span class="cm">// RIGHT — identifiers only</span>
+log.info("Login attempt userId={} phone=***{}",
+         user.id(), user.phoneLast4());
+log.debug("Health screening updated userId={}",
+          member.id());</pre>
+</div>
+
+<!-- ================= 8 ================= -->
+<h2>8. Mobile Standards — React Native and Expo</h2>
+
+<h3>8.1 TypeScript</h3>
+<p><code>strict: true</code>, plus <code>noUncheckedIndexedAccess</code> and <code>exactOptionalPropertyTypes</code>. <strong><code>any</code> is banned</strong> and fails lint; <code>unknown</code> with narrowing is the escape hatch. The generated API client is the single source of server types — never hand-write an interface that mirrors a server response, because the hand-written copy is what silently drifts.</p>
+
+<h3>8.2 State — three kinds, three tools</h3>
+<table>
+  <thead><tr><th style="width:130px">Kind</th><th style="width:110px">Tool</th><th>Examples and rule</th></tr></thead>
+  <tbody>
+    <tr><td>Server state</td><td>TanStack Query</td><td>Anything the backend owns. Never copied into another store — a second copy is a second truth that will diverge.</td></tr>
+    <tr><td>Global client state</td><td>Zustand</td><td>Auth session, active role, theme. Deliberately tiny.</td></tr>
+    <tr><td>Local UI state</td><td><code>useState</code></td><td>Form fields, expanded rows, sheet visibility. Never promoted to global "just in case".</td></tr>
+  </tbody>
+</table>
+
+<h3>8.3 Every data screen handles four states</h3>
+<p><code>UI-04</code> requires an explicit loading, empty, error and success state on every data-bearing view. Not a convention — a component contract, so it cannot be skipped by omission.</p>
+<pre><span class="cm">// features/attendance/useCheckInHistory.ts</span>
+<span class="kw">export function</span> useCheckInHistory(locationId: LocationId) {
+  <span class="kw">return</span> useQuery({
+    queryKey: ['check-ins', locationId],        <span class="cm">// location in the key: never mix locations</span>
+    queryFn: () =&gt; api.checkIns.list({ locationId }),
+    staleTime: 30_000,
+  });
+}
+
+<span class="cm">// The screen cannot forget a state — the component requires all four.</span>
+&lt;QueryView
+  query={useCheckInHistory(locationId)}
+  loading={() =&gt; &lt;CheckInSkeleton /&gt;}
+  empty={() =&gt; &lt;EmptyState title="No check-ins yet" /&gt;}
+  error={(e, retry) =&gt; &lt;ErrorState error={e} onRetry={retry} /&gt;}
+  success={(data) =&gt; &lt;CheckInList items={data.items} /&gt;}
+/&gt;</pre>
+
+<h3>8.4 The offline outbox</h3>
+<p>Only check-in and workout logging are queued (ADR-06). The rule that makes this safe is worth restating: <strong>both operations are non-contending</strong> — a check-in is an append-only fact, a workout log has exactly one author — so no conflict resolution is needed. Anything that contends for a shared resource stays online.</p>
+<pre><span class="cm">// lib/sync/outbox.ts</span>
+<span class="kw">export async function</span> enqueue&lt;T <span class="kw">extends</span> OutboxOperation&gt;(op: T): Promise&lt;<span class="kw">void</span>&gt; {
+  <span class="kw">await</span> db.insert(outbox).values({
+    id: randomUUID(),
+    idempotencyKey: randomUUID(),   <span class="cm">// generated ONCE; reused on every retry</span>
+    type: op.type,
+    payload: JSON.stringify(op.payload),
+    occurredAt: new Date().toISOString(),   <span class="cm">// original time preserved — FR-ATT-07</span>
+    attempts: 0,
+  });
+  void drain();                      <span class="cm">// fire and forget; UI already confirmed</span>
+}
+
+<span class="kw">export async function</span> drain(): Promise&lt;<span class="kw">void</span>&gt; {
+  <span class="kw">if</span> (!(<span class="kw">await</span> isOnline())) <span class="kw">return</span>;
+
+  <span class="kw">for</span> (<span class="kw">const</span> item <span class="kw">of</span> <span class="kw">await</span> pendingItems()) {
+    <span class="kw">try</span> {
+      <span class="cm">// Same key every attempt — this is what makes retry safe (FR-ATT-05)</span>
+      <span class="kw">await</span> api.submit(item.type, JSON.parse(item.payload), {
+        idempotencyKey: item.idempotencyKey,
+      });
+      <span class="kw">await</span> remove(item.id);
+    } <span class="kw">catch</span> (e) {
+      <span class="kw">if</span> (isPermanent(e)) { <span class="kw">await</span> markFailed(item.id, e); }   <span class="cm">// 4xx: surface to user</span>
+      <span class="kw">else</span> { <span class="kw">await</span> backoff(item); <span class="kw">break</span>; }                     <span class="cm">// 5xx/network: retry later</span>
+    }
+  }
+}</pre>
+<div class="rule-box">
+  <div class="rule-head">Rule ENG-8.1 — The idempotency key is generated once, at enqueue<span class="tag" style="background:var(--bad)">CRITICAL</span></div>
+  <div class="rule-body">Generating a fresh key per attempt defeats the entire mechanism: each retry looks like a new operation and creates a duplicate row. The key belongs to the <em>operation</em>, not to the <em>attempt</em>. This single line is what <code>FR-ATT-05</code> rests on under offline replay.</div>
+</div>
+
+<h3>8.5 Media</h3>
+<p>All uploads go through <code>lib/media</code>, which requires a sensitivity argument (<code>NN-3</code>) and returns a <code>public_id</code> (<code>NN-4</code>). Display URLs are built with <code>f_auto,q_auto</code> and an explicit width, so a 12-megapixel exercise demonstration image is never downloaded whole onto a phone over mobile data. Media in scope is exercise and gym imagery, profile pictures, receipts and optional identity documents — <strong>not</strong> progress photographs, which are out of scope (§13).</p>
+
+<!-- ================= 9 ================= -->
+<h2>9. Testing Strategy</h2>
+
+<h3>9.1 What must be tested</h3>
+<p><code>NFR-MNT-03</code> names five areas as minimum coverage. They are not suggestions — each corresponds to a failure that costs money or trust.</p>
+<table>
+  <thead><tr><th style="width:150px">Area</th><th>Why it is mandatory</th><th style="width:70px">Type</th></tr></thead>
+  <tbody>
+    <tr><td>Authorisation boundaries</td><td>Every role against every permission at an in-scope and an out-of-scope location. The matrix is large and entirely mechanical — exactly what tests are for.</td><td>Integration</td></tr>
+    <tr><td>Gym and location isolation</td><td>The evidence for <code>NFR-SEC-01a</code>. Requires real Postgres; RLS cannot be tested against an in-memory database.</td><td>Testcontainers</td></tr>
+    <tr><td>Billing arithmetic</td><td>Proration, GST, partial payments, dues, refunds. Money bugs are discovered by customers.</td><td>Unit</td></tr>
+    <tr><td>Credit decrementing</td><td>PT credits under concurrency, expiry, and cancellation-policy edges.</td><td>Integration</td></tr>
+    <tr><td>Booking concurrency</td><td><code>NFR-PRF-05</code> in executable form: N threads, one remaining place, exactly one winner.</td><td>Integration</td></tr>
+  </tbody>
+</table>
+
+<h3>9.2 The isolation suite</h3>
+<pre>@SpringBootTest
+@Testcontainers
+<span class="kw">class</span> LocationIsolationTest {
+
+    @Container
+    <span class="kw">static</span> PostgreSQLContainer&lt;?&gt; db = <span class="kw">new</span> PostgreSQLContainer&lt;&gt;("postgres:16");
+
+    <span class="cm">// Two gyms, two locations each — the fixture is the point. Isolation bugs</span>
+    <span class="cm">// are invisible when only one tenant exists in the database.</span>
+    @BeforeEach <span class="kw">void</span> seed() { fixtures.twoGymsTwoLocationsEach(); }
+
+    @Test
+    <span class="kw">void</span> locationAdminCannotReadSiblingLocationMembers() {
+        asLocationAdmin(GYM_A, LOCATION_A1);
+
+        List&lt;Member&gt; visible = memberRepository.findAll();
+
+        assertThat(visible).allMatch(m -&gt; m.locationId().equals(LOCATION_A1));
+        assertThat(visible).noneMatch(m -&gt; m.locationId().equals(LOCATION_A2));
+    }
+
+    @Test
+    <span class="kw">void</span> locationAdminCannotReadMemberFromAnotherGymEvenByDirectId() {
+        asLocationAdmin(GYM_A, LOCATION_A1);
+        <span class="cm">// Direct lookup by a known id — the identifier-guessing path NFR-SEC-01a names</span>
+        assertThat(memberRepository.findById(KNOWN_MEMBER_IN_GYM_B)).isEmpty();
+    }
+
+    @Test
+    <span class="kw">void</span> queryWithoutRlsContextReturnsNothing() {
+        clearRlsContext();
+        <span class="cm">// Fails closed, per ENG-06. If this ever returns rows, RLS is misconfigured</span>
+        <span class="cm">// and NN-2 is the first thing to check.</span>
+        assertThat(memberRepository.findAll()).isEmpty();
+    }
+}</pre>
+<div class="warn">
+  <strong>This suite may never be disabled to make a build pass.</strong> It is the only evidence that the platform's central security claim is true. If it fails, the correct response is to stop and fix the isolation defect — never to <code>@Disabled</code> it and open a ticket.
+</div>
+
+<h3>9.3 Concurrency test — the booking race</h3>
+<pre>@Test
+<span class="kw">void</span> concurrentBookingsNeverExceedCapacity() <span class="kw">throws</span> Exception {
+    Session session = fixtures.sessionWithCapacity(1);          <span class="cm">// one place left</span>
+    <span class="kw">var</span> latch = <span class="kw">new</span> CountDownLatch(1);
+
+    List&lt;Future&lt;BookingResult&gt;&gt; results = <span class="kw">new</span> ArrayList&lt;&gt;();
+    <span class="kw">try</span> (<span class="kw">var</span> pool = Executors.newVirtualThreadPerTaskExecutor()) {
+        <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; 20; i++) {
+            UserId member = fixtures.member();
+            results.add(pool.submit(() -&gt; { latch.await();       <span class="cm">// all start together</span>
+                <span class="kw">return</span> bookingService.book(session.id(), member); }));
+        }
+        latch.countDown();
+    }
+
+    assertThat(countOf(results, BOOKED)).isEqualTo(1);           <span class="cm">// exactly one winner</span>
+    assertThat(countOf(results, WAITLISTED)).isEqualTo(19);      <span class="cm">// no one lost</span>
+}</pre>
+
+<h3>9.4 Test pyramid and conventions</h3>
+<table>
+  <thead><tr><th style="width:120px">Level</th><th style="width:70px">Share</th><th>Scope and speed</th></tr></thead>
+  <tbody>
+    <tr><td>Unit</td><td>~60%</td><td>Domain objects and pure logic. No Spring context, no database. Milliseconds.</td></tr>
+    <tr><td>Integration</td><td>~30%</td><td>Service through to real Postgres via Testcontainers. Where authorisation, RLS and concurrency are proven.</td></tr>
+    <tr><td>Contract</td><td>~7%</td><td>Controller layer with MockMvc, asserting the OpenAPI contract and error shapes.</td></tr>
+    <tr><td>End-to-end</td><td>~3%</td><td>Detox on mobile, for the few flows whose breakage is catastrophic: sign-in, check-in, booking.</td></tr>
+  </tbody>
+</table>
+<p class="small">Coverage gate: 80% on service and domain packages; no gate on web or DTOs, where the number would measure nothing. Fixtures are builders with sensible defaults (<code>fixtures.member().at(LOCATION_A1).withActiveMembership()</code>) so a test states only what it actually depends on.</p>
+
+<!-- ================= 10 ================= -->
+<h2>10. Automated Quality Gates</h2>
+<table>
+  <thead><tr><th style="width:140px">Tool</th><th>Enforces</th><th style="width:60px">Blocks</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Spotless</strong></td><td>Java formatting, import order, licence headers. Auto-applied; never discussed in review.</td><td class="ctr">Yes</td></tr>
+    <tr><td><strong>Checkstyle</strong></td><td>Naming, method length, cyclomatic complexity, banned imports.</td><td class="ctr">Yes</td></tr>
+    <tr><td><strong>ArchUnit</strong></td><td>Layering (§3.1): controllers may not reference repositories; services may not reference web types; repositories are package-private.</td><td class="ctr">Yes</td></tr>
+    <tr><td><strong>Spring Modulith</strong></td><td>Module boundaries (§2.2): no access outside another module's <code>api/</code>.</td><td class="ctr">Yes</td></tr>
+    <tr><td><strong>Custom ArchUnit rules</strong></td><td>The non-negotiables: no bare <code>SET</code>, no direct Cloudinary SDK use outside <code>MediaService</code>, no <code>@Transactional</code> on a controller, no entity returned from a controller.</td><td class="ctr">Yes</td></tr>
+    <tr><td><strong>JaCoCo</strong></td><td>Coverage thresholds on service and domain packages.</td><td class="ctr">Yes</td></tr>
+    <tr><td><strong>OWASP check</strong></td><td>Dependency vulnerabilities at high severity or above.</td><td class="ctr">Yes</td></tr>
+    <tr><td><strong>ESLint + Prettier</strong></td><td>TypeScript rules, <code>no-explicit-any</code>, hooks rules, import order.</td><td class="ctr">Yes</td></tr>
+    <tr><td><strong>tsc --noEmit</strong></td><td>Strict type checking including the generated client.</td><td class="ctr">Yes</td></tr>
+  </tbody>
+</table>
+<pre><span class="cm">// backend/src/test/java/.../ArchitectureRulesTest.java — layering as executable rules</span>
+@AnalyzeClasses(packages = "com.limitbeyond", importOptions = DoNotIncludeTests.class)
+<span class="kw">class</span> ArchitectureRulesTest {
+
+    @ArchTest
+    <span class="kw">static final</span> ArchRule controllersMustNotTouchRepositories =
+        noClasses().that().resideInAPackage("..web..")
+            .should().dependOnClassesThat().resideInAPackage("..persistence..");
+
+    @ArchTest
+    <span class="kw">static final</span> ArchRule servicesMustNotDependOnWebTypes =
+        noClasses().that().resideInAPackage("..internal..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "jakarta.servlet..", "org.springframework.web..");
+
+    @ArchTest  <span class="cm">// NN-3 / NN-4: one upload path, no exceptions</span>
+    <span class="kw">static final</span> ArchRule onlyMediaServiceUsesCloudinary =
+        noClasses().that().doNotHaveSimpleName("MediaService")
+            .should().dependOnClassesThat().resideInAPackage("com.cloudinary..");
+
+    @ArchTest  <span class="cm">// NN-5: transactions (and therefore RLS context) start in services</span>
+    <span class="kw">static final</span> ArchRule noTransactionalControllers =
+        noClasses().that().resideInAPackage("..web..")
+            .should().beAnnotatedWith(Transactional.class);
+}</pre>
+
+<!-- ================= 11 ================= -->
+<h2>11. Git Workflow and Code Review</h2>
+<table>
+  <thead><tr><th style="width:140px">Practice</th><th>Standard</th></tr></thead>
+  <tbody>
+    <tr><td>Branching</td><td>Trunk-based. Short-lived branches off <code>main</code>, merged within a day or two. <code>main</code> is always deployable.</td></tr>
+    <tr><td>Branch names</td><td><code>feat/</code>, <code>fix/</code>, <code>chore/</code>, <code>docs/</code> plus a short description.</td></tr>
+    <tr><td>Commits</td><td>Conventional Commits: <code>feat(attendance): add geofence validation</code>. The scope is the module. Enables generated changelogs and makes history greppable by area.</td></tr>
+    <tr><td>Pull requests</td><td>One logical change. A PR touching six modules is six PRs. Description states what and why; the diff already says how.</td></tr>
+    <tr><td>Requirement traceability</td><td>PRs implementing a requirement cite it (<code>Implements FR-ATT-02</code>). This is what makes the SRS auditable after the fact rather than aspirational.</td></tr>
+    <tr><td>Merging</td><td>Squash merge. One commit per logical change on <code>main</code>.</td></tr>
+    <tr><td>Self-review</td><td>Working solo, review your own PR the next morning before merging. The delay is what makes it a review rather than a re-read.</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <strong>Reviewing as a solo developer.</strong> Most review value here comes from the automated gates, which do not get tired or optimistic. The human pass should concentrate on what tools cannot judge: is the authorisation check correct and at the right scope, does this belong in this module, and will this read clearly in six months. Appendix A is ordered accordingly, with the security items first.
+</div>
+
+<!-- ================= 12 ================= -->
+<h2>12. Observability Standards</h2>
+<table>
+  <thead><tr><th style="width:120px">Level</th><th>Use for</th></tr></thead>
+  <tbody>
+    <tr><td><code>ERROR</code></td><td>Something failed that needs a human. Every occurrence should be actionable — if it is not, it is not an error.</td></tr>
+    <tr><td><code>WARN</code></td><td>Recovered degradation: an external service retried, a job re-queued, a rate limit hit.</td></tr>
+    <tr><td><code>INFO</code></td><td>Business events worth reconstructing later: check-in recorded, booking made, payment recorded, admin promoted.</td></tr>
+    <tr><td><code>DEBUG</code></td><td>Development only. Never enabled in production.</td></tr>
+  </tbody>
+</table>
+<p>Every log line carries <code>correlationId</code>, <code>userId</code>, <code>gymId</code> and <code>locationId</code> from the MDC, populated by the same filter that builds the <code>AuthContext</code>. That combination is what satisfies <code>NFR-MNT-02</code>: diagnosing a failed check-in without reproducing it requires knowing who, which gym, which location, and which request — and all four are present on every line by construction rather than by remembering to include them.</p>
+<pre><span class="cm">// Structured, queryable, and free of content — see §7</span>
+log.info("Check-in recorded checkInId={} userId={} locationId={} method={} purpose={} deferred={}",
+         checkIn.id(), checkIn.userId(), checkIn.locationId(),
+         checkIn.method(), checkIn.purpose(), checkIn.isDeferred());</pre>
+
+<!-- ================= 13 ================= -->
+<h2>13. The Permission Matrix</h2>
+<p>The authoritative expression of who may do what. It resolves the Super Admin question directly: <strong>the Super Admin has full operational authority across every gym, but no data access beyond what a Gym Owner holds within one.</strong> Owning the platform confers reach, not depth.</p>
+<p class="legend"><span class="yes">●</span> permitted &nbsp;·&nbsp; <span class="part">◐</span> permitted within the account's own location scope &nbsp;·&nbsp; <span class="no">—</span> denied &nbsp;·&nbsp; <strong>Self</strong> = on the account's own record only</p>
+<table>
+  <thead><tr>
+    <th>Capability</th><th style="width:52px">Super<br>Admin</th><th style="width:52px">Gym<br>Owner</th><th style="width:52px">Location<br>Admin</th><th style="width:52px">Trainer</th><th style="width:52px">Member</th>
+  </tr></thead>
+  <tbody>
+    <tr><td>Verify / activate / suspend a gym</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Record gym subscription payment</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Cross-gym reporting</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Manage gym profile, branding</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Manage plan catalogue and pricing</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Create / close locations</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Appoint / demote Location Admins</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Verify trainers and members</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Manage members; assign trainers</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Record member payments; issue receipts</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Build timetables; manage sessions</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="no">—</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Mark attendance for others</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Author workout and diet plans</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Conduct and log PT sessions</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr><td>Issue coaching feedback</td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="no">—</span></td></tr>
+    <tr style="background:var(--warn-soft)"><td><strong>View health screening data</strong></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr">Self</td></tr>
+    <tr><td>View body measurements, weight</td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr"><span class="part">◐</span></td><td class="ctr">Self</td></tr>
+    <tr style="background:var(--accent-soft)"><td><strong>Own personal fitness profile</strong></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td><td class="ctr"><span class="yes">●</span></td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <strong>The shaded row, explained.</strong> <strong>Health screening</strong> is visible to admins because it is operationally necessary — <code>FR-MEM-03</code> collects injuries and conditions precisely so that whoever programmes a member's training does not hurt them. Access is scoped to the member's own location and is audited. Measurements and weight follow the same rule for the same reason: a trainer cannot programme progressively without them.
+</div>
+<div class="note">
+  <strong>Progress photographs are out of scope.</strong> They were the platform's most sensitive data class, they had no operational purpose, and they were the sole cause of a contradiction between <code>NFR-PRV-02</code> and <code>NFR-PRV-03</code>. Removing them resolves that contradiction outright rather than arbitrating it, and it takes with it the App Store review risk (<code>ARK-05</code>), the bulk of the DPDP exposure, and the need for any break-glass access path. Progress tracking keeps weight, body measurements, body fat, personal records, volume trends and streaks — everything that actually drives the analytics in <code>M13</code>.<br><br>
+  Sensitive media handling does not disappear, only shrinks: receipts and optional identity documents (<code>FR-MEM-07</code>) still require authenticated Cloudinary delivery. <code>NN-3</code> and <code>NN-4</code> stand unchanged, applied to a smaller and far less alarming set. Should photographs be wanted later, they return as a new requirement with this matrix as the starting point — not as a quiet re-enablement.
+</div>
+
+<!-- ================= APPENDIX A ================= -->
+<h2>Appendix A — Code Review Checklist</h2>
+<p>Ordered by consequence. If time is short, the first block is the block that matters.</p>
+<h4>Security and correctness — never skipped</h4>
+<table>
+  <tbody>
+    <tr><td style="width:24px">☐</td><td>Does every tenant-scoped service method call <code>auth.require(...)</code> with the <em>correct location</em>, as its first statement? (<code>NN-5</code>)</td></tr>
+    <tr><td>☐</td><td>Any bare <code>SET</code> against the app datasource? Must be <code>SET LOCAL</code>. (<code>NN-1</code>)</td></tr>
+    <tr><td>☐</td><td>New table: does the same migration enable <em>and force</em> RLS and attach a policy? (<code>NN-2</code>)</td></tr>
+    <tr><td>☐</td><td>Media upload: sensitivity argument passed, and is it right? Storing <code>public_id</code>, not a URL? (<code>NN-3</code>, <code>NN-4</code>)</td></tr>
+    <tr><td>☐</td><td>Retryable <code>POST</code>: is the idempotency key generated once per operation, not per attempt? (<code>ENG-8.1</code>)</td></tr>
+    <tr><td>☐</td><td>Contended row (capacity, credits): is it locked, and is there a concurrency test?</td></tr>
+    <tr><td>☐</td><td>Any PII, token, OTP or health content in a log line or error response? (§7)</td></tr>
+    <tr><td>☐</td><td>Out-of-scope resource: returns 404, not 403? (§5)</td></tr>
+    <tr><td>☐</td><td>External service call inside a transaction? (§3.4)</td></tr>
+  </tbody>
+</table>
+<h4>Design</h4>
+<table>
+  <tbody>
+    <tr><td style="width:24px">☐</td><td>Does this belong in this module, or is it here because it was convenient?</td></tr>
+    <tr><td>☐</td><td>Layering respected — no repository in a controller, no web type in a service?</td></tr>
+    <tr><td>☐</td><td>Domain invariants in the domain object rather than scattered through the service?</td></tr>
+    <tr><td>☐</td><td>Reusing the existing error model, pagination shape and job queue rather than a new variant? (<code>ENG-05</code>)</td></tr>
+  </tbody>
+</table>
+<h4>Tests and clarity</h4>
+<table>
+  <tbody>
+    <tr><td style="width:24px">☐</td><td>Do the tests cover the failure cases, not only the happy path?</td></tr>
+    <tr><td>☐</td><td>Do test names read as specifications? (<code>ENG-04</code>)</td></tr>
+    <tr><td>☐</td><td>Would this be clear to someone reading it in six months with no context?</td></tr>
+    <tr><td>☐</td><td>Requirement cited in the PR description where one applies?</td></tr>
+  </tbody>
+</table>
+
+<!-- ================= APPENDIX B ================= -->
+<h2 class="continue">Appendix B — Definition of Done</h2>
+<p>A change is done when all of the following are true. Not most.</p>
+<ol>
+  <li>Implements the requirement it cites, including its edge cases.</li>
+  <li>All automated gates pass — no exclusions, no <code>@Disabled</code>, no suppressed warnings without a comment saying why.</li>
+  <li>Tests exist for the failure paths, not just the success path.</li>
+  <li>Where it touches tenant data, an authorisation test exists for both an in-scope and an out-of-scope caller.</li>
+  <li>Where it adds a table, the isolation suite covers it.</li>
+  <li>Logs carry the standard fields and leak no content.</li>
+  <li>The API change is reflected in OpenAPI and the client is regenerated.</li>
+  <li>Any architectural decision taken along the way is recorded as an ADR.</li>
+  <li>Any SRS contradiction discovered is recorded in Appendix D rather than resolved silently in code.</li>
+</ol>
+
+<!-- ================= APPENDIX C ================= -->
+<h2>Appendix C — <code>CLAUDE.md</code> Agent Ruleset</h2>
+<p>This file lives at the repository root. AI coding assistants read it automatically and follow it as project instructions. It deliberately front-loads the non-negotiables, because those are the rules an agent would otherwise get wrong <em>plausibly</em> — producing code that looks idiomatic, compiles, passes a happy-path test, and quietly breaks a security boundary.</p>
+<pre># LIMITBEYOND — Project Instructions
+
+Java 21 + Spring Boot (modular monolith) · PostgreSQL 16 with RLS ·
+React Native + Expo · Cloudinary · Neon (dev, ap-southeast-1)
+
+Specs: docs/LIMITBEYOND_SRS_v1.1.pdf · docs/LIMITBEYOND_ARCH_v1.0.pdf ·
+       docs/LIMITBEYOND_STANDARDS_v1.0.pdf
+
+## NEVER (these fail silently — no exception, no test failure, no symptom)
+
+1. NEVER use bare `SET` for RLS context. Always `SET LOCAL`, inside a transaction.
+   Plain SET persists on the pooled connection and leaks tenant context to the
+   next request. This is a data breach, not a style issue.
+2. NEVER connect the application as the table owner. `lb_app` owns nothing;
+   `lb_migrator` owns the schema. Owners bypass RLS unless FORCE is set.
+3. NEVER upload media with Cloudinary's default `upload` type when it may be
+   sensitive. Receipts and ID documents use `authenticated`. All uploads go
+   through MediaService, which requires a sensitivity argument.
+4. NEVER store a full Cloudinary URL. Store `public_id`; build URLs at read time.
+5. NEVER write a tenant-scoped service method without `auth.require(permission,
+   locationId)` as its first statement.
+6. NEVER log passwords, OTPs, tokens, full phone numbers, health screening or
+   diet content. Log identifiers, never content.
+7. NEVER return 403 for a resource outside the caller's scope — return 404.
+   A 403 confirms existence and leaks another gym's data.
+8. NEVER call an external service (Twilio, Cloudinary, Expo) inside a
+   transaction. Enqueue a job instead.
+9. NEVER generate a fresh idempotency key per retry. One key per operation.
+10. NEVER use floating point for money. Integer minor units (paise) + currency.
+
+## ALWAYS
+
+- Create tables WITH their RLS policy in the same migration. Enable AND force.
+- Include `gym_id` and `location_id` on every operational table.
+- Put `@Transactional` on service methods only — never controllers, never repos.
+- Enqueue jobs inside the same transaction as the change that triggers them.
+- Lock contended rows (session capacity, PT credits) with `lockForUpdate`.
+- Enforce domain invariants in the domain object's constructor.
+- Give every data screen loading / empty / error / success states.
+- Name tests as sentences: `locationAdminCannotReadSiblingLocationMembers`.
+
+## Module structure
+
+Ten modules: platform, identity, org, people, billing, attendance,
+scheduling, training, engagement, insights (+ shared).
+
+Only `api/` is public. `web/`, `domain/`, `internal/`, `persistence/` are
+package-private. Cross-module access goes through the other module's facade
+interface or a published event. Modulith verification fails the build otherwise.
+
+`training` serves EVERY role, not just members — that is FR-PFP-01. No method
+in it takes a role parameter or branches on one. A Gym Owner logging their own
+sets uses the identical code path a member does.
+
+## Permissions
+
+Five roles: SUPER_ADMIN, GYM_OWNER, LOCATION_ADMIN, TRAINER, MEMBER.
+Authority is a set of grants, each scoped to a gym and named locations.
+Effective authority = union of grants EVALUATED PER LOCATION — never the
+maximum applied everywhere.
+
+Super Admin has full operational reach across all gyms but NO data access
+beyond a Gym Owner's. Owning the platform confers reach, not depth.
+
+Progress PHOTOGRAPHS are out of scope — do not build upload, storage or
+display for them. Progress tracking is weight, measurements, body fat,
+personal records, volume trends and streaks only.
+
+## When unsure
+
+Check the specs before inventing. If a requirement seems contradictory, say so
+and ask — do not resolve it silently in code. If a rule above blocks something
+that seems necessary, that is the signal to ask, not to work around it.</pre>
+
+<!-- ================= APPENDIX D ================= -->
+<h2>Appendix D — SRS Amendments Required</h2>
+<p>Contradictions found while writing this guide. Per your instruction the SRS stays at v1.1 for now; these accumulate here for the v1.2 pass, joined by the items already listed in LB-ARCH-1.0 Appendix B.</p>
+<table>
+  <thead><tr><th style="width:96px">Requirement</th><th style="width:180px">Problem</th><th>Proposed resolution</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-PRG-03</td><td><strong>Withdrawn.</strong> Progress photographs are removed from scope. The requirement, its member-controlled trainer visibility setting, and all upload and display behaviour go with it.</td><td>Mark withdrawn in v1.2, in the same style as <code>FR-BIL-15</code>. Record the reason: no operational purpose, disproportionate privacy exposure, and the sole cause of the <code>NFR-PRV</code> contradiction below.</td></tr>
+    <tr><td class="id">NFR-PRV-02<br>NFR-PRV-03</td><td><strong>Contradiction, now resolved by removal.</strong> PRV-02 granted the tenant Admin access to health data, measurements <em>and</em> photographs; PRV-03 as revised in v1.1 stated that no administrative role had routine access to either. With photographs gone, the conflict reduces to a simple, answerable question about health data.</td><td>Amend both to a single consistent rule: health screening and measurements are visible to admins and the assigned trainer within the member's location scope, audited, because programming training safely requires them. Delete every reference to photographs.</td></tr>
+    <tr><td class="id">NFR-PRV-03</td><td>Describes Super Admin access as available with "explicit, audited justification" — a break-glass mechanism that is now not being built.</td><td>Revise: Super Admin authority is capped at the Gym Owner data tier, with no elevated path. Simpler to build, simpler to state to a customer, and strictly safer.</td></tr>
+    <tr><td class="id">FR-PRG-06<br>M13</td><td>Reference the photograph visibility setting and photograph comparison (<code>FR-PRG-07</code>).</td><td>Remove the photographic elements. Progress tracking retains weight, measurements, body fat, personal records, volume trends, streaks and goals — the full analytics substance of <code>M13</code> is unaffected.</td></tr>
+    <tr><td class="id">ARK-05<br>(LB-ARCH)</td><td>App Store rejection risk was driven largely by health-adjacent imagery.</td><td>Downgrade materially. Health screening and location permission remain, but the highest-scrutiny element is gone.</td></tr>
+    <tr><td class="id">FR-EXR-05</td><td>Carried over from LB-ARCH-1.0 Appendix B: requires porting the predecessor's exercise data, which ADR-11 replaced with a clean-start authored catalogue.</td><td>Revise to specify a freshly authored catalogue against the richer model.</td></tr>
+    <tr><td class="id">OPN-04</td><td>Still open, now build-blocking (<code>AOP-02</code>). RLS context assumes one active <code>gym_id</code> per request; a person belonging to two gyms needs a gym-switching mechanism in the token.</td><td>Decide before the <code>identity</code> module is implemented.</td></tr>
+  </tbody>
+</table>
+
+<div class="note" style="margin-top:20px">
+  <strong>Keeping this document honest.</strong> A standards document decays the moment it describes something the code no longer does. Two habits prevent it: when a rule is found to be wrong, change it here in the same PR that changes the code — never leave the document describing the old way. And when a rule turns out to be unenforceable by tooling, ask whether it should exist at all (<code>ENG-02</code>). A short document that is entirely true beats a thorough one that is half-obeyed.
+</div>
+
+<div class="end-mark">— END OF DOCUMENT —</div>
+
+</body>
+</html>

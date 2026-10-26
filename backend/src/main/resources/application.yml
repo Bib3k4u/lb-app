@@ -1,0 +1,155 @@
+spring:
+  application:
+    name: limitbeyond
+  # Loads backend/.env's KEY=VALUE lines as Spring properties — the
+  # `[.properties]` hint tells Spring which format to parse a file whose
+  # extension it doesn't otherwise recognise (`.env` isn't one of Spring's
+  # built-in config-file extensions). Without this, DEV.md's own
+  # `cp .env.example .env` step did nothing: nothing was loading it into the
+  # process, so every value there — including real Twilio credentials —
+  # was silently ignored in favour of this file's own ${VAR:default}
+  # fallbacks. `optional:` so a missing .env (a fresh checkout that hasn't
+  # run the DEV.md setup yet) doesn't fail startup.
+  config:
+    import: optional:file:.env[.properties]
+
+  datasource:
+    # NN-2: the application connects as lb_app, which OWNS NOTHING. Migrations
+    # run as lb_migrator. A table owner bypasses RLS policies, so connecting as
+    # the owner would silently disable every isolation guarantee in the system.
+    #
+    # Local dev runs on 5433, not 5432 — this machine already has a system
+    # PostgreSQL 18 (EnterpriseDB installer) bound to 5432. See backend/DEV.md.
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/limitbeyond}
+    username: ${DB_USER:lb_app}
+    password: ${DB_PASSWORD:lb_app}
+    hikari:
+      maximum-pool-size: 10
+      # ADR-07: Neon's pooled endpoint runs PgBouncer in transaction mode, which
+      # does not support session-level prepared statements. Symptom of getting
+      # this wrong is intermittent, confusing errors under load (ARK-08).
+      data-source-properties:
+        prepareThreshold: 0
+
+  flyway:
+    enabled: true
+    # Runs as the schema owner, never as lb_app.
+    url: ${DB_MIGRATION_URL:jdbc:postgresql://localhost:5433/limitbeyond}
+    user: ${DB_MIGRATION_USER:lb_migrator}
+    password: ${DB_MIGRATION_PASSWORD:lb_migrator}
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+  jpa:
+    hibernate:
+      # Flyway owns the schema. Never let Hibernate touch DDL — it would create
+      # tables without RLS policies attached (LB-ENG-1.0 §6).
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+
+  threads:
+    # ADR-02: Java 21 virtual threads absorb the bursty 6am check-in load with
+    # ordinary blocking code — no reactive rewriting required.
+    virtual:
+      enabled: true
+
+  jackson:
+    default-property-inclusion: non_null
+    property-naming-strategy: LOWER_CAMEL_CASE
+
+server:
+  port: ${PORT:8080}
+  error:
+    # Errors are produced by GlobalExceptionHandler as RFC 7807 Problem Details.
+    # Never let the container's default page leak a stack trace (ENG-3.2).
+    include-stacktrace: never
+    include-message: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+limitbeyond:
+  jwt:
+    # Injected from Secrets Manager at runtime. NEVER committed (NFR-SEC-09).
+    # The dev default below is ONLY read when JWT_SECRET is unset, which is the
+    # case on a fresh checkout — it lets the app boot locally without asking for
+    # a secret first. It must never be the value in a deployed environment.
+    secret: ${JWT_SECRET:dev-only-insecure-secret-change-me-before-any-real-deploy-0123456789}
+    access-token-minutes: 15
+    refresh-token-days: 90
+  email:
+    # Resend (https://resend.com). Blank API key = email off: sends are skipped
+    # with a log line. The sender domain must be verified in Resend.
+    api-key: ${RESEND_API_KEY:}
+    from: ${EMAIL_FROM:LimitBeyond by Neelkanth Gym <hello@neelkanthgym.in>}
+    reply-to: ${EMAIL_REPLY_TO:}
+    console-url: ${CONSOLE_URL:https://admin.neelkanthgym.in}
+  google:
+    # OAuth 2.0 Web client ID for "Sign in with Google" (public value, must match
+    # the console's NEXT_PUBLIC_GOOGLE_CLIENT_ID). Blank = Google sign-in off.
+    client-id: ${GOOGLE_CLIENT_ID:}
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+    api-key: ${CLOUDINARY_API_KEY:}
+    api-secret: ${CLOUDINARY_API_SECRET:}
+  nutrition:
+    # Obtain a free server-side key from data.gov. Blank keeps manual food
+    # logging fully available without exposing a credential in the mobile app.
+    usda-api-key: ${USDA_FDC_API_KEY:}
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID:}
+    auth-token: ${TWILIO_AUTH_TOKEN:}
+    verify-service-sid: ${TWILIO_VERIFY_SERVICE_SID:}
+    # ADR-08 dev constraint: a single Twilio Verify trial account can only send
+    # to pre-verified numbers, and this codebase runs before DLT registration
+    # exists at all. When Twilio credentials are blank, OtpService falls back
+    # to a console-logged, non-random code so the auth flow is fully runnable
+    # without a live Twilio account. Fixed rather than random specifically so
+    # autocannon and other scripted load tests can authenticate deterministically.
+    # MUST be false wherever real members might reach the API.
+    dev-mode-enabled: ${OTP_DEV_MODE:true}
+    dev-mode-code: ${OTP_DEV_MODE_CODE:123456}
+  rate-limit:
+    otp-request-per-hour: ${RATE_LIMIT_OTP_REQUEST:5}
+    otp-verify-per-hour: ${RATE_LIMIT_OTP_VERIFY:10}
+    sign-in-per-hour: ${RATE_LIMIT_SIGN_IN:10}
+    check-in-per-hour: ${RATE_LIMIT_CHECK_IN:30}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:19006}
+
+springdoc:
+  api-docs:
+    path: /api/v1/openapi.json
+  swagger-ui:
+    path: /api/v1/docs
+    enabled: ${OPENAPI_UI_ENABLED:true}   # false in prod (LB-API-1.0 §17.1)
+
+logging:
+  level:
+    root: INFO
+    com.limitbeyond: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+springdoc:
+  swagger-ui:
+    enabled: false
+limitbeyond:
+  twilio:
+    dev-mode-enabled: false   # NEVER true in prod — see comment above
+logging:
+  level:
+    com.limitbeyond: INFO   # DEBUG is development only (LB-ENG-1.0 §12)

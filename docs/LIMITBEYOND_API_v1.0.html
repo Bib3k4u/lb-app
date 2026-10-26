@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LIMITBEYOND — API Specification v1.0</title>
+<style>
+  @page { size:A4; margin:16mm 14mm; }
+  :root{--ink:#1a1d24;--muted:#5a6273;--rule:#d4d9e2;--accent:#0f3d5c;--accent-soft:#eef3f7;
+        --band:#f6f8fa;--warn:#8a5a00;--warn-soft:#fdf6e8;--bad:#9a2c2c;--bad-soft:#fdf0f0;
+        --good:#2b6a3f;--good-soft:#eff6f1;
+        --get:#2b6a3f;--post:#0f3d5c;--put:#8a5a00;--del:#9a2c2c;}
+  *{box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:"Charter","Georgia","Times New Roman",serif;font-size:10pt;line-height:1.48;color:var(--ink);margin:0}
+  h1,h2,h3,h4,.sans{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+
+  .title-page{height:248mm;display:flex;flex-direction:column;justify-content:center;break-after:page}
+  .title-rule{height:4px;background:var(--accent);width:70px;margin-bottom:26px}
+  .product{font-size:40pt;letter-spacing:3px;font-weight:700;color:var(--accent);margin:0;line-height:1.05}
+  .product-sub{font-size:12pt;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 40px}
+  .doc-type{font-size:19pt;font-weight:600;margin:0 0 4px}
+  .doc-sub{font-size:11pt;color:var(--muted);margin:0 0 44px}
+  .meta-grid{display:grid;grid-template-columns:128px 1fr;row-gap:7px;font-size:10pt;max-width:470px}
+  .meta-grid dt{color:var(--muted)} .meta-grid dd{margin:0;font-weight:600}
+  .title-note{margin-top:42px;padding:12px 14px;background:var(--accent-soft);border-left:3px solid var(--accent);font-size:9.2pt;color:var(--muted);max-width:500px}
+
+  h2{font-size:14.5pt;color:var(--accent);border-bottom:2px solid var(--accent);padding-bottom:5px;margin:0 0 12px;break-before:page;break-after:avoid}
+  h2.continue{break-before:auto}
+  h3{font-size:11.3pt;margin:18px 0 6px;break-after:avoid}
+  h4{font-size:9.8pt;margin:13px 0 5px;color:var(--accent);text-transform:uppercase;letter-spacing:.6px;break-after:avoid}
+  p{margin:0 0 8px} ul,ol{margin:0 0 8px;padding-left:17px} li{margin-bottom:2px}
+
+  table{width:100%;border-collapse:collapse;font-size:8.5pt;margin:7px 0 13px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+  thead{display:table-header-group} tr{break-inside:avoid}
+  th{background:var(--accent);color:#fff;text-align:left;padding:4px 6px;font-weight:600;font-size:8.2pt}
+  td{padding:4px 6px;border-bottom:1px solid var(--rule);vertical-align:top}
+  tbody tr:nth-child(even){background:var(--band)}
+  td.id{font-weight:700;color:var(--accent);white-space:nowrap;font-size:8.1pt}
+  td.ctr{text-align:center;white-space:nowrap}
+  .path{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:7.9pt;white-space:nowrap}
+
+  .m{display:inline-block;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:6.8pt;font-weight:700;
+     color:#fff;padding:1px 5px;border-radius:3px;letter-spacing:.3px;min-width:34px;text-align:center}
+  .m.get{background:var(--get)} .m.post{background:var(--post)} .m.put{background:var(--put)}
+  .m.patch{background:var(--put)} .m.del{background:var(--del)}
+
+  pre{background:#f4f6f8;border:1px solid var(--rule);border-left:3px solid var(--accent);padding:8px 10px;
+      font-family:"SF Mono",Menlo,Consolas,monospace;font-size:7.4pt;line-height:1.45;margin:7px 0 11px;
+      break-inside:avoid;white-space:pre-wrap}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:8.3pt;background:#eef1f4;padding:0 3px;border-radius:2px}
+  pre code{background:none;padding:0;font-size:inherit}
+  .cm{color:var(--muted);font-style:italic}
+  .k{color:var(--accent)}
+  .s{color:#2b6a3f}
+
+  .note{background:var(--accent-soft);border-left:3px solid var(--accent);padding:8px 11px;margin:9px 0 13px;font-size:9.1pt;break-inside:avoid}
+  .note strong{color:var(--accent)}
+  .warn{background:var(--warn-soft);border-left:3px solid var(--warn);padding:8px 11px;margin:9px 0 13px;font-size:9.1pt;break-inside:avoid}
+  .warn strong{color:var(--warn)}
+  .never{background:var(--bad-soft);border-left:3px solid var(--bad);padding:8px 11px;margin:9px 0 13px;font-size:9.1pt;break-inside:avoid}
+  .never strong{color:var(--bad)}
+
+  .toc{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:9.4pt}
+  .toc ol{list-style:none;padding-left:0;counter-reset:sec}
+  .toc>ol>li{counter-increment:sec;padding:3.5px 0;border-bottom:1px dotted var(--rule);font-weight:600}
+  .toc>ol>li::before{content:counter(sec) ".  ";color:var(--accent)}
+  .toc ul{list-style:none;padding-left:18px;margin:3px 0 1px;font-weight:400;color:var(--muted);font-size:8.8pt}
+  .small{font-size:8.8pt;color:var(--muted)}
+  .end-mark{text-align:center;color:var(--muted);font-size:9pt;margin-top:24px;letter-spacing:3px}
+</style>
+</head>
+<body>
+
+<section class="title-page">
+  <div class="title-rule"></div>
+  <h1 class="product">LIMITBEYOND</h1>
+  <div class="product-sub">Fitness &amp; Gym Management Platform</div>
+  <div class="doc-type">API Specification</div>
+  <div class="doc-sub">Version 1.0 &middot; REST contract for mobile, web console and public surface</div>
+  <dl class="meta-grid">
+    <dt>Document ID</dt><dd>LB-API-1.0</dd>
+    <dt>Status</dt><dd>Draft for review</dd>
+    <dt>Date</dt><dd>17 September 2026</dd>
+    <dt>Prepared by</dt><dd>Bibek Jha</dd>
+    <dt>Implements</dt><dd>LB-SRS-1.1 · LB-ARCH-1.0 · LB-ENG-1.0 · LB-DATA-1.0</dd>
+    <dt>Base path</dt><dd><code>/api/v1</code></dd>
+    <dt>Machine contract</dt><dd>OpenAPI 3.1, generated by springdoc</dd>
+  </dl>
+  <div class="title-note">
+    <strong>What is authoritative here.</strong> The generated OpenAPI document is the machine contract and the source of the TypeScript clients; when it and this document disagree, the OpenAPI wins and this is corrected. What this document adds is the part a schema cannot express — why a resource is shaped the way it is, which rules are enforced where, and the handful of conventions that must hold across every endpoint for the API to be safe rather than merely functional.
+  </div>
+</section>
+
+<h2 class="continue">Table of Contents</h2>
+<div class="toc">
+<ol>
+  <li>Introduction and Design Stance</li>
+  <li>Conventions
+    <ul><li>Versioning · naming · scoping · types · errors · pagination · idempotency · rate limiting · caching</li></ul>
+  </li>
+  <li>Authentication and Authorisation</li>
+  <li>Auth Endpoints</li>
+  <li>Platform and Subscriptions (Super Admin)</li>
+  <li>Gyms and Locations</li>
+  <li>People — Members, Trainers, Assignment</li>
+  <li>Billing — Plans, Memberships, Payments</li>
+  <li>Attendance</li>
+  <li>Scheduling — Classes, Bookings, Personal Training</li>
+  <li>Training — Exercises, Workouts, Nutrition, Progress</li>
+  <li>Engagement — Feedback, Notifications</li>
+  <li>Insights and Reporting</li>
+  <li>Media</li>
+  <li>Public API — Directory, Timetables, Leads</li>
+  <li>Webhooks</li>
+  <li>OpenAPI, Clients and Deprecation Policy</li>
+  <li>Appendix A — Status Codes</li>
+  <li>Appendix B — Error Code Catalogue</li>
+  <li>Appendix C — Worked Examples</li>
+</ol>
+</div>
+
+<!-- ===================== 1 ===================== -->
+<h2>1. Introduction and Design Stance</h2>
+
+<h3>1.1 What this API serves</h3>
+<p>One HTTP interface serves three consumers, and the differences between them shape the design more than any style preference:</p>
+<table>
+  <thead><tr><th style="width:130px">Consumer</th><th style="width:150px">Characteristics</th><th>What that demands</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Mobile app</strong><br><span class="small">all five roles</span></td><td>Intermittent connectivity, old builds in circulation for weeks after a store release</td><td>Idempotent writes, small payloads, and a version that keeps working long after the next one ships (<code>NFR-MNT-04</code>)</td></tr>
+    <tr><td><strong>Web console</strong><br><span class="small">admins</span></td><td>Good connectivity, large lists, bulk operations, exports</td><td>Cursor pagination, filtering, and asynchronous report generation</td></tr>
+    <tr><td><strong>Public site</strong><br><span class="small">unauthenticated</span></td><td>Server-rendered at build and revalidation time; crawled by search engines</td><td>Cacheable reads, stable shapes, and exactly one narrow write path</td></tr>
+  </tbody>
+</table>
+
+<h3>1.2 Three rules that outrank style</h3>
+<p>Most API conventions are arbitrary but worth being consistent about. Three here are not arbitrary, because getting them wrong produces a security or correctness defect rather than an inelegant interface.</p>
+<div class="never">
+  <strong>1 — A resource outside the caller's scope returns 404, never 403.</strong> A 403 confirms that the resource exists. Applied across a multi-tenant directory, that turns identifier enumeration into a census of every gym's members. <code>NFR-SEC-01a</code> forbids exactly this, so the absence of authority and the absence of the resource must be indistinguishable to the caller. The one exception is an action on a resource the caller <em>can</em> see but may not perform — that is a genuine 403.
+</div>
+<div class="never">
+  <strong>2 — Every retryable write requires an <code>Idempotency-Key</code>.</strong> A network failure is ambiguous: the client cannot distinguish a request that never arrived from one that succeeded but whose response was lost. Without a key, retrying risks a duplicate check-in or a double-charged payment and not retrying risks losing it. With one, the client may retry freely. This is also how <code>FR-ATT-05</code>'s duplicate-rejection requirement is met under offline replay — one mechanism satisfying a correctness requirement and an availability requirement at once.
+</div>
+<div class="never">
+  <strong>3 — Scope is taken from the path or the token, never from the body.</strong> No endpoint accepts <code>gymId</code> or <code>locationId</code> as a request field. Both are derived server-side from the route and the caller's grants. A body-supplied tenant identifier is a cross-tenant write waiting to happen, and it is the specific defect the public lead endpoint would otherwise be vulnerable to (§15.3).
+</div>
+
+<h3>1.3 Deliberately absent</h3>
+<table>
+  <thead><tr><th style="width:150px">Not in this API</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>HATEOAS / hypermedia links</td><td>Both clients are written against a generated, typed contract. Runtime link discovery would add payload weight and ceremony that nothing consumes.</td></tr>
+    <tr><td>GraphQL</td><td>Considered and declined in ADR-13: it complicates RLS context propagation and per-field authorisation for no benefit the mobile client needs.</td></tr>
+    <tr><td>Partial-response / field selection</td><td>Resources are already shaped to their use. Arbitrary field selection defeats response caching and makes the generated types meaningless.</td></tr>
+    <tr><td>Bulk write endpoints</td><td>Aside from the explicit admin bulk actions in §13, a write touches one resource. Bulk semantics ("7 of 10 succeeded") are ambiguous under retry.</td></tr>
+    <tr><td>WebSockets / SSE</td><td>ADR-10: no requirement needs a server-initiated stream. Waitlist promotion is a push notification; live views poll.</td></tr>
+    <tr><td>Payment collection</td><td>Withdrawn from scope entirely. Money is recorded, never handled (<code>CON-04</code>).</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 2 ===================== -->
+<h2>2. Conventions</h2>
+
+<h3>2.1 Versioning and base path</h3>
+<p>All authenticated endpoints sit under <code>/api/v1</code>; the public surface under <code>/api/v1/public</code>. The major version is in the path and increments only for a breaking change. Additive changes — a new optional field, a new endpoint, a new enum value in a response — ship within <code>v1</code> and clients must tolerate them.</p>
+<div class="note">
+  <strong>Why path versioning rather than a header.</strong> App-store review means an old mobile build stays in circulation for weeks after its replacement ships (<code>NFR-MNT-04</code>). A version visible in the URL is trivially routable, cacheable and greppable in logs when diagnosing which build a failing client is running. Header negotiation is more elegant and less operable.
+</div>
+
+<h3>2.2 Naming and resource shape</h3>
+<table>
+  <thead><tr><th style="width:150px">Rule</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr><td>Plural nouns, kebab-case</td><td><code>/check-ins</code>, <code>/pt-packages</code>, <code>/class-types</code></td></tr>
+    <tr><td>Never a verb in a path</td><td>The method is the verb.</td></tr>
+    <tr><td>State transitions are sub-resources</td><td><code>POST /bookings/{id}/cancellation</code> — not <code>/cancelBooking</code></td></tr>
+    <tr><td>Location-scoped resources nest</td><td><code>/locations/{locationId}/members</code> — the scope is in the route, which is also what the service authorises against</td></tr>
+    <tr><td>Gym-wide resources do not nest</td><td><code>/plans</code>, <code>/class-types</code> — gym comes from the token (<code>FR-ORG-12</code>)</td></tr>
+    <tr><td>Own data uses <code>/me</code></td><td><code>/me/workouts</code>, <code>/me/progress</code> — every account has these, whatever its role (<code>FR-PFP-01</code>)</td></tr>
+    <tr><td>JSON fields are <code>camelCase</code></td><td>Configured once on the serialiser, never per field</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <strong><code>/me</code> is not a convenience alias.</strong> It is the API's expression of the dual-facet model. <code>GET /me/workouts</code> is the same endpoint for a member, a trainer and a gym owner, and it takes no role parameter. Had personal training data been nested under <code>/members/{id}</code>, staff would have needed a member identity to use it — which is precisely the modelling mistake <code>FR-PFP-01</code> exists to prevent.
+</div>
+
+<h3>2.3 Data types on the wire</h3>
+<table>
+  <thead><tr><th style="width:120px">Type</th><th style="width:150px">Representation</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Identifier</td><td>UUID string</td><td>UUIDv7. Unguessable in URLs, time-ordered for index locality.</td></tr>
+    <tr><td>Timestamp</td><td>ISO-8601 with offset</td><td><code>"2026-09-17T06:30:00+05:30"</code>. Always sent with an offset; stored UTC.</td></tr>
+    <tr><td>Date</td><td><code>YYYY-MM-DD</code></td><td>For things without a time: <code>expiresOn</code>, <code>joinedOn</code>.</td></tr>
+    <tr><td>Time of day</td><td><code>HH:mm</code></td><td>Opening hours, class start times on a recurring rule.</td></tr>
+    <tr><td><strong>Money</strong></td><td><code>{ "amountMinor": 250000, "currency": "INR" }</code></td><td><strong>Integer minor units.</strong> ₹2,500.00 is <code>250000</code> paise. No floating point appears anywhere near an amount, in any language, at any layer.</td></tr>
+    <tr><td>Enum</td><td>Upper snake case string</td><td><code>"WAITLISTED"</code>. Clients must tolerate unknown values — new ones are additive.</td></tr>
+    <tr><td>Phone</td><td>E.164</td><td><code>"+919876543210"</code>. Never appears in a URL path or query.</td></tr>
+    <tr><td>Duration</td><td>Integer, unit in the name</td><td><code>durationMinutes</code>, <code>restSeconds</code> — never an unqualified number.</td></tr>
+  </tbody>
+</table>
+
+<h3>2.4 Errors — RFC 7807 Problem Details</h3>
+<p>One shape for every failure, produced by a single handler (<code>LB-ENG-1.0</code> §3.5). Clients switch on <code>code</code>; <code>detail</code> is for humans and may change without notice.</p>
+<pre>HTTP/1.1 422 Unprocessable Content
+Content-Type: application/problem+json
+
+{
+  <span class="k">"type"</span>:          <span class="s">"about:blank"</span>,
+  <span class="k">"title"</span>:         <span class="s">"No sessions remaining"</span>,
+  <span class="k">"status"</span>:        422,
+  <span class="k">"detail"</span>:        <span class="s">"This personal training package has no sessions left."</span>,
+  <span class="k">"code"</span>:          <span class="s">"NO_CREDITS_REMAINING"</span>,   <span class="cm">// stable — switch on this</span>
+  <span class="k">"correlationId"</span>: <span class="s">"01J9F2K7X3QW8M4N"</span>          <span class="cm">// quote to find it in the logs</span>
+}</pre>
+<p>Validation failures add a <code>fields</code> array naming the offending field and a message — <strong>never the submitted value</strong>, which may be personal data and would then be logged by whatever consumes the response.</p>
+<pre>{
+  <span class="k">"title"</span>:  <span class="s">"Validation failed"</span>,
+  <span class="k">"status"</span>: 400,
+  <span class="k">"code"</span>:   <span class="s">"VALIDATION_FAILED"</span>,
+  <span class="k">"fields"</span>: [
+    { <span class="k">"field"</span>: <span class="s">"phone"</span>, <span class="k">"message"</span>: <span class="s">"must be a valid Indian mobile number"</span> }
+  ]
+}</pre>
+<div class="never">
+  <strong>What never appears in an error response:</strong> stack traces, SQL, class names, upstream provider messages, or the value that failed validation. Error responses are the most reliable reconnaissance surface an attacker has. The correlation ID is the bridge — the user quotes it, and it locates the full detail in the logs.
+</div>
+
+<h3>2.5 Pagination — cursor, not offset</h3>
+<pre>GET /api/v1/locations/{locationId}/members?limit=50&amp;cursor=eyJpZCI6IjAxSjl...
+
+{
+  <span class="k">"items"</span>: [ … ],
+  <span class="k">"nextCursor"</span>: <span class="s">"eyJpZCI6IjAxSjlGMks3WDNRVzhNNE4ifQ"</span>,  <span class="cm">// null on the last page</span>
+  <span class="k">"hasMore"</span>: true
+}</pre>
+<table>
+  <thead><tr><th style="width:110px">Parameter</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><code>limit</code></td><td>Default 25, maximum 100. A larger value is clamped, not rejected.</td></tr>
+    <tr><td><code>cursor</code></td><td>Opaque. Clients must not parse or construct one — its encoding is free to change.</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <strong>Why not <code>?page=2</code>.</strong> Offset pagination re-runs the query and skips rows, so anything inserted or deleted between page one and page two shifts every subsequent row — items get duplicated across pages or skipped entirely. Attendance and bookings change constantly while an admin is paging through them, so offsets would be visibly wrong in exactly the lists people use most. Cursors anchor to a row and are stable under concurrent writes.
+</div>
+
+<h3>2.6 Filtering and sorting</h3>
+<pre>GET /locations/{id}/members?status=ACTIVE&amp;expiringBefore=2026-10-31&amp;sort=-joinedOn
+GET /locations/{id}/check-ins?from=2026-09-01&amp;to=2026-09-30&amp;purpose=SHIFT</pre>
+<p>Filters are explicit named parameters, never a generic query language. Each is a documented, indexed access path; an arbitrary filter expression would let a client construct a query that scans a ten-million-row table. Sorting uses <code>sort=field</code> or <code>sort=-field</code> for descending, restricted to an allow-list per endpoint.</p>
+
+<h3>2.7 Idempotency</h3>
+<p>Required on every <code>POST</code> a client may retry: check-ins, workout logs, bookings, payments, leads. Optional and harmless elsewhere.</p>
+<pre>POST /api/v1/locations/{locationId}/check-ins
+Idempotency-Key: 9f1c8b30-6a4e-7c21-b8d5-1e2f3a4b5c6d</pre>
+<table>
+  <thead><tr><th style="width:130px">Situation</th><th>Response</th></tr></thead>
+  <tbody>
+    <tr><td>First request</td><td>Processed normally. Key and outcome recorded.</td></tr>
+    <tr><td>Replay, same key, same payload</td><td><strong>The original response</strong>, with <code>Idempotency-Replayed: true</code>. No second row is created.</td></tr>
+    <tr><td>Same key, <em>different</em> payload</td><td><code>409</code> <code>IDEMPOTENCY_KEY_REUSED</code>. Reusing a key for a different operation is a client bug and silently accepting it would hide it.</td></tr>
+    <tr><td>Key absent where required</td><td><code>400</code> <code>IDEMPOTENCY_KEY_REQUIRED</code>.</td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <strong>The key belongs to the operation, not the attempt.</strong> A client that generates a fresh UUID per retry defeats the entire mechanism — each retry looks like a new operation and creates a duplicate. This is the single most consequential client-side rule in the API, and it is why the mobile outbox generates its key once at enqueue and reuses it across every attempt.
+</div>
+<p>Keys are retained 24 hours, which comfortably exceeds any plausible offline queue.</p>
+
+<h3>2.8 Rate limiting</h3>
+<p>Every response to a rate-limited endpoint carries the standard headers, so a client can back off intelligently rather than hammering until it is blocked.</p>
+<pre>RateLimit-Limit: 5
+RateLimit-Remaining: 2
+RateLimit-Reset: 47              <span class="cm">// seconds</span>
+Retry-After: 47                  <span class="cm">// on 429 only</span></pre>
+<table>
+  <thead><tr><th style="width:190px">Endpoint group</th><th style="width:150px">Limit</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>OTP request</td><td>5 / hour per number,<br>20 / hour per device</td><td>Each one costs real money and is the most abusable endpoint in the product.</td></tr>
+    <tr><td>OTP verify</td><td>10 / hour per number</td><td>Brute-forcing a six-digit code.</td></tr>
+    <tr><td>Sign-in (password)</td><td>10 / hour per account</td><td>Credential stuffing.</td></tr>
+    <tr><td>Check-in</td><td>10 / hour per user</td><td>Generous — offline replay must never trip it.</td></tr>
+    <tr><td><strong>Public lead submission</strong></td><td>3 / hour per IP,<br>2 / day per phone</td><td>The only unauthenticated write path in the platform (§15.3).</td></tr>
+    <tr><td>Authenticated default</td><td>300 / minute per user</td><td>A ceiling, not a throttle.</td></tr>
+  </tbody>
+</table>
+
+<h3>2.9 Caching and conditional requests</h3>
+<table>
+  <thead><tr><th style="width:170px">Surface</th><th>Policy</th></tr></thead>
+  <tbody>
+    <tr><td>Public directory reads</td><td><code>Cache-Control: public, max-age=300, stale-while-revalidate=3600</code> plus an <code>ETag</code>. These are served to a CDN and a static-site build; they must be cacheable.</td></tr>
+    <tr><td>Authenticated reads</td><td><code>Cache-Control: private, no-store</code> by default. A shared cache must never hold one gym's member list.</td></tr>
+    <tr><td>Reference data<br><span class="small">exercises, muscle groups</span></td><td><code>private, max-age=3600</code> with an <code>ETag</code>. The exercise catalogue is large and changes rarely — <code>If-None-Match</code> turns a repeat fetch into a 304.</td></tr>
+    <tr><td>Media</td><td>Never proxied. Cloudinary URLs are returned and the CDN serves the bytes (ADR-15).</td></tr>
+  </tbody>
+</table>
+
+<h3>2.10 Standard headers</h3>
+<table>
+  <thead><tr><th style="width:170px">Header</th><th style="width:60px">Dir.</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>→</td><td><code>Bearer &lt;access token&gt;</code></td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td>→</td><td>UUID, one per logical operation (§2.7)</td></tr>
+    <tr><td><code>X-Gym-Id</code></td><td>→</td><td><em>Optional.</em> Only meaningful for an account holding grants in more than one gym; selects the active gym. Always validated against the token's grants — never trusted.</td></tr>
+    <tr><td><code>X-Request-Id</code></td><td>→</td><td>Client-supplied correlation id. Echoed back and written to every log line for that request.</td></tr>
+    <tr><td><code>X-Correlation-Id</code></td><td>←</td><td>Server-assigned when the client sent none. Also appears in error bodies.</td></tr>
+    <tr><td><code>Idempotency-Replayed</code></td><td>←</td><td><code>true</code> when a stored result was returned rather than the work being done again.</td></tr>
+    <tr><td><code>Deprecation</code> / <code>Sunset</code></td><td>←</td><td>Present on endpoints scheduled for removal (§17.3).</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 3 ===================== -->
+<h2>3. Authentication and Authorisation</h2>
+
+<h3>3.1 Token model</h3>
+<table>
+  <thead><tr><th style="width:120px">Token</th><th style="width:80px">Lifetime</th><th>Contents and handling</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Access</strong></td><td>15 minutes</td><td>JWT carrying <code>sub</code>, account state, and the account's role grants with their location scope. Sent as a bearer token. Short-lived because it cannot be revoked before expiry.</td></tr>
+    <tr><td><strong>Refresh</strong></td><td>60 days</td><td>Opaque, stored server-side hashed, revocable individually or wholesale. Exchanged for a new pair; rotated on every use.</td></tr>
+  </tbody>
+</table>
+<p>Clients store both in the device secure store — Keychain or Keystore, never <code>AsyncStorage</code> or <code>localStorage</code> (<code>LB-ENG-1.0</code> §7).</p>
+
+<h3>3.2 Grants in the token</h3>
+<pre>{
+  <span class="k">"sub"</span>:   <span class="s">"01J9F2K7X3QW8M4N5P6R7S8T9V"</span>,
+  <span class="k">"state"</span>: <span class="s">"ACTIVE"</span>,
+  <span class="k">"grants"</span>: [
+    { <span class="k">"role"</span>: <span class="s">"TRAINER"</span>,        <span class="k">"gymId"</span>: <span class="s">"01J9…A1"</span>,
+      <span class="k">"locationIds"</span>: [<span class="s">"01J9…L1"</span>, <span class="s">"01J9…L2"</span>], <span class="k">"gymWide"</span>: false },
+    { <span class="k">"role"</span>: <span class="s">"LOCATION_ADMIN"</span>, <span class="k">"gymId"</span>: <span class="s">"01J9…A1"</span>,
+      <span class="k">"locationIds"</span>: [<span class="s">"01J9…L1"</span>],           <span class="k">"gymWide"</span>: false }
+  ],
+  <span class="k">"exp"</span>: 1789012345
+}</pre>
+<div class="note">
+  <strong>Read that example carefully — it is the whole authorisation model in one payload.</strong> This account is a trainer at two locations and an admin at only one. At <code>L1</code> it may verify members; at <code>L2</code> it may coach but not administer. Effective authority is the <strong>union of grants evaluated per location</strong>, never the maximum applied everywhere (<code>FR-AUTH-28</code>). Trainer + Location Admin is a first-class supported combination (<code>FR-AUTH-26</code>), not an edge case.
+</div>
+
+<h3>3.3 How a request is authorised</h3>
+<table>
+  <thead><tr><th style="width:36px">#</th><th style="width:150px">Stage</th><th>What happens</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Token validation</td><td>Signature and expiry. Failure → <code>401 UNAUTHENTICATED</code>.</td></tr>
+    <tr><td>2</td><td>Account state</td><td><code>PENDING_VERIFICATION</code> reaches only <code>/me/profile</code> and <code>/me/status</code> (<code>FR-AUTH-09</code>). Suspended or deactivated → <code>403</code>.</td></tr>
+    <tr><td>3</td><td>Gym liveness</td><td>A lapsed gym past its grace period restricts administrative endpoints; members keep read access to their own data (<code>FR-SUB-07</code>).</td></tr>
+    <tr><td>4</td><td>Permission check</td><td><code>auth.require(permission, locationId)</code> in the service method — scope first, permission second.</td></tr>
+    <tr><td>5</td><td>RLS context</td><td><code>SET LOCAL</code> injects gym, locations and role into the transaction. Every query is filtered by the database regardless of what the code asked for.</td></tr>
+  </tbody>
+</table>
+<p>Stages 4 and 5 are deliberately redundant. A mistake in either is caught by the other; a breach requires both to be wrong at once.</p>
+
+<!-- ===================== 4 ===================== -->
+<h2>4. Auth Endpoints</h2>
+<table>
+  <thead><tr><th style="width:52px">Method</th><th style="width:190px">Path</th><th style="width:66px">Auth</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/auth/otp/request</td><td>None</td><td>Send a one-time password by SMS or email. Rate-limited hard (§2.8).</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/auth/otp/verify</td><td>None</td><td>Exchange a code for a token pair. Creates the account on first successful verification.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/auth/password/sign-in</td><td>None</td><td>Email and password alternative (<code>FR-AUTH-02</code>).</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/auth/password/reset-request</td><td>None</td><td>Always returns 202, whether or not the address exists — see below.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/auth/password/reset</td><td>Token</td><td>Complete a reset with the emailed token.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/auth/refresh</td><td>Refresh</td><td>Rotate the token pair.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/auth/sign-out</td><td>Bearer</td><td>Revoke the presented refresh token.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/auth/sign-out/all</td><td>Bearer</td><td>Revoke every session (<code>FR-AUTH-13</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/auth/sessions</td><td>Bearer</td><td>List active sessions with device labels.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/auth/register</td><td>Bearer</td><td>Complete registration against a gym and one location. Account enters <code>PENDING_VERIFICATION</code>.</td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <strong>Two endpoints deliberately refuse to be informative.</strong> <code>/auth/otp/request</code> returns 202 whether or not the number is registered, and <code>/auth/password/reset-request</code> returns 202 whether or not the address exists. Distinguishing them would turn either endpoint into an account-existence oracle — a way to discover which phone numbers belong to gym members. The unhelpfulness is the feature.
+</div>
+<h4>Request and response</h4>
+<pre>POST /api/v1/auth/otp/request
+{ <span class="k">"identifier"</span>: <span class="s">"+919876543210"</span>, <span class="k">"channel"</span>: <span class="s">"SMS"</span> }
+→ 202 Accepted
+{ <span class="k">"expiresInSeconds"</span>: 300, <span class="k">"resendAfterSeconds"</span>: 30 }
+
+POST /api/v1/auth/otp/verify
+{ <span class="k">"identifier"</span>: <span class="s">"+919876543210"</span>, <span class="k">"code"</span>: <span class="s">"481920"</span> }
+→ 200 OK
+{
+  <span class="k">"accessToken"</span>:  <span class="s">"eyJhbGciOi…"</span>,
+  <span class="k">"refreshToken"</span>: <span class="s">"rt_9f1c8b30…"</span>,
+  <span class="k">"expiresIn"</span>:    900,
+  <span class="k">"user"</span>: {
+    <span class="k">"id"</span>: <span class="s">"01J9…"</span>, <span class="k">"firstName"</span>: <span class="s">"Anjali"</span>, <span class="k">"lastName"</span>: <span class="s">"Rao"</span>,
+    <span class="k">"state"</span>: <span class="s">"ACTIVE"</span>,
+    <span class="k">"grants"</span>: [ { <span class="k">"role"</span>: <span class="s">"MEMBER"</span>, <span class="k">"gymId"</span>: <span class="s">"01J9…A1"</span>,
+                  <span class="k">"locationIds"</span>: [<span class="s">"01J9…L1"</span>], <span class="k">"gymWide"</span>: false } ]
+  }
+}</pre>
+
+<!-- ===================== 5 ===================== -->
+<h2>5. Platform and Subscriptions</h2>
+<p class="small">Super Admin only. This is the surface by which gyms are admitted to and removed from the platform.</p>
+<table>
+  <thead><tr><th style="width:52px">Method</th><th style="width:210px">Path</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/platform/gyms</td><td>All gyms, filterable by <code>state</code>. Cross-tenant — the one place that is legitimate.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/platform/gyms/pending</td><td>The verification queue.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/platform/gyms/{id}/verification</td><td>Approve or reject. Rejection requires a reason (<code>FR-AUTH-05</code>).</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/platform/gyms/{id}/subscription-payments</td><td><strong>Records cash received and makes the gym live</strong> (<code>FR-SUB-03</code>).</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/platform/gyms/{id}/suspension</td><td>Suspend for cause, with a reason.</td></tr>
+    <tr><td class="ctr"><span class="m del">DELETE</span></td><td class="path">/platform/gyms/{id}/suspension</td><td>Reinstate.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/platform/subscriptions/due</td><td>Worklist: expiring, in grace, or lapsed (<code>FR-SUB-11</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/platform/subscription-offerings</td><td>Term and price catalogue.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/platform/subscription-offerings</td><td>Define an offering.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/platform/gyms/{id}/admins</td><td>Super Admin override: appoint or transfer Gym Owner (<code>FR-AUTH-23</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/platform/metrics</td><td>Cross-gym counts and growth.</td></tr>
+  </tbody>
+</table>
+<pre>POST /api/v1/platform/gyms/{gymId}/subscription-payments
+Idempotency-Key: 3b7e…
+{
+  <span class="k">"offeringId"</span>: <span class="s">"01J9…OF1"</span>,
+  <span class="k">"amountMinor"</span>: 1200000,          <span class="cm">// ₹12,000.00</span>
+  <span class="k">"currency"</span>:    <span class="s">"INR"</span>,
+  <span class="k">"method"</span>:      <span class="s">"CASH"</span>,
+  <span class="k">"reference"</span>:   <span class="s">"Collected in person, receipt 0042"</span>,
+  <span class="k">"receivedOn"</span>:  <span class="s">"2026-09-17"</span>
+}
+→ 201 Created
+{ <span class="k">"subscriptionId"</span>: <span class="s">"01J9…SB1"</span>, <span class="k">"gymState"</span>: <span class="s">"LIVE"</span>,
+  <span class="k">"startsOn"</span>: <span class="s">"2026-09-17"</span>, <span class="k">"expiresOn"</span>: <span class="s">"2027-09-16"</span> }</pre>
+
+<!-- ===================== 6 ===================== -->
+<h2>6. Gyms and Locations</h2>
+<table>
+  <thead><tr><th style="width:52px">Method</th><th style="width:200px">Path</th><th style="width:96px">Required</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/gym</td><td>Any member</td><td>The caller's own gym profile.</td></tr>
+    <tr><td class="ctr"><span class="m patch">PATCH</span></td><td class="path">/gym</td><td>Gym Owner</td><td>Profile, branding, GSTIN. Gym-wide (<code>FR-ORG-12</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/locations</td><td>Any member</td><td>Locations the caller may access.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/locations</td><td>Gym Owner</td><td>Create. Location Admins cannot (<code>FR-ORG-03</code>).</td></tr>
+    <tr><td class="ctr"><span class="m patch">PATCH</span></td><td class="path">/locations/{id}</td><td>Admin at that location</td><td>Hours and contact details only, unless Gym Owner.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/locations/{id}/closure</td><td>Gym Owner</td><td>Close a location (<code>FR-ORG-14</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/locations/{id}/closures</td><td>Any at location</td><td>Holiday calendar.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/locations/{id}/closures</td><td>Admin at location</td><td>Declare a closure; cancels affected sessions.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/locations/{id}/qr-token</td><td>Admin at location</td><td>Fixed, signed check-in payload for printing and posting at that location.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/admins</td><td>Gym Owner</td><td>Every admin with scope and who appointed them (<code>FR-AUTH-25</code>).</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/admins</td><td>Any admin</td><td><strong>Promote to Location Admin</strong> — see below.</td></tr>
+    <tr><td class="ctr"><span class="m del">DELETE</span></td><td class="path">/admins/{grantId}</td><td>Appointer or Owner</td><td>Demote. Removes only the admin grant (<code>FR-AUTH-21</code>).</td></tr>
+  </tbody>
+</table>
+<pre>POST /api/v1/admins
+{
+  <span class="k">"userId"</span>:      <span class="s">"01J9…U7"</span>,
+  <span class="k">"locationIds"</span>: [<span class="s">"01J9…L1"</span>]      <span class="cm">// REQUIRED and non-empty — FR-AUTH-17</span>
+}
+→ 201 Created
+
+<span class="cm">// Attempting to grant a location outside your own scope:</span>
+→ 403 { <span class="k">"code"</span>: <span class="s">"SCOPE_EXCEEDED"</span>,
+        <span class="k">"detail"</span>: <span class="s">"You can only grant authority over locations you administer."</span> }
+
+<span class="cm">// Attempting to demote the final admin of a location:</span>
+→ 409 { <span class="k">"code"</span>: <span class="s">"LAST_ADMIN"</span>,
+        <span class="k">"detail"</span>: <span class="s">"This location would be left with no administrator."</span> }</pre>
+<div class="note">
+  <strong>An empty <code>locationIds</code> is rejected, not defaulted.</strong> A promotion that does not name a location has no safe interpretation: treating it as gym-wide would silently hand a floor manager authority over every branch. <code>FR-AUTH-17</code> requires the named scope, and the API refuses rather than guessing.
+</div>
+
+<!-- ===================== 7 ===================== -->
+<h2>7. People — Members, Trainers, Assignment</h2>
+<table>
+  <thead><tr><th style="width:52px">Method</th><th style="width:210px">Path</th><th style="width:88px">Required</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/locations/{id}/members</td><td>Admin / Trainer</td><td>Roster. Filters: <code>status</code>, <code>planId</code>, <code>expiringBefore</code>, <code>trainerId</code>, <code>q</code>.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/members/{id}</td><td>Admin at their location</td><td>Full record. <strong>404 if outside scope</strong>, never 403.</td></tr>
+    <tr><td class="ctr"><span class="m patch">PATCH</span></td><td class="path">/members/{id}</td><td>Admin at location</td><td>Administrative fields only — never the member's own profile fields.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/locations/{id}/pending-verifications</td><td>Admin at location</td><td>Trainers and members awaiting approval.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/verifications/{userId}</td><td>Admin at location</td><td>Approve or reject, reason required on rejection (<code>FR-AUTH-08</code>).</td></tr>
+    <tr><td class="ctr"><span class="m put">PUT</span></td><td class="path">/members/{id}/trainer</td><td>Admin at location</td><td>Assign or reassign. Both parties notified.</td></tr>
+    <tr><td class="ctr"><span class="m del">DELETE</span></td><td class="path">/members/{id}/trainer</td><td>Admin at location</td><td>Unassign.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/members/{id}/timeline</td><td>Admin at location</td><td>Consolidated history (<code>FR-MEM-06</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/members/{id}/health-screening</td><td>Admin / assigned Trainer</td><td><strong>Sensitive.</strong> Access audited (<code>NFR-PRV-02</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/locations/{id}/trainers</td><td>Any at location</td><td>Trainer roster.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/trainers/{id}</td><td>Any at location</td><td>Profile, specialisations, certifications.</td></tr>
+    <tr><td class="ctr"><span class="m put">PUT</span></td><td class="path">/trainers/{id}/availability</td><td>Self or Admin</td><td>Weekly availability windows.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/trainers/{id}/members</td><td>Self or Admin</td><td>Assigned roster with adherence at a glance (<code>FR-TRN-05</code>).</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <strong>There is no <code>POST /members</code>.</strong> A member is not created by an administrator — a person registers, chooses a gym and location, and an admin then verifies them. Membership is a role grant, not an identity (LB-DATA-1.0 §2.1). The endpoint that admits someone is <code>POST /verifications/{userId}</code>, which is a decision about an existing person rather than the creation of one.
+</div>
+
+<!-- ===================== 8 ===================== -->
+<h2>8. Billing — Plans, Memberships, Payments</h2>
+<table>
+  <thead><tr><th style="width:52px">Method</th><th style="width:210px">Path</th><th style="width:88px">Required</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/plans</td><td>Any staff</td><td>Catalogue. Gym-wide.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/plans</td><td><strong>Gym Owner</strong></td><td>Pricing is gym-wide; a Location Admin may sell from the catalogue but not alter it.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/members/{id}/memberships</td><td>Admin at location</td><td>Sell a plan. Computes expiry.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/memberships/{id}/freeze</td><td>Admin at location</td><td>Pause; extends expiry by the frozen days (<code>FR-BIL-08</code>).</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/memberships/{id}/renewal</td><td>Admin at location</td><td>New term from the later of today and current expiry.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/payments</td><td>Admin at location</td><td><strong>Record money taken offline.</strong> Idempotency required.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/payments</td><td>Admin at location</td><td>Ledger. Filters: date range, method, collector, plan.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/payments/{id}/refund</td><td>Admin at location</td><td>Never mutates the original (<code>FR-BIL-12</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/payments/{id}/receipt</td><td>Admin or the payer</td><td>GST receipt with a gapless number.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/locations/{id}/dues</td><td>Admin at location</td><td>Outstanding balances (<code>FR-BIL-04</code>).</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/members/{id}/pt-packages</td><td>Admin at location</td><td>Sell session credits against a named trainer.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/me/billing</td><td>Any</td><td>Own plan, expiry, dues, receipts (<code>FR-BIL-14</code>). Returns <code>null</code> membership for staff who train without a plan.</td></tr>
+  </tbody>
+</table>
+<pre>POST /api/v1/payments
+Idempotency-Key: 7c2a…
+{
+  <span class="k">"memberId"</span>:    <span class="s">"01J9…M4"</span>,
+  <span class="k">"amountMinor"</span>: 450000,               <span class="cm">// ₹4,500.00</span>
+  <span class="k">"currency"</span>:    <span class="s">"INR"</span>,
+  <span class="k">"method"</span>:      <span class="s">"UPI"</span>,
+  <span class="k">"reference"</span>:   <span class="s">"UPI/429183746501"</span>,
+  <span class="k">"receivedOn"</span>:  <span class="s">"2026-09-17"</span>,
+  <span class="k">"allocations"</span>: [                      <span class="cm">// one payment may settle several things</span>
+    { <span class="k">"targetType"</span>: <span class="s">"MEMBERSHIP"</span>, <span class="k">"targetId"</span>: <span class="s">"01J9…MB2"</span>, <span class="k">"amountMinor"</span>: 300000 },
+    { <span class="k">"targetType"</span>: <span class="s">"PT_PACKAGE"</span>, <span class="k">"targetId"</span>: <span class="s">"01J9…PT9"</span>, <span class="k">"amountMinor"</span>: 150000 }
+  ]
+}
+→ 201 Created
+{ <span class="k">"paymentId"</span>: <span class="s">"01J9…PY3"</span>,
+  <span class="k">"receipt"</span>: { <span class="k">"number"</span>: <span class="s">"IRON/2026-27/000318"</span>,   <span class="cm">// gapless, per gym per FY</span>
+               <span class="k">"taxableMinor"</span>: 381356, <span class="k">"cgstMinor"</span>: 34322, <span class="k">"sgstMinor"</span>: 34322,
+               <span class="k">"hsnSac"</span>: <span class="s">"999723"</span> } }</pre>
+<div class="warn">
+  <strong>Allocations are why partial payment works.</strong> A payment points at what it settles through an allocation list rather than a single target field. Without it, a member paying ₹4,500 against a ₹3,000 membership and a ₹1,500 PT package would need two payment records for one transaction, and the ledger would no longer match the cash that actually changed hands.
+</div>
+
+<!-- ===================== 9 ===================== -->
+<h2>9. Attendance</h2>
+<table>
+  <thead><tr><th style="width:52px">Method</th><th style="width:210px">Path</th><th style="width:88px">Required</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/locations/{id}/check-ins</td><td>Self</td><td><strong>Check in.</strong> QR or geofence. Idempotency required.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/locations/{id}/check-ins/manual</td><td>Admin / Trainer</td><td>Mark on someone's behalf; acting user recorded.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/check-ins/{id}/check-out</td><td>Self or staff</td><td>Optional, derives duration.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/me/check-ins</td><td>Any</td><td>Own history and streak.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/locations/{id}/check-ins</td><td>Admin at location</td><td>Footfall. Filters: date range, <code>purpose</code>, <code>flagged</code>.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/locations/{id}/check-ins/flagged</td><td>Admin at location</td><td>Possible location spoofing, for review not rejection (<code>FR-ATT-11</code>).</td></tr>
+  </tbody>
+</table>
+<pre>POST /api/v1/locations/{locationId}/check-ins
+Idempotency-Key: 9f1c8b30-6a4e-7c21-b8d5-1e2f3a4b5c6d
+{
+  <span class="k">"method"</span>:     <span class="s">"GEOFENCE"</span>,               <span class="cm">// or "QR" with qrToken; both require coordinates</span>
+  <span class="k">"latitude"</span>:   12.9352,
+  <span class="k">"longitude"</span>:  77.6245,
+  <span class="k">"accuracyM"</span>:  12,
+  <span class="k">"purpose"</span>:    <span class="s">"PERSONAL_WORKOUT"</span>,       <span class="cm">// SHIFT | PERSONAL_WORKOUT | BOTH</span>
+  <span class="k">"occurredAt"</span>: <span class="s">"2026-09-17T06:42:11+05:30"</span>,  <span class="cm">// original time, preserved from the queue</span>
+  <span class="k">"deferred"</span>:   true                     <span class="cm">// submitted late from the offline outbox</span>
+}
+→ 201 Created
+{ <span class="k">"checkInId"</span>: <span class="s">"01J9…CI8"</span>, <span class="k">"streakDays"</span>: 12, <span class="k">"distanceM"</span>: 34 }
+
+<span class="cm">// Replay of the same key — no second row, and the client can stop retrying</span>
+→ 200 OK   Idempotency-Replayed: true</pre>
+<div class="note">
+  <strong><code>purpose</code> is not optional metadata.</strong> When a trainer arrives they may be starting a shift, doing their own workout, or both. Without this field, trainer utilisation reports and member footfall inflate each other and every operational figure drifts (<code>FR-ATT-13</code>, <code>FR-ATT-14</code>). It is the small field that keeps the dashboard honest once staff start training on site.
+</div>
+
+<!-- ===================== 10 ===================== -->
+<h2>10. Scheduling — Classes, Bookings, Personal Training</h2>
+<table>
+  <thead><tr><th style="width:52px">Method</th><th style="width:210px">Path</th><th style="width:88px">Required</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/class-types</td><td>Any</td><td>Yoga, Zumba, meditation, HIIT. Gym-wide.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/locations/{id}/timetable</td><td>Any at location</td><td>Recurring weekly rules.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/locations/{id}/timetable</td><td>Admin at location</td><td>Add a recurring entry. Generates sessions forward.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/locations/{id}/sessions</td><td>Any at location</td><td>Dated occurrences. Filters: <code>from</code>, <code>to</code>, <code>classTypeId</code>, <code>trainerId</code>, <code>deliveryMode</code>.</td></tr>
+    <tr><td class="ctr"><span class="m patch">PATCH</span></td><td class="path">/sessions/{id}</td><td>Admin at location</td><td>Amend one occurrence without touching the pattern (<code>FR-CLS-04</code>).</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/sessions/{id}/cancellation</td><td>Admin at location</td><td>Releases bookings, notifies, restores class-pack entries.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/sessions/{id}/bookings</td><td>Self</td><td><strong>Book.</strong> Waitlists automatically when full.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/bookings/{id}/cancellation</td><td>Self</td><td>Late cancellation recorded if past cutoff.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/sessions/{id}/roster</td><td>Session trainer / Admin</td><td>Who is booked.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/sessions/{id}/attendance</td><td>Session trainer</td><td>Mark attended, absent or late (<code>FR-CLS-10</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/sessions/{id}/meeting-link</td><td>Booked member</td><td><strong>Revealed only within the window before start</strong> (<code>FR-ONL-03</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/me/bookings</td><td>Any</td><td>Own schedule.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/pt-appointments</td><td>Member or Trainer</td><td>Schedule within trainer availability.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/pt-appointments/{id}/completion</td><td>Trainer</td><td><strong>Decrements a credit</strong> and records session notes.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/me/pt-packages</td><td>Any</td><td>Credit balance and expiry.</td></tr>
+  </tbody>
+</table>
+<pre>POST /api/v1/sessions/{sessionId}/bookings
+Idempotency-Key: 4d8e…
+→ 201 Created
+{ <span class="k">"bookingId"</span>: <span class="s">"01J9…BK5"</span>, <span class="k">"state"</span>: <span class="s">"BOOKED"</span>, <span class="k">"waitlistPosition"</span>: null }
+
+<span class="cm">// Session full — this is a normal outcome, not an error</span>
+→ 201 Created
+{ <span class="k">"bookingId"</span>: <span class="s">"01J9…BK6"</span>, <span class="k">"state"</span>: <span class="s">"WAITLISTED"</span>, <span class="k">"waitlistPosition"</span>: 3 }</pre>
+<div class="note">
+  <strong>A full class returns 201, not 409.</strong> Being waitlisted is a successful booking in a different state — the member's request was understood and acted on. Returning an error would push the client into special-casing something the product treats as routine, and would lose the waitlist position in the process. <code>409 SESSION_FULL</code> is reserved for a genuine conflict: a session that permits no waitlist and has no places.
+</div>
+
+<!-- ===================== 11 ===================== -->
+<h2>11. Training — Exercises, Workouts, Nutrition, Progress</h2>
+<div class="note">
+  <strong>Every endpoint in this section is <code>/me</code>-shaped or takes an explicit user id, and none takes a role.</strong> A Gym Owner logging their own sets calls exactly the same endpoints a member does. That symmetry is <code>FR-PFP-01</code>, and it is the reason there is no <code>/members/{id}/workouts</code>.
+</div>
+<table>
+  <thead><tr><th style="width:52px">Method</th><th style="width:210px">Path</th><th style="width:88px">Required</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/exercises</td><td>Any</td><td>Catalogue. Filters: <code>muscleGroup</code>, <code>equipment</code>, <code>difficulty</code>, <code>discipline</code>, <code>q</code>. Cacheable with <code>ETag</code>.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/exercises/{id}</td><td>Any</td><td>Instructions, muscle groups, demo media.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/exercises</td><td>Admin / Trainer</td><td>Gym-specific addition (<code>FR-EXR-03</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/muscle-groups</td><td>Any</td><td>Global taxonomy.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/workout-templates</td><td>Any staff</td><td>Reusable prescriptions.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/workout-templates</td><td>Admin / Trainer</td><td>Exercises, sets, reps, load, rest.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/routines</td><td>Admin / Trainer</td><td>Multi-week programme.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/users/{id}/routine-assignments</td><td>Admin / Trainer</td><td>Assign to <em>any</em> account, staff included.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/me/today</td><td>Any</td><td><strong>The training dashboard</strong> (<code>FR-RPT-02</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/me/workouts</td><td>Any</td><td>Own history.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/me/workouts</td><td>Any</td><td><strong>Log a workout.</strong> Idempotency required — offline-capable.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/me/personal-records</td><td>Any</td><td>Derived PRs.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/me/progress</td><td>Any</td><td>Weight, measurements, body fat, trends.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/me/progress/metrics</td><td>Any</td><td>Record a measurement.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/users/{id}/progress</td><td>Assigned Trainer / Admin</td><td>Coaching view.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/me/diet-plan</td><td>Any</td><td>Current plan and version history.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/users/{id}/diet-plans</td><td>Admin / Trainer</td><td>Author after consultation (<code>FR-NUT-01</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/me/diet-consultations</td><td>Any</td><td>Consultation thread.</td></tr>
+  </tbody>
+</table>
+<pre>POST /api/v1/me/workouts
+Idempotency-Key: 6b3f…
+{
+  <span class="k">"routineAssignmentId"</span>: <span class="s">"01J9…RA2"</span>,       <span class="cm">// null for an unplanned workout</span>
+  <span class="k">"locationId"</span>:         <span class="s">"01J9…L1"</span>,
+  <span class="k">"performedAt"</span>:        <span class="s">"2026-09-17T07:05:00+05:30"</span>,
+  <span class="k">"durationMinutes"</span>:    52,
+  <span class="k">"sets"</span>: [
+    { <span class="k">"exerciseId"</span>: <span class="s">"01J9…EX1"</span>, <span class="k">"setNumber"</span>: 1, <span class="k">"reps"</span>: 8, <span class="k">"weightKg"</span>: 60.0, <span class="k">"rpe"</span>: 7.5 },
+    { <span class="k">"exerciseId"</span>: <span class="s">"01J9…EX1"</span>, <span class="k">"setNumber"</span>: 2, <span class="k">"reps"</span>: 8, <span class="k">"weightKg"</span>: 62.5, <span class="k">"rpe"</span>: 8.0 }
+  ]
+}
+→ 201 Created
+{ <span class="k">"workoutLogId"</span>: <span class="s">"01J9…WL7"</span>,
+  <span class="k">"newPersonalRecords"</span>: [
+    { <span class="k">"exerciseId"</span>: <span class="s">"01J9…EX1"</span>, <span class="k">"recordType"</span>: <span class="s">"MAX_WEIGHT"</span>, <span class="k">"value"</span>: 62.5 }
+  ] }</pre>
+<p class="small">The whole workout posts as one request with its sets nested. Thirty sets as thirty requests would be thirty round trips on a gym-floor connection and thirty chances to half-succeed; as one body it is a single transaction that either records the session or does not.</p>
+
+<!-- ===================== 12 ===================== -->
+<h2>12. Engagement</h2>
+<table>
+  <thead><tr><th style="width:52px">Method</th><th style="width:210px">Path</th><th style="width:88px">Required</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/feedback</td><td>Any</td><td>Raise feedback with a category.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/locations/{id}/feedback</td><td>Admin at location</td><td>Queue, filterable by state.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/feedback/{id}/responses</td><td>Admin / Trainer</td><td>Threaded reply.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/users/{id}/coaching-notes</td><td>Admin / Trainer</td><td><strong>Staff → member direction</strong> (<code>FR-FBK-04</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/me/inbox</td><td>Any</td><td>Announcements, responses, coaching notes, notifications.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/announcements</td><td>Admin</td><td>Broadcast to a location or the gym.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/me/notification-preferences</td><td>Any</td><td>Categories, channels, quiet hours.</td></tr>
+    <tr><td class="ctr"><span class="m put">PUT</span></td><td class="path">/me/notification-preferences</td><td>Any</td><td>Update.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/me/devices</td><td>Any</td><td>Register an Expo push token.</td></tr>
+    <tr><td class="ctr"><span class="m del">DELETE</span></td><td class="path">/me/devices/{id}</td><td>Any</td><td>Revoke on sign-out.</td></tr>
+    <tr><td class="ctr"><span class="m put">PUT</span></td><td class="path">/me/consents/{type}</td><td>Any</td><td>Grant or withdraw. <code>MARKETING</code> and <code>WHATSAPP</code> are separate from <code>TERMS</code> (<code>NFR-PRV-06</code>).</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 13 ===================== -->
+<h2>13. Insights and Reporting</h2>
+<table>
+  <thead><tr><th style="width:52px">Method</th><th style="width:210px">Path</th><th style="width:88px">Required</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/dashboard</td><td>Any</td><td>Role-appropriate dashboard. Always includes the training panel (<code>FR-RPT-01</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/reports/revenue</td><td>Admin</td><td>By period, location, plan, method.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/reports/attendance</td><td>Admin</td><td>Footfall by day and hour. <code>purpose</code> separated, never merged.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/reports/class-performance</td><td>Admin</td><td>Fill rate, waitlist depth, no-shows, ratings.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/reports/membership</td><td>Admin</td><td>Joins, renewals, expiries, churn.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/reports/trainer-utilisation</td><td>Admin</td><td><strong>Shift attendance only</strong> (<code>FR-ATT-14</code>).</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/reports/at-risk-members</td><td>Admin</td><td>Churn worklist with contributing factors.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/reports/{type}/exports</td><td>Admin</td><td><strong>Asynchronous.</strong> Returns 202 with a job id.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/exports/{jobId}</td><td>Requester</td><td>Poll; returns a signed download URL when ready.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/ai/generations</td><td>Admin / Trainer</td><td>Request a draft. Never auto-published.</td></tr>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/ai/generations/{id}/approval</td><td>Admin / Trainer</td><td><strong>Required before a member can see it</strong> (<code>FR-AI-03</code>).</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <strong>Exports are asynchronous by design.</strong> A twelve-month revenue export across every location will not reliably finish inside an HTTP timeout, and <code>NFR-PRF-06</code> explicitly permits the escape. <code>202 Accepted</code> with a job id, a notification on completion, and a signed URL to collect — rather than a request that sometimes returns and sometimes times out depending on how much history a gym has accumulated.
+</div>
+
+<!-- ===================== 14 ===================== -->
+<h2>14. Media</h2>
+<table>
+  <thead><tr><th style="width:52px">Method</th><th style="width:210px">Path</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="ctr"><span class="m post">POST</span></td><td class="path">/media</td><td>Upload. <code>sensitivity</code> is a <strong>required</strong> field.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/media/{id}/signed-url</td><td>Short-lived URL for a sensitive asset, issued after an authorisation check.</td></tr>
+    <tr><td class="ctr"><span class="m del">DELETE</span></td><td class="path">/media/{id}</td><td>Remove. Refused while anything references it.</td></tr>
+  </tbody>
+</table>
+<pre>POST /api/v1/media        (multipart/form-data)
+  file:        &lt;binary&gt;
+  sensitivity: SENSITIVE          <span class="cm">// REQUIRED — no default, ever</span>
+  purpose:     RECEIPT
+
+→ 201 Created
+{ <span class="k">"id"</span>: <span class="s">"01J9…MD3"</span>,
+  <span class="k">"publicId"</span>: <span class="s">"lb/receipts/01J9MD3"</span>,   <span class="cm">// NOT a URL</span>
+  <span class="k">"sensitivity"</span>: <span class="s">"SENSITIVE"</span> }</pre>
+<div class="never">
+  <strong>The API never returns a media URL.</strong> It returns a <code>publicId</code>. Public assets have their URL constructed client-side with transformation parameters; sensitive assets require a call to <code>/signed-url</code>, which the server issues only after checking authorisation and which expires in minutes. There is no <code>url</code> field in any response and no <code>url</code> column in the database — which is what makes NN-4 unbreakable rather than merely documented. Progress photographs are out of scope entirely: no purpose value accepts them.
+</div>
+
+<!-- ===================== 15 ===================== -->
+<h2>15. Public API</h2>
+<p>Unauthenticated, cacheable, and consumed by the Next.js public site at build and revalidation time. Everything here is deliberately shaped for a crawler and a CDN rather than for an application.</p>
+
+<h3>15.1 Reads</h3>
+<table>
+  <thead><tr><th style="width:52px">Method</th><th style="width:250px">Path</th><th>Returns</th></tr></thead>
+  <tbody>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/public/gyms</td><td>Published gyms for the directory and sitemap.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/public/gyms/{gymSlug}</td><td>One gym's public profile.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/public/locations</td><td>All published locations — drives the sitemap.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/public/gyms/{gymSlug}/{locationSlug}</td><td>Address, geo, hours, phone — the <code>LocalBusiness</code> payload.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/public/gyms/{g}/{l}/timetable</td><td>Upcoming public sessions — the <code>Event</code> payload.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/public/class-types</td><td>Formats offered across the platform.</td></tr>
+    <tr><td class="ctr"><span class="m get">GET</span></td><td class="path">/public/locations/nearby</td><td>Proximity search: <code>?lat=&amp;lng=&amp;radiusKm=</code>.</td></tr>
+  </tbody>
+</table>
+
+<h3>15.2 What the public API must never expose</h3>
+<div class="never">
+  Member names or counts · any individual's attendance · payment or revenue figures · trainer contact details beyond what the gym published · anything belonging to a gym that is not <code>LIVE</code> and <code>isPubliclyListed</code> · internal identifiers that appear in the authenticated API.<br><br>
+  Public responses are built from a separate projection, not by stripping fields from an internal one. Stripping is a denylist, and a denylist fails open the day someone adds a field — which is how member lists end up in a search index.
+</div>
+
+<h3>15.3 The one public write</h3>
+<pre>POST /api/v1/public/leads
+Idempotency-Key: 8e2d…
+{
+  <span class="k">"gymSlug"</span>:      <span class="s">"iron-fitness"</span>,       <span class="cm">// slugs, NOT ids</span>
+  <span class="k">"locationSlug"</span>: <span class="s">"koramangala"</span>,
+  <span class="k">"name"</span>:         <span class="s">"Rahul Menon"</span>,
+  <span class="k">"phone"</span>:        <span class="s">"+919812345678"</span>,
+  <span class="k">"interest"</span>:     <span class="s">"TRIAL"</span>,
+  <span class="k">"website"</span>:      <span class="s">""</span>                    <span class="cm">// honeypot — must be empty</span>
+}
+→ 202 Accepted
+{ <span class="k">"received"</span>: true }</pre>
+<div class="warn">
+  <strong>This endpoint is the platform's entire unauthenticated attack surface.</strong> Four things make it defensible, and all four are required:
+  <br>&nbsp;&nbsp;• <strong>Scope from slugs, never ids.</strong> The server resolves <code>gymId</code> and <code>locationId</code> from the slugs. A body-supplied <code>gymId</code> would let anyone inject leads into any gym's pipeline.
+  <br>&nbsp;&nbsp;• <strong>Rate limits</strong> per IP and per phone (§2.8), with the IP stored hashed for abuse investigation rather than in the clear.
+  <br>&nbsp;&nbsp;• <strong>A honeypot field</strong> plus a minimum form-fill time. Both fail <em>silently</em> with 202 — telling a bot it was detected only helps it.
+  <br>&nbsp;&nbsp;• <strong>RLS cannot protect this insert</strong>, because there is no authenticated context to filter on. The service sets the scope explicitly, and that code path deserves a dedicated test.
+</div>
+
+<!-- ===================== 16 ===================== -->
+<h2>16. Webhooks</h2>
+<p>Inbound only from providers we have integrated. LIMITBEYOND does not emit webhooks to third parties.</p>
+<table>
+  <thead><tr><th style="width:190px">Path</th><th style="width:96px">Source</th><th>Handling</th></tr></thead>
+  <tbody>
+    <tr><td class="path">/webhooks/twilio/status</td><td>Twilio</td><td>OTP delivery status. Signature verified against the auth token; an unverified request is dropped without processing.</td></tr>
+    <tr><td class="path">/webhooks/whatsapp/status</td><td>WhatsApp</td><td>Delivery and read receipts (<code>FR-WA-09</code>). Phase 4.</td></tr>
+    <tr><td class="path">/webhooks/expo/receipts</td><td>Polled, not pushed</td><td>Expo receipts are fetched by a job rather than delivered — listed here so its absence is not mistaken for an omission.</td></tr>
+  </tbody>
+</table>
+<p>Every webhook handler verifies the provider signature first, returns <code>200</code> quickly, and does its work through the job queue. A handler that processes inline will eventually time out and trigger the provider's retry, producing duplicate processing.</p>
+
+<!-- ===================== 17 ===================== -->
+<h2>17. OpenAPI, Clients and Deprecation</h2>
+
+<h3>17.1 Generation</h3>
+<p>springdoc generates OpenAPI 3.1 from the controllers at <code>/api/v1/openapi.json</code>, with Swagger UI at <code>/api/v1/docs</code> in non-production environments only. The document is committed on every change so a diff shows contract changes in review.</p>
+
+<h3>17.2 Clients</h3>
+<p>TypeScript types and a typed client are generated from that document into <code>packages/api-client</code> and consumed by both the mobile app and the web console. <strong>Generated files are never hand-edited.</strong> The benefit is that a breaking backend change fails the client build in CI rather than surfacing as a runtime error in a member's hands — which is most of what a shared-language backend would have given, recovered without abandoning Java (ADR-13).</p>
+
+<h3>17.3 Deprecation policy</h3>
+<table>
+  <thead><tr><th style="width:120px">Stage</th><th>What happens</th></tr></thead>
+  <tbody>
+    <tr><td>Announce</td><td>Endpoint returns <code>Deprecation: true</code> and a <code>Sunset</code> date. Marked deprecated in OpenAPI, so the generated client warns at compile time.</td></tr>
+    <tr><td>Minimum notice</td><td><strong>90 days.</strong> Long enough that a user who has not opened the app in two months still has a working build when they do.</td></tr>
+    <tr><td>Monitor</td><td>Usage tracked by client version. Removal happens when traffic reaches zero, not merely when the date passes.</td></tr>
+    <tr><td>Remove</td><td>In the next major version. Never within <code>v1</code>.</td></tr>
+  </tbody>
+</table>
+<p class="small">Additive changes are not deprecations and need no notice: new optional request fields, new response fields, new enum values, new endpoints. Clients must ignore unknown response fields and tolerate unknown enum values — a client that crashes on a new enum value is the reason APIs stop evolving.</p>
+
+<!-- ===================== 18 ===================== -->
+<h2>18. Appendix A — Status Codes</h2>
+<table>
+  <thead><tr><th style="width:70px">Code</th><th style="width:150px">Meaning here</th><th>When</th></tr></thead>
+  <tbody>
+    <tr><td class="id">200</td><td>OK</td><td>Successful read, or an idempotent replay of a create.</td></tr>
+    <tr><td class="id">201</td><td>Created</td><td>Resource created. <code>Location</code> header set. Includes a waitlisted booking.</td></tr>
+    <tr><td class="id">202</td><td>Accepted</td><td>Work queued: exports, lead submission, OTP dispatch.</td></tr>
+    <tr><td class="id">204</td><td>No Content</td><td>Successful delete or state removal.</td></tr>
+    <tr><td class="id">304</td><td>Not Modified</td><td>Conditional request on cacheable reference data.</td></tr>
+    <tr><td class="id">400</td><td>Bad Request</td><td>Malformed or failing field validation.</td></tr>
+    <tr><td class="id">401</td><td>Unauthorized</td><td>Missing, invalid or expired token. Client should refresh once.</td></tr>
+    <tr><td class="id">403</td><td>Forbidden</td><td>Authenticated, resource visible, action not permitted. <strong>Not used for out-of-scope resources.</strong></td></tr>
+    <tr><td class="id">404</td><td>Not Found</td><td>Absent <strong>or outside the caller's scope</strong> — deliberately indistinguishable (§1.2).</td></tr>
+    <tr><td class="id">409</td><td>Conflict</td><td>State conflict: duplicate check-in, idempotency key reuse, last admin.</td></tr>
+    <tr><td class="id">422</td><td>Unprocessable</td><td>Well-formed but rejected by a business rule: no credits, outside geofence.</td></tr>
+    <tr><td class="id">429</td><td>Too Many Requests</td><td>Rate limited. <code>Retry-After</code> set.</td></tr>
+    <tr><td class="id">500</td><td>Server Error</td><td>Unhandled. Correlation id returned; nothing internal disclosed.</td></tr>
+    <tr><td class="id">503</td><td>Unavailable</td><td>A required dependency is down. <code>Retry-After</code> where known.</td></tr>
+  </tbody>
+</table>
+<p class="small">Note the 400 / 422 split: 400 means the request could not be understood as valid input, 422 means it was understood perfectly and refused on its merits. "No sessions remaining" is not a malformed request.</p>
+
+<h2>19. Appendix B — Error Code Catalogue</h2>
+<table>
+  <thead><tr><th style="width:190px">Code</th><th style="width:52px">Status</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td class="id">VALIDATION_FAILED</td><td>400</td><td>Field-level validation. <code>fields</code> array present.</td></tr>
+    <tr><td class="id">IDEMPOTENCY_KEY_REQUIRED</td><td>400</td><td>Missing on an endpoint that requires one.</td></tr>
+    <tr><td class="id">IDEMPOTENCY_KEY_REUSED</td><td>409</td><td>Same key, different payload — a client bug.</td></tr>
+    <tr><td class="id">UNAUTHENTICATED</td><td>401</td><td>No valid token.</td></tr>
+    <tr><td class="id">TOKEN_EXPIRED</td><td>401</td><td>Distinct so the client refreshes rather than signing the user out.</td></tr>
+    <tr><td class="id">FORBIDDEN</td><td>403</td><td>Visible resource, action not permitted.</td></tr>
+    <tr><td class="id">ACCOUNT_PENDING</td><td>403</td><td>Awaiting admin verification.</td></tr>
+    <tr><td class="id">ACCOUNT_SUSPENDED</td><td>403</td><td>Suspended or deactivated.</td></tr>
+    <tr><td class="id">GYM_NOT_LIVE</td><td>403</td><td>Subscription lapsed past grace.</td></tr>
+    <tr><td class="id">SCOPE_EXCEEDED</td><td>403</td><td>Attempt to grant beyond your own scope.</td></tr>
+    <tr><td class="id">NOT_FOUND</td><td>404</td><td>Absent or out of scope.</td></tr>
+    <tr><td class="id">DUPLICATE_CHECK_IN</td><td>409</td><td>Within the duplicate window.</td></tr>
+    <tr><td class="id">LAST_ADMIN</td><td>409</td><td>Would leave a gym or location unadministered.</td></tr>
+    <tr><td class="id">SESSION_FULL</td><td>409</td><td>No places and no waitlist permitted.</td></tr>
+    <tr><td class="id">MEMBERSHIP_NOT_ACTIVE</td><td>422</td><td>Expired or frozen.</td></tr>
+    <tr><td class="id">OUTSIDE_GEOFENCE</td><td>422</td><td>Beyond the location's radius.</td></tr>
+    <tr><td class="id">NO_CREDITS_REMAINING</td><td>422</td><td>PT package exhausted.</td></tr>
+    <tr><td class="id">CANCELLATION_CUTOFF_PASSED</td><td>422</td><td>Late cancellation may consume a credit.</td></tr>
+    <tr><td class="id">AI_APPROVAL_REQUIRED</td><td>422</td><td>Attempt to publish unapproved AI content.</td></tr>
+    <tr><td class="id">RATE_LIMITED</td><td>429</td><td><code>Retry-After</code> set.</td></tr>
+  </tbody>
+</table>
+
+<h2>20. Appendix C — Worked Examples</h2>
+
+<h4>A trainer who is also a Location Admin opens the app</h4>
+<pre>GET /api/v1/dashboard
+→ 200
+{
+  <span class="k">"training"</span>: {                        <span class="cm">// ALWAYS present, every role — FR-PFP-01</span>
+    <span class="k">"streakDays"</span>: 12,
+    <span class="k">"todaysWorkout"</span>: { <span class="k">"name"</span>: <span class="s">"Push A"</span>, <span class="k">"exerciseCount"</span>: 6 },
+    <span class="k">"nextSession"</span>:  { <span class="k">"className"</span>: <span class="s">"Power Yoga"</span>, <span class="k">"startsAt"</span>: <span class="s">"2026-09-18T06:30:00+05:30"</span> },
+    <span class="k">"membership"</span>:   null              <span class="cm">// staff train without a plan — FR-BIL-16</span>
+  },
+  <span class="k">"trainer"</span>: {
+    <span class="k">"sessionsToday"</span>: 3, <span class="k">"assignedMembers"</span>: 24, <span class="k">"needingAttention"</span>: 5
+  },
+  <span class="k">"admin"</span>: {                           <span class="cm">// ONLY for the location they administer</span>
+    <span class="k">"locationId"</span>: <span class="s">"01J9…L1"</span>,
+    <span class="k">"activeMembers"</span>: 312, <span class="k">"pendingVerifications"</span>: 4,
+    <span class="k">"checkInsToday"</span>: 87,
+    <span class="k">"revenueThisMonth"</span>: { <span class="k">"amountMinor"</span>: 48750000, <span class="k">"currency"</span>: <span class="s">"INR"</span> },
+    <span class="k">"expiringIn30Days"</span>: 19
+  }
+}</pre>
+<p class="small">Three panels, from one account, in one response. The <code>admin</code> panel covers <code>L1</code> only — this person trains at <code>L2</code> as well but administers nothing there, and the response reflects that without the client needing to reason about it.</p>
+
+<h4>A member tries to reach another location's roster</h4>
+<pre>GET /api/v1/locations/01J9…L9/members
+→ 404 Not Found
+{ <span class="k">"title"</span>: <span class="s">"Not found"</span>, <span class="k">"status"</span>: 404, <span class="k">"code"</span>: <span class="s">"NOT_FOUND"</span>,
+  <span class="k">"detail"</span>: <span class="s">"That location was not found."</span> }</pre>
+<p class="small">The location exists. The response is indistinguishable from one for a location that does not, which is the point: an attacker enumerating identifiers learns nothing about which gyms are on the platform or how many locations they run.</p>
+
+<div class="note" style="margin-top:18px">
+  <strong>Keeping this document honest.</strong> The generated OpenAPI document is the contract; this is the reasoning around it. When an endpoint changes, change both in the same pull request — a specification that describes an API the code no longer implements is worse than none, because it is believed. The parts most worth re-reading before adding an endpoint are §1.2 (the three rules that outrank style) and §2.7 (idempotency), because both describe mistakes that are invisible in testing and expensive in production.
+</div>
+
+<div class="end-mark">— END OF DOCUMENT —</div>
+</body>
+</html>

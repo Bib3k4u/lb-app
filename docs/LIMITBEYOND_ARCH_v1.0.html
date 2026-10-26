@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LIMITBEYOND — System Architecture &amp; Technology Stack v1.0</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+
+  :root {
+    --ink: #1a1d24;
+    --muted: #5a6273;
+    --rule: #d4d9e2;
+    --accent: #0f3d5c;
+    --accent-soft: #eef3f7;
+    --band: #f6f8fa;
+    --warn: #8a5a00;
+    --warn-soft: #fdf6e8;
+    --bad: #9a2c2c;
+    --good: #2b6a3f;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: "Charter", "Georgia", "Times New Roman", serif;
+    font-size: 10.2pt; line-height: 1.5; color: var(--ink); margin: 0;
+  }
+  h1, h2, h3, h4, .sans { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+
+  /* Title page */
+  .title-page { height: 245mm; display: flex; flex-direction: column; justify-content: center; break-after: page; }
+  .title-rule { height: 4px; background: var(--accent); width: 70px; margin-bottom: 26px; }
+  .product { font-size: 40pt; letter-spacing: 3px; font-weight: 700; color: var(--accent); margin: 0; line-height: 1.05; }
+  .product-sub { font-size: 12pt; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin: 10px 0 40px; }
+  .doc-type { font-size: 20pt; font-weight: 600; margin: 0 0 4px; }
+  .doc-sub { font-size: 11pt; color: var(--muted); margin: 0 0 46px; }
+  .meta-grid { display: grid; grid-template-columns: 130px 1fr; row-gap: 7px; font-size: 10pt; max-width: 440px; }
+  .meta-grid dt { color: var(--muted); }
+  .meta-grid dd { margin: 0; font-weight: 600; }
+  .title-note { margin-top: 44px; padding: 12px 14px; background: var(--accent-soft); border-left: 3px solid var(--accent); font-size: 9.2pt; color: var(--muted); max-width: 490px; }
+
+  /* Headings */
+  h2 { font-size: 15pt; color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 5px; margin: 0 0 14px; break-before: page; break-after: avoid; }
+  h2.continue { break-before: auto; }
+  h3 { font-size: 11.6pt; margin: 20px 0 7px; color: var(--ink); break-after: avoid; }
+  h4 { font-size: 10.2pt; margin: 14px 0 5px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.6px; break-after: avoid; }
+  p { margin: 0 0 9px; }
+  ul, ol { margin: 0 0 9px; padding-left: 18px; }
+  li { margin-bottom: 3px; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 8.9pt; margin: 8px 0 14px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  thead { display: table-header-group; }
+  tr { break-inside: avoid; }
+  th { background: var(--accent); color: #fff; text-align: left; padding: 5px 7px; font-weight: 600; font-size: 8.6pt; letter-spacing: 0.3px; }
+  td { padding: 5px 7px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tbody tr:nth-child(even) { background: var(--band); }
+  td.id { font-weight: 700; color: var(--accent); white-space: nowrap; font-size: 8.4pt; }
+  td.ctr { text-align: center; white-space: nowrap; }
+  .w-id { width: 74px; }
+
+  /* Code */
+  pre { background: #f4f6f8; border: 1px solid var(--rule); border-left: 3px solid var(--accent); padding: 9px 11px; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 7.9pt; line-height: 1.45; overflow-x: auto; margin: 8px 0 12px; break-inside: avoid; white-space: pre-wrap; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 8.6pt; background: #eef1f4; padding: 0 3px; border-radius: 2px; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  .cm { color: var(--muted); font-style: italic; }
+  .kw { color: #0f3d5c; font-weight: 600; }
+
+  /* Callouts */
+  .note { background: var(--accent-soft); border-left: 3px solid var(--accent); padding: 9px 12px; margin: 10px 0 14px; font-size: 9.3pt; break-inside: avoid; }
+  .note strong { color: var(--accent); }
+  .warn { background: var(--warn-soft); border-left: 3px solid var(--warn); padding: 9px 12px; margin: 10px 0 14px; font-size: 9.3pt; break-inside: avoid; }
+  .warn strong { color: var(--warn); }
+
+  .legend { font-size: 8.6pt; color: var(--muted); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; margin: -6px 0 16px; }
+  .small { font-size: 9pt; color: var(--muted); }
+
+  /* TOC */
+  .toc { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.6pt; }
+  .toc ol { list-style: none; padding-left: 0; counter-reset: sec; }
+  .toc > ol > li { counter-increment: sec; padding: 4px 0; border-bottom: 1px dotted var(--rule); font-weight: 600; }
+  .toc > ol > li::before { content: counter(sec) ".  "; color: var(--accent); }
+  .toc ul { list-style: none; padding-left: 20px; margin: 4px 0 2px; font-weight: 400; color: var(--muted); font-size: 9pt; }
+
+  /* Diagrams */
+  .dia { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; margin: 12px 0 16px; break-inside: avoid; }
+  .dia-title { font-size: 8.4pt; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .row { display: flex; gap: 6px; align-items: stretch; margin-bottom: 6px; }
+  .box { flex: 1; border: 1px solid var(--accent); border-radius: 3px; padding: 7px 8px; font-size: 8.3pt; background: #fff; }
+  .box b { display: block; color: var(--accent); font-size: 8.8pt; margin-bottom: 2px; }
+  .box.soft { background: var(--accent-soft); }
+  .box.ext { border-style: dashed; border-color: var(--muted); }
+  .box.ext b { color: var(--muted); }
+  .arrow { align-self: center; color: var(--accent); font-size: 12pt; font-weight: 700; padding: 0 1px; }
+  .band-lbl { background: var(--accent); color: #fff; font-size: 8pt; padding: 3px 8px; border-radius: 2px 2px 0 0; font-weight: 600; letter-spacing: 0.4px; }
+  .band-body { border: 1px solid var(--rule); border-top: none; padding: 7px; margin-bottom: 8px; }
+
+  /* Sequence */
+  .seq { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 8.6pt; margin: 10px 0 14px; break-inside: avoid; }
+  .seq-step { display: grid; grid-template-columns: 26px 96px 1fr 62px; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--rule); align-items: start; }
+  .seq-n { background: var(--accent); color: #fff; width: 19px; height: 19px; border-radius: 50%; text-align: center; line-height: 19px; font-size: 7.6pt; font-weight: 700; }
+  .seq-who { color: var(--accent); font-weight: 600; }
+  .seq-ms { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .seq-total { display: grid; grid-template-columns: 26px 96px 1fr 62px; gap: 8px; padding: 6px 0 0; font-weight: 700; color: var(--accent); }
+
+  /* ADR */
+  .adr { border: 1px solid var(--rule); border-radius: 3px; margin: 12px 0; break-inside: avoid; }
+  .adr-head { background: var(--accent); color: #fff; padding: 5px 10px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.4pt; font-weight: 600; display: flex; justify-content: space-between; }
+  .adr-head .st { font-size: 7.8pt; background: rgba(255,255,255,.2); padding: 1px 7px; border-radius: 9px; letter-spacing: 0.4px; align-self: center; }
+  .adr-body { padding: 9px 11px; font-size: 9.2pt; }
+  .adr-body dl { display: grid; grid-template-columns: 104px 1fr; row-gap: 6px; column-gap: 10px; margin: 0; }
+  .adr-body dt { color: var(--muted); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 8.2pt; line-height: 1.35; padding-top: 2px; }
+  .adr-body dd { margin: 0; }
+  .adr.rejected .adr-head { background: var(--bad); }
+
+  .kv { display: grid; grid-template-columns: 150px 1fr; row-gap: 5px; font-size: 9.6pt; margin: 8px 0 14px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+  .end-mark { text-align: center; color: var(--muted); font-size: 9pt; margin-top: 26px; letter-spacing: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ===================== TITLE ===================== -->
+<section class="title-page">
+  <div class="title-rule"></div>
+  <h1 class="product">LIMITBEYOND</h1>
+  <div class="product-sub">Fitness &amp; Gym Management Platform</div>
+
+  <div class="doc-type">System Architecture &amp; Technology Stack</div>
+  <div class="doc-sub">Version 1.0 &middot; How LB-SRS-1.1 will be built</div>
+
+  <dl class="meta-grid">
+    <dt>Document ID</dt><dd>LB-ARCH-1.0</dd>
+    <dt>Status</dt><dd>Draft for review</dd>
+    <dt>Date</dt><dd>16 September 2026</dd>
+    <dt>Prepared by</dt><dd>Bibek Jha</dd>
+    <dt>Implements</dt><dd>LB-SRS-1.1, 16 Sep 2026</dd>
+    <dt>Stack</dt><dd>Java 21 · Spring Boot · PostgreSQL · React Native (Expo)</dd>
+    <dt>Deployment</dt><dd>AWS EC2 (Docker) · Neon Postgres · Cloudinary</dd>
+  </dl>
+
+  <div class="title-note">
+    <strong>Scope of this document.</strong> The SRS fixed <em>what</em> the system must do. This document fixes <em>how</em> — the technology choices, the shape of the codebase, the data and security architecture, and the deployment topology. Every significant choice is recorded as an ADR with its alternatives and the conditions under which it should be revisited, so that a decision made today can be re-examined on evidence rather than re-argued from memory.
+  </div>
+</section>
+
+<!-- ===================== TOC ===================== -->
+<h2 class="continue">Table of Contents</h2>
+<div class="toc">
+<ol>
+  <li>Introduction and Approach
+    <ul><li>1.1 Purpose &middot; 1.2 Relationship to the SRS &middot; 1.3 Guiding Principles &middot; 1.4 Conventions</li></ul>
+  </li>
+  <li>The Stack at a Glance</li>
+  <li>Architecture Decision Records (ADR-01 – ADR-15)
+    <ul><li>Including ADR-05, the rejected server-side write buffer; ADR-07, the database region trade-off; and ADR-15, media handling and its privacy constraint</li></ul>
+  </li>
+  <li>System Architecture
+    <ul><li>4.1 Context &middot; 4.2 The Modular Monolith &middot; 4.3 Module Map &middot; 4.4 Request Lifecycle</li></ul>
+  </li>
+  <li>Data Architecture
+    <ul><li>5.1 Principles &middot; 5.2 Core Schema &middot; 5.3 Row-Level Security &middot; 5.4 Migrations &middot; 5.5 Indexing</li></ul>
+  </li>
+  <li>Security Architecture
+    <ul><li>6.1 Authentication &middot; 6.2 Authorisation &middot; 6.3 Isolation Enforcement &middot; 6.4 Secrets and Media</li></ul>
+  </li>
+  <li>Mobile Architecture
+    <ul><li>7.1 Structure &middot; 7.2 Offline Sync &middot; 7.3 Idempotency &middot; 7.4 Push Notifications</li></ul>
+  </li>
+  <li>Background Processing</li>
+  <li>Integration Architecture</li>
+  <li>Deployment, Environments and CI/CD</li>
+  <li>Observability, Backup and Recovery</li>
+  <li>Performance and Scaling Strategy</li>
+  <li>Indicative Cost Model</li>
+  <li>Build Sequence by Phase</li>
+  <li>Risks and Open Decisions</li>
+  <li>Appendix A — SRS Requirement to Architecture Mapping</li>
+  <li>Appendix B — SRS Amendments Required</li>
+</ol>
+</div>
+
+<!-- ===================== 1 ===================== -->
+<h2>1. Introduction and Approach</h2>
+
+<h3>1.1 Purpose</h3>
+<p>This document specifies the technical architecture for LIMITBEYOND: the technology stack, the internal structure of the codebase, the data and security design, the mobile application architecture, and how the system is deployed and operated. It is the direct successor to LB-SRS-1.1 and assumes its requirements as given.</p>
+<p>It is written to be actionable. Where a choice has a non-obvious implementation consequence — connection pooling interacting with row-level security, say, or idempotency keys being what makes offline sync safe — the consequence is stated here rather than left to be discovered during the build.</p>
+
+<h3>1.2 Relationship to the SRS</h3>
+<p>The SRS defines 21 functional modules and roughly 200 numbered requirements. Three of its requirements shape this architecture more than the rest, and each is answered by a specific decision recorded below:</p>
+<table>
+  <thead><tr><th style="width:96px">Requirement</th><th style="width:210px">What it demands</th><th>Architectural answer</th></tr></thead>
+  <tbody>
+    <tr><td class="id">NFR-SEC-01a</td><td>A Location Admin must never reach a sibling location's data, by any interface including exports and identifier guessing.</td><td>PostgreSQL Row-Level Security (ADR-04). Isolation is a database policy, not a convention the application is trusted to follow.</td></tr>
+    <tr><td class="id">NFR-PRF-05</td><td>Class booking must never oversell a session under concurrent demand.</td><td>A single transactional authority — one Postgres database, one <code>@Transactional</code> boundary, a unique constraint doing the enforcing (ADR-03, ADR-05).</td></tr>
+    <tr><td class="id">FR-ATT-07</td><td>A check-in attempted without connectivity must be queued and submitted on reconnection.</td><td>Client-side SQLite outbox with idempotency keys (ADR-06), on the device where the connectivity problem actually is.</td></tr>
+  </tbody>
+</table>
+
+<h3>1.3 Guiding Principles</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th style="width:170px">Principle</th><th>What it means in practice</th></tr></thead>
+  <tbody>
+    <tr><td class="id">PRN-01</td><td>Correctness before speed</td><td>Bookings, credits, payments and receipts are money and trust. Where the two conflict, transactional correctness wins — and at this scale the conflict is almost always imaginary, because the database is never the bottleneck (see ADR-05).</td></tr>
+    <tr><td class="id">PRN-02</td><td>Enforce at the lowest layer</td><td>A rule enforced in the database cannot be forgotten by an endpoint. A rule enforced in a shared filter cannot be forgotten by a controller. Push every invariant as far down as it will go.</td></tr>
+    <tr><td class="id">PRN-03</td><td>Boring technology, deliberately</td><td>One language, one database, one deployable. Novelty is spent only where the problem genuinely demands it. A solo or small team's scarcest resource is attention, not compute.</td></tr>
+    <tr><td class="id">PRN-04</td><td>Defer distribution</td><td>Nothing is split into a separate service until a specific, measured pressure requires it. Distributed systems are a cost paid daily for a benefit realised rarely.</td></tr>
+    <tr><td class="id">PRN-05</td><td>Every external service is optional</td><td>SMS, push, WhatsApp and AI providers can each be unavailable without core operations failing. This is a requirement (NFR-AVL-04) and an architectural constraint on how integrations are written.</td></tr>
+    <tr><td class="id">PRN-06</td><td>Decisions carry expiry conditions</td><td>Every ADR names what would make it wrong. A choice appropriate for a development phase is recorded as such, with the trigger for revisiting it, rather than silently hardening into permanence.</td></tr>
+  </tbody>
+</table>
+
+<h3>1.4 Conventions</h3>
+<p>Decisions are recorded as Architecture Decision Records: <strong>ADR-nn</strong>, each with context, the decision, the alternatives considered, consequences, and a revisit trigger. An ADR marked <em>Rejected</em> records an option that was considered and declined, with the reasoning — these are as valuable as the accepted ones, because they stop settled questions being reopened without new evidence.</p>
+<p>Requirement identifiers in the form <code>FR-XXX-nn</code> and <code>NFR-XXX-nn</code> refer to LB-SRS-1.1.</p>
+
+<!-- ===================== 2 ===================== -->
+<h2>2. The Stack at a Glance</h2>
+<table>
+  <thead><tr><th style="width:110px">Layer</th><th style="width:180px">Choice</th><th>Rationale, in one line</th><th style="width:48px">ADR</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Mobile</strong></td><td>React Native + Expo (SDK 52+), TypeScript</td><td>One codebase for iOS and Android; EAS handles builds, store submission and over-the-air updates.</td><td class="ctr">—</td></tr>
+    <tr><td><strong>Mobile state</strong></td><td>TanStack Query + Zustand</td><td>Server state cached and invalidated by Query; the little genuinely-local state in Zustand. Carried over from the predecessor's web app.</td><td class="ctr">13</td></tr>
+    <tr><td><strong>Mobile local DB</strong></td><td>expo-sqlite + Drizzle ORM</td><td>Offline outbox for check-in and workout logging — the two things done on a gym floor with no signal.</td><td class="ctr">06</td></tr>
+    <tr><td><strong>Web console</strong></td><td>React + Vite + TypeScript + shadcn/ui</td><td>Same component vocabulary as the predecessor, so existing UI work is reusable.</td><td class="ctr">—</td></tr>
+    <tr><td><strong>Backend</strong></td><td>Java 21, Spring Boot 3.3+, Maven</td><td>Proven in limitbeyond2.0 and known to the team; virtual threads suit bursty check-in load.</td><td class="ctr">02</td></tr>
+    <tr><td><strong>Structure</strong></td><td>Modular monolith (Spring Modulith)</td><td>21 SRS modules with enforced boundaries, one deployable, one transaction scope.</td><td class="ctr">01</td></tr>
+    <tr><td><strong>API</strong></td><td>REST + OpenAPI 3 (springdoc)</td><td>Generated, type-safe TypeScript clients recover most of what a shared-language backend would have given.</td><td class="ctr">13</td></tr>
+    <tr><td><strong>Database</strong></td><td>PostgreSQL 16</td><td>Relational domain, transactional integrity, and Row-Level Security answering the isolation requirement directly.</td><td class="ctr">03</td></tr>
+    <tr><td><strong>DB hosting</strong></td><td>Neon (development) → RDS (production)</td><td>Cheap with free credits for now; region latency makes this explicitly provisional.</td><td class="ctr">07</td></tr>
+    <tr><td><strong>Isolation</strong></td><td>Row-Level Security policies</td><td>Gym and location isolation enforced by the database on every query.</td><td class="ctr">04</td></tr>
+    <tr><td><strong>Migrations</strong></td><td>Flyway</td><td>Versioned SQL, applied by a privileged user distinct from the application's runtime user.</td><td class="ctr">04</td></tr>
+    <tr><td><strong>Auth</strong></td><td>Spring Security + JWT, Twilio Verify for OTP</td><td>Bespoke role × location model no managed product expresses; Verify covers phone and email in one API.</td><td class="ctr">08</td></tr>
+    <tr><td><strong>Jobs</strong></td><td>Postgres queue, <code>SKIP LOCKED</code></td><td>No Redis, no SQS. The database you already run is a competent queue at this scale.</td><td class="ctr">09</td></tr>
+    <tr><td><strong>Push</strong></td><td>Expo Push Notification Service</td><td>Wraps FCM and APNs; delivery receipts satisfy FR-NTF-06. No WebSocket tier in any phase.</td><td class="ctr">10</td></tr>
+    <tr><td><strong>Media</strong></td><td>Cloudinary (development)</td><td>Storage, CDN and on-the-fly transformation in one service. Sensitive media must use authenticated delivery, not the default public type — see ADR-15.</td><td class="ctr">15</td></tr>
+    <tr><td><strong>Compute</strong></td><td>AWS EC2, Docker, Nginx + Let's Encrypt</td><td>Single instance for development; ALB and a second instance when traffic justifies it.</td><td class="ctr">12</td></tr>
+    <tr><td><strong>CI/CD</strong></td><td>GitHub Actions + Expo EAS</td><td>Image build and deploy on the backend; EAS Build and Submit for the stores.</td><td class="ctr">14</td></tr>
+    <tr><td><strong>Observability</strong></td><td>Sentry, Micrometer, structured JSON logs</td><td>Diagnose a failed check-in or booking without reproducing it (NFR-MNT-02).</td><td class="ctr">14</td></tr>
+    <tr><td><strong>Testing</strong></td><td>JUnit 5, Testcontainers, REST Assured</td><td>Testcontainers runs real Postgres, which is the only way to genuinely test RLS policies.</td><td class="ctr">04</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 3 ADRs ===================== -->
+<h2>3. Architecture Decision Records</h2>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-01 &nbsp;· &nbsp;Modular monolith, not microservices</span><span class="st">ACCEPTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Context</dt><dd>The SRS defines 21 modules. The instinct to map modules onto services is strong and, here, wrong.</dd>
+    <dt>Decision</dt><dd>One Spring Boot application, one database, one deployable, with module boundaries enforced at build time by Spring Modulith. Modules communicate through published interfaces and in-process events, never by reaching into each other's internals.</dd>
+    <dt>Why</dt><dd>Booking a class touches session capacity, the member's entitlement, their class-pack balance and the notification queue. In a monolith that is one transaction and it either happens or it doesn't. Across services it is a distributed transaction, a saga, and a compensating-action path for every failure mode — for a small team, with no operational platform, and no scaling pressure that would justify it.</dd>
+    <dt>Consequences</dt><dd>Deployment is trivial. Refactoring across module boundaries stays cheap. The whole application scales as a unit, and a build failure blocks everything — acceptable at this size.</dd>
+    <dt>Revisit if</dt><dd>One module develops a genuinely different scaling profile (AI inference is the likeliest candidate), or the team grows past the point where a single codebase causes contention.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-02 &nbsp;· &nbsp;Java 21 and Spring Boot for the backend</span><span class="st">ACCEPTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Decision</dt><dd>Java 21 (LTS) with Spring Boot 3.3+, built with Maven, as in limitbeyond2.0.</dd>
+    <dt>Why</dt><dd>Three reasons in order of weight. The team already knows it and has it working. <code>@Transactional</code> is precisely the tool the booking, credit-decrement and payment requirements need. Spring Security is flexible enough to express the role × location authorisation model, which is bespoke enough that most frameworks would fight it.</dd>
+    <dt>Alternatives</dt><dd><em>NestJS / TypeScript</em> — would share a language with React Native, a real benefit, recovered here instead by generating TypeScript clients from OpenAPI (ADR-13). Not worth discarding existing expertise. <em>Go</em> — leaner runtime, faster start, but a smaller ecosystem for this domain and a new language to learn while also learning the domain.</dd>
+    <dt>Consequences</dt><dd>A JVM baseline of roughly 300–500MB constrains instance sizing. Cold start is measured in seconds, so the deployment model must keep an instance warm — which it does. Java 21 virtual threads let the bursty 6am check-in load be handled with ordinary blocking code, no reactive programming required.</dd>
+    <dt>Revisit if</dt><dd>Never, absent a team composition change. This is a settled decision.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-03 &nbsp;· &nbsp;PostgreSQL as the single system of record</span><span class="st">ACCEPTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Decision</dt><dd>PostgreSQL 16 holds all operational data. The predecessor's MongoDB is not carried forward.</dd>
+    <dt>Why</dt><dd>The domain is relational to its core — role grants against locations, bookings against sessions against capacity, credits drawn against packages, payments allocated against memberships. Every one of these is a constraint the database can enforce, and every one of them is a bug waiting to happen if it cannot. Row-Level Security additionally provides a direct answer to the hardest security requirement (ADR-04), which no document store offers.</dd>
+    <dt>Where flexibility is needed</dt><dd><code>JSONB</code> columns carry genuinely variable structures — health screening answers, AI generation payloads, notification template variables — giving document-style flexibility exactly where it earns its place, without giving up constraints everywhere else.</dd>
+    <dt>Consequences</dt><dd>Schema changes require migrations, which is a feature: the schema is reviewed, versioned and reversible. Nothing migrates from MongoDB (ADR-11), so there is no dual-model period.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-04 &nbsp;· &nbsp;Row-Level Security for gym and location isolation</span><span class="st">ACCEPTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Context</dt><dd><code>NFR-SEC-01a</code> requires that a Location Admin cannot reach a sibling location's data by <em>any</em> interface. <code>RSK-06</code> names cross-location leakage the most damaging possible defect and directs that isolation be enforced at the data access layer rather than per endpoint.</dd>
+    <dt>Decision</dt><dd>Isolation is a set of Postgres RLS policies. Request context is injected per transaction; every query is filtered by the database regardless of what the application code says.</dd>
+    <dt>Why</dt><dd>Application-layer scoping is only ever as reliable as the last developer's discipline. One endpoint written in a hurry, one repository method that forgets its filter, and a gym sees another gym's members. RLS makes that class of bug structurally impossible rather than merely discouraged.</dd>
+    <dt>Consequences</dt><dd>Two critical implementation constraints follow, detailed in §5.3: the application's database user must not own the tables, and context must be set with <code>SET LOCAL</code> inside a transaction. Getting either wrong silently disables the protection.</dd>
+    <dt>Verification</dt><dd>A standing Testcontainers suite attempts cross-location and cross-gym access through every repository and asserts empty results. This suite is the evidence for <code>NFR-SEC-01a</code> and must never be skipped.</dd>
+  </dl></div>
+</div>
+
+<div class="adr rejected">
+  <div class="adr-head"><span>ADR-05 &nbsp;· &nbsp;Server-side SQLite write buffer in front of Postgres</span><span class="st">REJECTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Proposal</dt><dd>Accept complex <code>PUT</code>/<code>POST</code> requests into a server-local SQLite file, acknowledge immediately, and synchronise to Postgres in the background — for speed on write-heavy operations.</dd>
+    <dt>Decision</dt><dd>Rejected. Recorded here in full because the underlying instinct is sound and will recur; it is the tier that is wrong, not the idea.</dd>
+    <dt>The arithmetic</dt><dd><code>NFR-PRF-02</code> budgets 2000ms for an end-to-end check-in on a 3G connection. Of that, mobile network round trip consumes 100–300ms, serialisation 5–20ms, authorisation 1–5ms, business logic 1–10ms — and the Postgres insert 1–5ms. The database write is roughly <strong>0.25% of the budget</strong>. Substituting SQLite saves single-digit milliseconds on a quarter-second request.</dd>
+    <dt>What it costs</dt><dd><strong>(1)</strong> Horizontal scaling breaks immediately — two instances hold two SQLite files, so a write to one is invisible to the other and read-after-write consistency is lost. <strong>(2)</strong> <code>NFR-PRF-05</code> becomes unsatisfiable: capacity cannot be enforced across independent files, converting a solved transactional problem into an unsolved consensus one. The same applies to <code>FR-BIL-10</code> credit decrements, <code>FR-ATT-05</code> duplicate rejection, and <code>FR-BIL-05</code> gapless receipt numbering. <strong>(3)</strong> Acknowledging before durable commit is a correctness lie on ephemeral container storage — the instance dies, the payment is gone, and the admin was told it saved. <strong>(4)</strong> It introduces a bespoke sync engine, conflict resolution, replay, dead-lettering and lag monitoring as permanent maintenance.</dd>
+    <dt>What was adopted instead</dt><dd>The valid form of the idea, in two places. <em>On the device</em> — SQLite as an offline outbox where the latency and connectivity problems genuinely are (ADR-06). <em>On the server</em> — commit to Postgres transactionally in single-digit milliseconds, then defer the expensive derived work (streak recalculation, notification dispatch, analytics rollup) to a job queue (ADR-09). This yields the perceived speed without surrendering any guarantee.</dd>
+    <dt>Revisit if</dt><dd>Measurement shows database write latency materially contributing to p95 response time. It will not at 100,000 members; the correct response then would be read replicas or partitioning, still not a write buffer.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-06 &nbsp;· &nbsp;Client-side SQLite outbox for check-in and workout logging</span><span class="st">ACCEPTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Decision</dt><dd>The mobile application holds a local SQLite database (<code>expo-sqlite</code> with Drizzle). Check-ins and workout set logs are written locally first, confirmed in the UI immediately, and synchronised to the server by a background task. No other operation is offline-capable.</dd>
+    <dt>Why these two</dt><dd>They share a property nothing else does: <strong>they cannot conflict</strong>. A check-in is an append-only fact about one person at one moment. A workout set log is owned exclusively by the person who created it. Neither requires arbitration against another user's concurrent action, so neither needs conflict resolution — the hard part of offline sync simply does not arise. Bookings and payments are excluded precisely because they <em>do</em> contend, and must be arbitrated server-side.</dd>
+    <dt>Why it matters</dt><dd>Gym floors and basements have poor signal, and these are the two things members do there. Local-first write means the UI confirms in under 16ms regardless of network, which is the actual perceived-speed win the server-side buffer was reaching for.</dd>
+    <dt>Consequences</dt><dd>Every queued operation carries a client-generated idempotency key; the server deduplicates on it, which is also how <code>FR-ATT-05</code> is satisfied under retry. Deferred check-ins retain their original timestamp and are flagged as such, per <code>FR-ATT-07</code>.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-07 &nbsp;· &nbsp;Neon Postgres for development, co-located in Singapore</span><span class="st">PROVISIONAL</span></div>
+  <div class="adr-body"><dl>
+    <dt>Decision</dt><dd>Neon serverless Postgres during development, for its cost and free credits. <strong>Both EC2 and Neon are placed in <code>ap-southeast-1</code> (Singapore).</strong></dd>
+    <dt>The problem this avoids</dt><dd>Neon offers no Mumbai region; its nearest AWS region to India is Singapore. Placing EC2 in Mumbai and the database in Singapore puts 50–70ms of ocean between the application and its data — on <em>every query</em>. A request issuing five queries pays 250–350ms in network alone, breaching the 400ms p95 of <code>NFR-PRF-01</code> before any code executes.</dd>
+    <dt>Why co-location wins</dt><dd>Placing both in Singapore moves the crossing from the database path to the client path. An Indian user then pays roughly 50ms extra on <strong>one</strong> hop (phone to server) rather than 60ms on <strong>five</strong> (server to database, per query). One crossing beats five, and the database round trip returns to sub-millisecond.</dd>
+    <dt>Implementation notes</dt><dd>Use Neon's <em>pooled</em> connection endpoint, which runs PgBouncer in transaction mode. This is compatible with the <code>SET LOCAL</code> pattern RLS requires (§5.3) but not with session-level prepared statements — set <code>prepareThreshold=0</code> on the JDBC URL. Disable scale-to-zero on any environment where latency is measured, or the first request after idle pays a cold start of 500ms to several seconds.</dd>
+    <dt>Revisit when</dt><dd>Any of: the first paying gym goes live; sustained load makes Neon's pricing exceed RDS; or India data-residency becomes a contractual requirement. The target then is <strong>RDS Postgres in <code>ap-south-1</code> (Mumbai)</strong> with EC2 alongside it, which is the lowest-latency configuration for an Indian user base. Because both are stock PostgreSQL 16, that move is a dump, restore and connection-string change — no application code is affected, which is precisely why this decision is safe to defer.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-08 &nbsp;· &nbsp;Self-built JWT authentication with Twilio Verify for OTP</span><span class="st">ACCEPTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Decision</dt><dd>Spring Security issues and validates JWTs, as in limitbeyond2.0. One-time passwords for both phone and email are delivered through the <strong>Twilio Verify</strong> API.</dd>
+    <dt>Why not a managed identity product</dt><dd>The authorisation model — a set of role grants each scoped to a gym and a list of locations, feeding RLS context on every request — is bespoke. No managed product expresses it, so it would live in our database regardless, leaving a managed service to handle only the easy half while introducing a second source of truth about users to keep synchronised.</dd>
+    <dt>Why Verify rather than raw SMS</dt><dd>Verify handles code generation, expiry, retry limits and channel fallback as a service, which is meaningful security logic not worth reimplementing. It covers SMS and email through one API — matching the requirement for both — and can later add WhatsApp as an OTP channel on the same integration.</dd>
+    <dt>Tokens</dt><dd>Access tokens are short-lived (15 minutes) and carry the user's role grants; refresh tokens are long-lived, stored server-side and revocable, satisfying <code>NFR-SEC-04</code> and <code>FR-AUTH-13</code>. Revocation on suspension is immediate for refresh, and bounded by access-token lifetime otherwise.</dd>
+    <dt>Development constraint</dt><dd>A single verified device is used for OTP throughout development. This fits a Twilio trial account, which can only deliver to pre-verified numbers, and keeps development cost at zero. The consequence to plan around: <strong>multi-user flows cannot be exercised over real OTP</strong> — verifying a trainer while signed in as an admin, or testing two members booking the same last class slot, needs more than one account. Accordingly, non-production environments expose a seeded test-user path that bypasses OTP delivery, disabled by configuration in production and covered by an automated assertion that it is off.</dd>
+    <dt>Dependency with lead time</dt><dd>Transactional SMS into India requires <strong>DLT registration</strong> under TRAI rules — sender ID and message templates registered before a single OTP can be delivered. Typically one to two weeks. Development proceeds without it on the single verified device, but <strong>no pilot with real members can start until it completes</strong>, so begin the registration early rather than at the end of Phase 1.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-09 &nbsp;· &nbsp;Background jobs on a Postgres-backed queue</span><span class="st">ACCEPTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Decision</dt><dd>Deferred work runs from a <code>job_queue</code> table consumed with <code>SELECT … FOR UPDATE SKIP LOCKED</code>. No Redis, no SQS, no broker.</dd>
+    <dt>Why</dt><dd>The workload is notification dispatch, expiry sweeps, streak recalculation, WhatsApp sends and analytics rollups — thousands of jobs per day, not millions per hour. Postgres handles this comfortably, and jobs enqueued in the same transaction as the business change they follow cannot be orphaned by a rollback. That transactional coupling is a genuine correctness benefit an external broker cannot offer.</dd>
+    <dt>Consequences</dt><dd>Retries with exponential backoff, a dead-letter state after a configured attempt count, and job records retained for inspection. Scheduled sweeps run under <code>ShedLock</code> so that a second instance does not duplicate them.</dd>
+    <dt>Revisit if</dt><dd>Sustained job throughput exceeds a few hundred per second, or a workload needs fan-out to multiple independent consumers.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-10 &nbsp;· &nbsp;Expo Push for notifications; no realtime tier</span><span class="st">ACCEPTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Decision</dt><dd>Notifications are delivered by the Expo Push Notification Service, which wraps FCM and APNs. <strong>No WebSocket or SSE infrastructure is built in any phase.</strong></dd>
+    <dt>Why no realtime</dt><dd>Examining the SRS for genuine realtime needs finds none. Waitlist promotion (<code>FR-CLS-08</code>) is a push notification. Session reminders are scheduled push. A trainer's class roster is refreshed by pull-to-refresh or a short poll while the screen is open. Not one requirement needs a server-initiated stream to an open connection — so a whole tier of infrastructure, and its reconnection and scaling problems, is avoided by simply noticing that.</dd>
+    <dt>Consequences</dt><dd>Expo's receipts endpoint gives per-message delivery status, satisfying <code>FR-NTF-06</code>. FCM credentials and an APNs key are configured through EAS. Expo's service is a dependency, but per <code>PRN-05</code> a push failure degrades only notification delivery — the in-application inbox remains the authoritative record.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-11 &nbsp;· &nbsp;Clean start; nothing migrated from limitbeyond2.0</span><span class="st">ACCEPTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Decision</dt><dd>No data is migrated. The exercise library is <strong>authored fresh</strong> against the richer model the SRS specifies — primary and secondary muscle groups, equipment, difficulty, instructions and media — rather than ported from MongoDB.</dd>
+    <dt>Why</dt><dd>The predecessor's exercise records lack the secondary muscle group, equipment and difficulty fields the new model requires, so a port would produce incomplete rows needing manual completion anyway. Authoring fresh is comparable effort and yields a clean, complete catalogue. Members, workouts, payments and history start empty; the predecessor continues running until cutover.</dd>
+    <dt>Consequences</dt><dd>This closes <code>OPN-02</code>. It also contradicts <code>FR-EXR-05</code>, which requires the predecessor's taxonomy and seed data be carried across — see Appendix B for the SRS amendment. Seed data ships as Flyway migrations so the catalogue is versioned and reproducible across environments.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-12 &nbsp;· &nbsp;EC2 with Docker</span><span class="st">ACCEPTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Decision</dt><dd>The backend runs as a Docker image on a single EC2 instance (<code>t4g.small</code> or <code>t4g.medium</code>, ARM Graviton) behind Nginx terminating TLS via Let's Encrypt.</dd>
+    <dt>Why</dt><dd>Cheapest credible production-shaped topology, and the same Docker image runs unchanged on ECS or App Runner later. Nginx rather than an ALB saves roughly ₹1,400/month during development, at the cost of managing certificates — which certbot automates.</dd>
+    <dt>Media</dt><dd>Media is <em>not</em> stored on the instance or in S3; see ADR-15. Keeping image bytes off EC2 entirely matters on a 2GB instance.</dd>
+    <dt>Scaling path</dt><dd>Vertical first — instance size is a one-line change. Then an ALB with two instances, at which point sticky sessions are unnecessary because the application is stateless and the job queue already tolerates multiple consumers.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-13 &nbsp;· &nbsp;REST with OpenAPI-generated clients</span><span class="st">ACCEPTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Decision</dt><dd>A versioned REST API (<code>/api/v1</code>) documented by springdoc-generated OpenAPI 3. TypeScript clients and types are generated from that specification into both the mobile app and the web console.</dd>
+    <dt>Why</dt><dd>Generation recovers most of the type-safety benefit a TypeScript backend would have offered: the contract is single-sourced, and a breaking backend change fails the client build rather than surfacing as a runtime error in a member's hands. Versioning the path satisfies <code>NFR-MNT-04</code>, which matters more than usual here — app-store review latency means old app builds stay in circulation for weeks.</dd>
+    <dt>Alternative</dt><dd>GraphQL was considered and declined: it would complicate RLS context propagation and per-field authorisation for no benefit the mobile client actually needs.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-14 &nbsp;· &nbsp;GitHub Actions and Expo EAS for delivery</span><span class="st">ACCEPTED</span></div>
+  <div class="adr-body"><dl>
+    <dt>Decision</dt><dd>GitHub Actions builds, tests and deploys the backend image. Expo EAS builds and submits the mobile application, with EAS Update for over-the-air JavaScript changes.</dd>
+    <dt>Why OTA matters here</dt><dd>Apple review takes one to three days. Without over-the-air updates, a one-line JavaScript bug fix waits on that queue. EAS Update ships JS-only changes directly, reserving store submission for changes that touch native code. This materially changes how quickly production problems can be corrected.</dd>
+    <dt>Store constraints to plan for</dt><dd>An Apple Developer account ($99/year) and Google Play registration ($25 once). Apple requires a published privacy policy and a clear in-context rationale for each permission — directly relevant to health screening (<code>FR-MEM-03</code>) and location access for geofenced check-in (<code>FR-ATT-02</code>). Apps handling health-adjacent data receive closer review; the SRS position that this is fitness guidance and not medical advice (<code>CON-07</code>, <code>FR-NUT-10</code>) should be reflected in the store listing.</dd>
+  </dl></div>
+</div>
+
+<div class="adr">
+  <div class="adr-head"><span>ADR-15 &nbsp;· &nbsp;Cloudinary for media, with authenticated delivery for sensitive assets</span><span class="st">PROVISIONAL</span></div>
+  <div class="adr-body"><dl>
+    <dt>Decision</dt><dd>Cloudinary stores and delivers all media during development — profile images, exercise demonstration media, generated receipts and optional identity documents — on its free tier.</dd>
+    <dt>Why it fits</dt><dd>Cloudinary is not merely storage, and the difference is what justifies it. <strong>Transformations are URL parameters</strong>, so the thumbnail and rendition pipeline that S3 would require you to build (Lambda plus an image library, invalidation, a variants table) simply does not need to exist. <strong><code>f_auto,q_auto</code> serves WebP or AVIF adaptively</strong> per device, which directly serves <code>CM-04</code>'s requirement to work on 3G-class connections — payloads shrink substantially with no application code. A CDN is included, so no CloudFront distribution is configured. And signed direct-from-client upload keeps image bytes off EC2 entirely, which is not a small thing on a 2GB instance.</dd>
+    <dt>The constraint that matters</dt><dd><strong>Cloudinary's default <code>upload</code> delivery type produces permanent, public URLs.</strong> Applied naively to a receipt or an identity document, that breaches <code>NFR-SEC-07</code> ("never reachable by unauthenticated URL") and <code>NFR-PRV-02</code> (these are sensitive personal data). A public URL, once leaked, is permanent and unrevocable.</dd>
+    <dt>Required handling</dt><dd>Media is split by sensitivity, and the split is enforced in the upload path rather than left to the caller's judgement:
+      <br>&nbsp;&nbsp;• <strong>Sensitive</strong> — generated receipts and optional identity documents. Uploaded as <code>type: authenticated</code> or <code>type: private</code>, delivered <em>only</em> through signed, time-limited URLs generated server-side after an authorisation check. Never public.
+      <br>&nbsp;&nbsp;• <strong>Public</strong> — gym logos, exercise demonstration images, generic app assets. Default <code>upload</code> type, fully CDN-cached. These are not sensitive and benefit from aggressive caching.</dd>
+    <dt>Verify before Phase 2</dt><dd>Time-limited delivery authentication may be gated to higher Cloudinary plans. <strong>Establish which signing mechanism the account actually supports before receipts ship in Phase 1</strong>, not after. If expiring authenticated delivery proves unavailable on the plan in use, route sensitive media to S3 presigned URLs (the original ADR-12 design, unchanged and still valid) and keep Cloudinary for public assets only. The abstraction below makes that a configuration change.</dd>
+    <dt>Lock-in rule</dt><dd><strong>Store only the Cloudinary <code>public_id</code> in the database — never a full URL.</strong> Every URL is constructed at read time by a <code>MediaService</code> abstraction that also applies the sensitivity rules above. This matters more here than it did for the database: Neon to RDS is a dump and restore because both are stock Postgres, whereas a media provider swap has no equivalent. Without this rule, provider URLs embed themselves in every row referencing an image and the migration becomes a data rewrite. With it, it is one class.</dd>
+    <dt>Revisit when</dt><dd>Free-tier credits are exhausted — note that Cloudinary credits are consumed by storage, bandwidth <em>and</em> transformations together, so exercise media and receipts at real volumes will pass the free tier well before storage alone would suggest. Or when sensitive-media authentication proves plan-gated. The fallback in either case is S3 with presigned URLs for private media, and the abstraction is what makes that cheap.</dd>
+  </dl></div>
+</div>
+
+<!-- ===================== 4 ===================== -->
+<h2>4. System Architecture</h2>
+
+<h3>4.1 System Context</h3>
+<div class="dia">
+  <div class="dia-title">Clients, system, and external services</div>
+  <div class="row">
+    <div class="box soft"><b>Mobile App</b>React Native / Expo — all five roles. Training dashboard always; operational dashboards per role grant.</div>
+    <div class="box soft"><b>Web Console</b>React / Vite — admin and Super Admin work: lists, billing, timetables, reporting.</div>
+  </div>
+  <div class="row"><div class="arrow" style="margin:0 auto">&#8595; &nbsp; HTTPS / REST &nbsp; &#8595;</div></div>
+  <div class="band-lbl">LIMITBEYOND BACKEND — Spring Boot modular monolith, single deployable</div>
+  <div class="band-body">
+    <div class="row">
+      <div class="box"><b>API layer</b>REST controllers, OpenAPI, validation</div>
+      <div class="box"><b>Domain modules</b>10 bounded modules (§4.3)</div>
+      <div class="box"><b>Job workers</b>In-process queue consumers</div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="box"><b>PostgreSQL 16</b>System of record. RLS policies enforce gym and location isolation. Also hosts the job queue.</div>
+    <div class="box ext"><b>Cloudinary</b>Photos, media, receipts. Storage, CDN and transformation. Signed URLs for sensitive assets.</div>
+  </div>
+  <div class="row">
+    <div class="box ext"><b>Twilio Verify</b>Phone and email OTP</div>
+    <div class="box ext"><b>Expo Push</b>FCM + APNs delivery</div>
+    <div class="box ext"><b>WhatsApp API</b>Phase 4 — outbound only</div>
+    <div class="box ext"><b>AI provider</b>Phase 4 — human-approved</div>
+  </div>
+  <p class="small" style="margin-top:4px">Dashed boxes are external services. Per <code>PRN-05</code> and <code>NFR-AVL-04</code>, each may be unavailable without core operations failing: sign-in falls back to email and password, notifications persist in the in-app inbox, WhatsApp falls back to push, and AI features degrade to manual authoring.</p>
+</div>
+
+<h3>4.2 Why a Monolith Is the Right Shape Here</h3>
+<p>The instinct to decompose 21 modules into services is worth confronting directly, because the domain contains an operation that settles it. Consider booking the last place in a yoga class, which <code>NFR-PRF-05</code> says must never oversell:</p>
+<pre><span class="cm">// Modular monolith — one transaction, one database, one outcome</span>
+@Transactional
+public Booking book(SessionId sessionId, UserId userId) {
+    Session s = sessions.lockForUpdate(sessionId);     <span class="cm">// row lock held</span>
+    if (s.bookedCount() &gt;= s.capacity())
+        return waitlist.add(sessionId, userId);        <span class="cm">// same transaction</span>
+    entitlements.consume(userId, s);                   <span class="cm">// same transaction</span>
+    Booking b = bookings.create(sessionId, userId);    <span class="cm">// same transaction</span>
+    jobs.enqueue(new BookingConfirmed(b.id()));        <span class="cm">// same transaction</span>
+    return b;                                          <span class="cm">// commit: all of it, or none of it</span>
+}</pre>
+<p>Split across a scheduling service, an entitlements service and a notifications service, that same operation becomes a distributed saga: a booking reserved in one service, an entitlement consumed in another, a compensating release if the second call fails, and an unresolved window in which the two disagree. Every failure path must be designed, implemented and tested. The monolith gets the same guarantee from a database transaction that has been correct since before any of us started working.</p>
+<p>Module boundaries are still enforced — Spring Modulith fails the build when one module reaches into another's internals — so the structure that would permit later extraction is preserved without paying for distribution now.</p>
+
+<h3>4.3 Module Map</h3>
+<p>The SRS's 21 functional modules collapse into 10 code modules, grouped by what changes together rather than by SRS numbering.</p>
+<table>
+  <thead><tr><th style="width:96px">Module</th><th style="width:88px">SRS</th><th>Responsibility</th></tr></thead>
+  <tbody>
+    <tr><td class="id">platform</td><td>M20</td><td>Gym lifecycle, subscription offerings, cash payment records, activation, lapse and suspension. Super Admin operations.</td></tr>
+    <tr><td class="id">identity</td><td>M1, M19</td><td>Authentication, OTP, tokens, role grants and their location scope, promotion and demotion, permission evaluation, audit trail, consent.</td></tr>
+    <tr><td class="id">org</td><td>M2</td><td>Gym profiles, locations, geo-coordinates and radii, operating hours, closure calendars, tenant configuration.</td></tr>
+    <tr><td class="id">people</td><td>M3, M4</td><td>Member and trainer profiles, health screening, specialisations, certifications, availability, trainer-to-member assignment.</td></tr>
+    <tr><td class="id">billing</td><td>M5</td><td>Plan catalogue, memberships, PT packages and credits, payment records, dues, receipts with GST, freezes, refunds.</td></tr>
+    <tr><td class="id">attendance</td><td>M6</td><td>QR and geofence check-in, manual marking, purpose (shift versus personal workout), idempotent ingestion, streaks.</td></tr>
+    <tr><td class="id">scheduling</td><td>M7, M8, M9</td><td>Class types, recurring timetables, session generation, bookings, capacity, waitlists, PT appointments, online meeting links.</td></tr>
+    <tr><td class="id">training</td><td>M10–M13, M21</td><td>Exercise catalogue, workout templates and routines, set logging, personal records, nutrition plans, progress tracking — and the personal fitness profile every account holds.</td></tr>
+    <tr><td class="id">engagement</td><td>M14, M15, M17</td><td>Feedback in both directions, coaching notes, announcements, the notification catalogue and preferences, WhatsApp dispatch.</td></tr>
+    <tr><td class="id">insights</td><td>M16, M18</td><td>Dashboards and reports scoped by location, exports, churn worklists, AI generation with human approval.</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <strong>Note on <code>training</code>.</strong> It deliberately serves every role, not only members — that is the architectural expression of <code>FR-PFP-01</code>. No method in this module accepts a role as a parameter or branches on one. A Gym Owner logging their own sets travels exactly the same code path as a member, which is the most reliable way to guarantee the SRS's dual-facet model survives implementation.
+</div>
+
+<h3>4.4 Request Lifecycle — a geofenced check-in</h3>
+<p>Following one request end to end shows where the time goes and where each guarantee is enforced. Timings assume EC2 and Postgres co-located per ADR-07.</p>
+<div class="seq">
+  <div class="seq-step"><div class="seq-n">1</div><div class="seq-who">Mobile app</div><div>Writes the check-in to local SQLite with a generated idempotency key; the UI confirms immediately. The user's experience of "instant" ends here — everything following is invisible to them.</div><div class="seq-ms">~8ms</div></div>
+  <div class="seq-step"><div class="seq-n">2</div><div class="seq-who">Network</div><div>Background sync task posts the queued entry. This is the dominant cost and the one least under our control.</div><div class="seq-ms">100–300ms</div></div>
+  <div class="seq-step"><div class="seq-n">3</div><div class="seq-who">Nginx</div><div>TLS termination, proxy to the application.</div><div class="seq-ms">~1ms</div></div>
+  <div class="seq-step"><div class="seq-n">4</div><div class="seq-who">Security filter</div><div>JWT validated, role grants and location scope resolved into a request-scoped <code>AuthContext</code>.</div><div class="seq-ms">1–3ms</div></div>
+  <div class="seq-step"><div class="seq-n">5</div><div class="seq-who">Transaction</div><div>Transaction opens; <code>SET LOCAL</code> injects gym, location and role into the session. From here, RLS filters every query automatically.</div><div class="seq-ms">&lt;1ms</div></div>
+  <div class="seq-step"><div class="seq-n">6</div><div class="seq-who">attendance</div><div>Idempotency key checked — a replay returns the original result rather than a duplicate. Membership validity checked (<code>FR-ATT-06</code>), geofence distance verified against the location's radius, duplicate window enforced (<code>FR-ATT-05</code>).</div><div class="seq-ms">2–4ms</div></div>
+  <div class="seq-step"><div class="seq-n">7</div><div class="seq-who">Postgres</div><div>Attendance row inserted with purpose and method; a <code>StreakRecalc</code> and any notification jobs are enqueued <em>in the same transaction</em>, so they cannot outlive a rollback.</div><div class="seq-ms">2–5ms</div></div>
+  <div class="seq-step"><div class="seq-n">8</div><div class="seq-who">Commit</div><div>Transaction commits. <code>SET LOCAL</code> context is discarded automatically with it — which is precisely why the connection can safely return to the pool.</div><div class="seq-ms">1–3ms</div></div>
+  <div class="seq-step"><div class="seq-n">9</div><div class="seq-who">Worker</div><div>Asynchronously, off the request path: streak recalculated, push dispatched, analytics rolled up.</div><div class="seq-ms">async</div></div>
+  <div class="seq-total"><div></div><div>Server total</div><div class="small" style="color:var(--muted);font-weight:400">Against a 2000ms budget (<code>NFR-PRF-02</code>) — the server is 0.5% of it, the network 95%.</div><div class="seq-ms">7–17ms</div></div>
+</div>
+<p class="small">This is the concrete evidence behind ADR-05. There is no meaningful latency to reclaim on the server; the only optimisation that matters to a member is step 1, which is why the local-first write was adopted and the server-side buffer was not.</p>
+
+<!-- ===================== 5 ===================== -->
+<h2>5. Data Architecture</h2>
+
+<h3>5.1 Principles</h3>
+<ul>
+  <li><strong>Every row carries <code>gym_id</code>, and every operational row carries <code>location_id</code></strong> — satisfying <code>CON-01</code> and <code>FR-ORG-10</code>, and providing the columns RLS policies filter on.</li>
+  <li><strong>Money and history are append-only.</strong> Payments, attendance and audit entries are never updated or deleted; corrections are new rows referencing the original (<code>FR-BIL-12</code>, <code>FR-ADM-03</code>).</li>
+  <li><strong>Constraints live in the database.</strong> Capacity, uniqueness, credit non-negativity and referential integrity are enforced by Postgres, not merely by application code.</li>
+  <li><strong>Identifiers are UUIDv7</strong> — unguessable in URLs, while remaining time-ordered so index locality does not suffer as random UUIDs would.</li>
+  <li><strong>Time is stored as <code>timestamptz</code>, always UTC,</strong> rendered in the tenant's timezone at the edge (<code>NFR-USA-04</code>).</li>
+</ul>
+
+<h3>5.2 Core Schema Sketch</h3>
+<p>Abbreviated to the structurally interesting parts — the ones that encode an SRS rule rather than merely storing a field.</p>
+<pre><span class="cm">-- Authority is a grant, never a column on the user (FR-AUTH-11, FR-AUTH-26)</span>
+<span class="kw">CREATE TABLE</span> role_grants (
+  id            uuid PRIMARY KEY,
+  user_id       uuid NOT NULL REFERENCES users(id),
+  gym_id        uuid NOT NULL REFERENCES gyms(id),
+  role          role_type NOT NULL,        <span class="cm">-- SUPER_ADMIN | GYM_OWNER | LOCATION_ADMIN | TRAINER | MEMBER</span>
+  location_ids  uuid[] NOT NULL DEFAULT '{}',   <span class="cm">-- empty = gym-wide (GYM_OWNER only)</span>
+  granted_by    uuid REFERENCES users(id),      <span class="cm">-- the delegation chain, FR-AUTH-25</span>
+  granted_at    timestamptz NOT NULL DEFAULT now(),
+  revoked_at    timestamptz,
+  <span class="cm">-- A user holds at most one live grant of a given role per gym</span>
+  CONSTRAINT one_live_grant UNIQUE NULLS NOT DISTINCT (user_id, gym_id, role, revoked_at)
+);
+<span class="cm">-- Only a Gym Owner may hold gym-wide scope (FR-AUTH-18)</span>
+<span class="kw">ALTER TABLE</span> role_grants ADD CONSTRAINT scope_requires_owner
+  CHECK (cardinality(location_ids) &gt; 0 OR role IN ('GYM_OWNER','SUPER_ADMIN'));
+
+<span class="cm">-- Capacity is enforced by the database, not by application logic (NFR-PRF-05)</span>
+<span class="kw">CREATE TABLE</span> bookings (
+  id          uuid PRIMARY KEY,
+  gym_id      uuid NOT NULL,
+  location_id uuid NOT NULL,
+  session_id  uuid NOT NULL REFERENCES sessions(id),
+  user_id     uuid NOT NULL REFERENCES users(id),
+  state       booking_state NOT NULL,     <span class="cm">-- BOOKED | WAITLISTED | CANCELLED | ATTENDED | NO_SHOW</span>
+  position    int,                        <span class="cm">-- waitlist order, FR-CLS-07</span>
+  <span class="cm">-- One live booking per person per session. Double-tap cannot double-book.</span>
+  CONSTRAINT one_live_booking UNIQUE NULLS NOT DISTINCT (session_id, user_id, cancelled_at)
+);
+
+<span class="cm">-- Credits can never go negative, whatever the application does (FR-BIL-10)</span>
+<span class="kw">ALTER TABLE</span> pt_packages ADD CONSTRAINT credits_non_negative
+  CHECK (credits_remaining &gt;= 0);
+
+<span class="cm">-- Offline replay is safe because the server deduplicates (ADR-06, FR-ATT-05)</span>
+<span class="kw">CREATE TABLE</span> attendance (
+  id              uuid PRIMARY KEY,
+  gym_id          uuid NOT NULL,
+  location_id     uuid NOT NULL,
+  user_id         uuid NOT NULL,
+  occurred_at     timestamptz NOT NULL,
+  method          checkin_method NOT NULL,   <span class="cm">-- QR | GEOFENCE | MANUAL</span>
+  purpose         checkin_purpose NOT NULL,  <span class="cm">-- SHIFT | PERSONAL_WORKOUT | BOTH  (FR-ATT-13)</span>
+  session_id      uuid REFERENCES sessions(id),
+  recorded_by     uuid REFERENCES users(id), <span class="cm">-- set when marked by staff</span>
+  deferred        boolean NOT NULL DEFAULT false,  <span class="cm">-- synced from offline queue, FR-ATT-07</span>
+  idempotency_key text NOT NULL,
+  CONSTRAINT attendance_idempotent UNIQUE (user_id, idempotency_key)
+);</pre>
+
+<h3>5.3 Row-Level Security — the implementation that matters</h3>
+<p>RLS is the load-bearing security control in this architecture. It is also easy to configure in a way that appears to work while protecting nothing. Three details decide whether it holds.</p>
+
+<h4>Two database users, not one</h4>
+<div class="warn">
+  <strong>A table owner bypasses RLS by default.</strong> If the application connects as the user that owns the tables, every policy is silently ignored and the system looks correct in testing while enforcing nothing. Two separate roles are required, and every table must additionally be marked <code>FORCE ROW LEVEL SECURITY</code> so the rule applies even to ownership.
+</div>
+<pre><span class="cm">-- lb_migrator: owns the schema, runs Flyway, never serves a request</span>
+<span class="cm">-- lb_app:      the application's runtime user, owns nothing, subject to every policy</span>
+<span class="kw">ALTER TABLE</span> members ENABLE ROW LEVEL SECURITY;
+<span class="kw">ALTER TABLE</span> members FORCE  ROW LEVEL SECURITY;   <span class="cm">-- applies to the owner too</span>
+
+<span class="kw">CREATE POLICY</span> gym_and_location_isolation ON members
+  <span class="kw">USING</span> (
+    current_setting('app.is_super_admin', true)::boolean IS TRUE
+    OR (
+      gym_id = current_setting('app.gym_id', true)::uuid
+      AND (
+        current_setting('app.gym_wide', true)::boolean IS TRUE   <span class="cm">-- Gym Owner</span>
+        OR location_id = ANY(string_to_array(
+             current_setting('app.location_ids', true), ',')::uuid[])
+      )
+    )
+  );</pre>
+
+<h4>Context must be set with <code>SET LOCAL</code>, inside the transaction</h4>
+<div class="warn">
+  <strong>Plain <code>SET</code> would be a cross-tenant data leak.</strong> Connections are pooled and reused. <code>SET</code> persists on the connection after the request finishes, so the next request — potentially serving a different gym — would inherit the previous tenant's context. <code>SET LOCAL</code> is scoped to the transaction and is discarded on commit or rollback, which is what makes pooling safe. This is not a style preference; it is the difference between isolation and a breach.
+</div>
+<pre>@Component
+<span class="kw">public class</span> RlsContextInterceptor {
+
+  @Transactional  <span class="cm">// SET LOCAL requires an open transaction to be meaningful</span>
+  <span class="kw">public void</span> apply(AuthContext ctx) {
+    jdbc.update("SET LOCAL app.gym_id = ?",         ctx.gymId());
+    jdbc.update("SET LOCAL app.location_ids = ?",   String.join(",", ctx.locationIds()));
+    jdbc.update("SET LOCAL app.gym_wide = ?",       ctx.isGymOwner());
+    jdbc.update("SET LOCAL app.is_super_admin = ?", ctx.isSuperAdmin());
+  }
+}</pre>
+<p>A <code>@Transactional</code> aspect applies this at the start of every request-bound transaction. A request that somehow reaches the database without context set resolves <code>current_setting(…, true)</code> to <code>NULL</code>, the policy matches nothing, and queries return zero rows — the safe failure direction, and a loud one in testing.</p>
+
+<h4>Super Admin access is deliberate and audited</h4>
+<p><code>app.is_super_admin</code> bypasses the policy, which <code>FR-ORG-09</code> requires for cross-gym oversight. It is set only when a Super Admin acts in an explicitly cross-gym context, never as an ambient default, and every such request is written to the audit trail. Note that this bypass grants <em>operational</em> visibility only, and never exceeds a Gym Owner's data tier. Purpose restrictions on health data are enforced separately at the application layer, since they are restrictions on purpose rather than on tenancy — see LB-ENG-1.0 §13 for the authoritative permission matrix.</p>
+
+<h4>Testing</h4>
+<p>RLS cannot be verified against an in-memory database; it requires real Postgres. Testcontainers spins one up per suite. The standing test attempts, through every repository, to read another location's members, another gym's payments, and a sibling location's attendance — asserting empty results in each case. This suite <em>is</em> the evidence for <code>NFR-SEC-01a</code> and <code>NFR-SEC-01b</code>, and is the last thing that should ever be disabled to make a build pass.</p>
+
+<h3>5.4 Migrations</h3>
+<p>Flyway, versioned SQL, applied by <code>lb_migrator</code> at deploy time before the application starts accepting traffic. Every migration is forward-only; corrections are new migrations. Seed data — the exercise catalogue, muscle group taxonomy, default notification templates — ships as repeatable migrations so environments are reproducible rather than hand-assembled.</p>
+
+<h3>5.5 Indexing Strategy</h3>
+<table>
+  <thead><tr><th style="width:150px">Access pattern</th><th>Index</th></tr></thead>
+  <tbody>
+    <tr><td>RLS filtering (every query)</td><td>Composite <code>(gym_id, location_id)</code> leading on every operational table. RLS predicates are evaluated per row, so these indexes are load-bearing rather than incidental.</td></tr>
+    <tr><td>Attendance history and streaks</td><td><code>(user_id, occurred_at DESC)</code>; <code>(location_id, occurred_at DESC)</code> for footfall reporting.</td></tr>
+    <tr><td>Timetable browsing</td><td><code>(location_id, starts_at)</code> with a partial index excluding cancelled sessions.</td></tr>
+    <tr><td>Expiry sweeps</td><td>Partial index on <code>(expires_at)</code> where status is active — keeps the nightly sweep cheap as history grows.</td></tr>
+    <tr><td>Job queue</td><td><code>(state, run_after)</code> partial on pending, which is what makes <code>SKIP LOCKED</code> polling inexpensive.</td></tr>
+    <tr><td>Workout history</td><td><code>(user_id, performed_at DESC)</code>; personal records derived by window function rather than stored redundantly.</td></tr>
+  </tbody>
+</table>
+<p class="small">At <code>NFR-SCL-03</code>'s stated 5 million attendance and 20 million workout set rows, no partitioning is required — Postgres handles these volumes comfortably on modest hardware. Monthly partitioning of <code>attendance</code> is the first move if it ever becomes necessary, and the schema is compatible with adding it later.</p>
+
+<!-- ===================== 6 ===================== -->
+<h2>6. Security Architecture</h2>
+
+<h3>6.1 Authentication Flow</h3>
+<div class="seq">
+  <div class="seq-step"><div class="seq-n">1</div><div class="seq-who">Client</div><div>Submits mobile number. Server rate-limits per number and per device (<code>FR-AUTH-12</code>, <code>NFR-SEC-08</code>) before anything else happens.</div><div class="seq-ms"></div></div>
+  <div class="seq-step"><div class="seq-n">2</div><div class="seq-who">Twilio Verify</div><div>Server requests a verification; Twilio generates, delivers and tracks the code. No OTP is generated or stored by us.</div><div class="seq-ms"></div></div>
+  <div class="seq-step"><div class="seq-n">3</div><div class="seq-who">Client</div><div>Submits the code. Server checks it with Twilio, which enforces expiry and attempt limits.</div><div class="seq-ms"></div></div>
+  <div class="seq-step"><div class="seq-n">4</div><div class="seq-who">identity</div><div>On success, loads the user's live role grants. A user in <em>Pending Verification</em> receives a restricted token permitting only profile view and correction (<code>FR-AUTH-09</code>).</div><div class="seq-ms"></div></div>
+  <div class="seq-step"><div class="seq-n">5</div><div class="seq-who">identity</div><div>Issues a 15-minute access token carrying grants, plus a revocable refresh token stored server-side.</div><div class="seq-ms"></div></div>
+  <div class="seq-step"><div class="seq-n">6</div><div class="seq-who">Client</div><div>Stores tokens in the device secure store (Keychain / Keystore) via <code>expo-secure-store</code> — never <code>AsyncStorage</code>.</div><div class="seq-ms"></div></div>
+</div>
+
+<h3>6.2 Authorisation — role grants evaluated per location</h3>
+<p><code>FR-AUTH-28</code> requires that effective authority be the union of an account's grants <em>evaluated per location</em>, never the maximum applied everywhere. A trainer who is also Location Admin at one site must not exercise admin authority at another. This is the model's subtlest rule and the easiest to get wrong, so it is expressed once, centrally:</p>
+<pre><span class="kw">public boolean</span> can(AuthContext ctx, Permission p, LocationId at) {
+    <span class="kw">return</span> ctx.grants().stream()
+        .filter(g -&gt; g.appliesAt(at))          <span class="cm">// scope check FIRST — never skipped</span>
+        .anyMatch(g -&gt; g.role().permits(p));
+}</pre>
+<p>Authorisation is evaluated at the service layer, not in controllers, so no endpoint can bypass it by omission. RLS then provides the second, independent line: even a service method with a flawed check cannot return rows the database will not release. The two controls are deliberately redundant — a single mistake breaches neither.</p>
+
+<h3>6.3 Defence Summary</h3>
+<table>
+  <thead><tr><th style="width:130px">Concern</th><th>Control</th><th style="width:96px">Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>Cross-gym access</td><td>RLS policy on <code>gym_id</code>, enforced by Postgres on every query</td><td><code>NFR-SEC-01</code></td></tr>
+    <tr><td>Cross-location access</td><td>RLS policy on <code>location_id</code>, plus service-layer scope checks</td><td><code>NFR-SEC-01a</code></td></tr>
+    <tr><td>Privilege escalation</td><td>Grant creation validated against the granter's own scope; standing test suite over the delegation chain</td><td><code>NFR-SEC-01b</code>, <code>FR-AUTH-18</code></td></tr>
+    <tr><td>Credential theft</td><td>Argon2id password hashing; tokens in device secure storage; short access-token lifetime</td><td><code>NFR-SEC-03/04</code></td></tr>
+    <tr><td>QR replay</td><td>Fixed printable payloads are signed and location-scoped; every scan also carries device coordinates checked against that location's geofence, so a photographed code is useless away from the gym</td><td><code>NFR-SEC-10</code></td></tr>
+    <tr><td>Media exposure</td><td>Sensitive media uploaded as Cloudinary <code>authenticated</code>/<code>private</code> type; signed, time-limited URLs issued only after an authorisation check. Public assets separated deliberately — the default public type is never used for a receipt or identity document (ADR-15)</td><td><code>NFR-SEC-07</code></td></tr>
+    <tr><td>Brute force</td><td>Rate limiting per account and per device on auth, OTP issuance and check-in</td><td><code>NFR-SEC-08</code></td></tr>
+    <tr><td>Secrets</td><td>AWS Secrets Manager or SSM Parameter Store injected at runtime; never in the image or in source control</td><td><code>NFR-SEC-09</code></td></tr>
+    <tr><td>Dependency risk</td><td>Dependabot plus OWASP dependency-check in the CI pipeline, failing the build on high severity</td><td><code>NFR-SEC-11</code></td></tr>
+    <tr><td>Health data privacy</td><td>Application-layer purpose restriction independent of tenancy; access audited</td><td><code>NFR-PRV-02/03</code></td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 7 ===================== -->
+<h2>7. Mobile Architecture</h2>
+
+<h3>7.1 Structure</h3>
+<pre>app/
+├── (auth)/              <span class="cm">// phone entry, OTP, pending-verification holding screen</span>
+├── (training)/          <span class="cm">// EVERY role sees this — FR-PFP-01, FR-RPT-02</span>
+│   ├── today, workout/[id], progress, nutrition, bookings
+├── (member)/            <span class="cm">// plan, dues, receipts, feedback</span>
+├── (trainer)/           <span class="cm">// roster, sessions, class attendance, plan authoring</span>
+├── (admin)/             <span class="cm">// verifications, members, payments, timetable — location-scoped</span>
+├── (superadmin)/        <span class="cm">// gym verification, activation, subscriptions</span>
+└── checkin/             <span class="cm">// QR scan + geofence — the most-used screen in the app</span>
+
+lib/
+├── api/                 <span class="cm">// generated from OpenAPI — never hand-written</span>
+├── db/                  <span class="cm">// expo-sqlite + Drizzle: outbox and cached reads</span>
+├── sync/                <span class="cm">// background sync, retry, idempotency</span>
+└── auth/                <span class="cm">// secure token storage, refresh, grant-aware navigation</span></pre>
+<p>Navigation is driven by the role grants in the token. The <code>(training)</code> group is mounted unconditionally for every account — the routing layer's expression of the SRS dual-facet model. An account holding several grants sees several groups simultaneously, each labelled, with no context switch (<code>FR-AUTH-27</code>).</p>
+
+<h3>7.2 Offline Sync</h3>
+<div class="dia">
+  <div class="row">
+    <div class="box"><b>1. Local write</b>Operation written to the SQLite outbox with a generated UUID key. UI confirms instantly.</div>
+    <div class="arrow">&rarr;</div>
+    <div class="box"><b>2. Trigger</b>Sync attempts on app foreground, on connectivity restored, and on a periodic background task.</div>
+    <div class="arrow">&rarr;</div>
+    <div class="box"><b>3. Submit</b>Queued operations posted in order, each carrying its idempotency key and original timestamp.</div>
+    <div class="arrow">&rarr;</div>
+    <div class="box"><b>4. Settle</b>Server deduplicates on the key. Success clears the row; permanent failure surfaces to the user.</div>
+  </div>
+</div>
+<p>Only check-in and workout set logging are queued. The reason is structural rather than a matter of effort: as noted in ADR-06, both are non-contending — a check-in is an append-only fact, and a workout log has exactly one author. Neither requires arbitration, so no conflict-resolution strategy is needed. Bookings, payments and plan changes contend for shared resources and are therefore always online, arbitrated by the database.</p>
+
+<h3>7.3 Idempotency — what makes the queue safe</h3>
+<p>The retry problem is that a network failure is ambiguous: the client cannot tell a request that never arrived from one that succeeded but whose response was lost. Retrying risks duplication; not retrying risks loss.</p>
+<p>Idempotency keys resolve it. The client generates a UUID per logical operation and reuses it across every retry. The server stores it against the resulting record under a unique constraint, so a replay returns the original outcome rather than creating a second. This is what lets the client retry freely, and it is simultaneously how <code>FR-ATT-05</code>'s duplicate-rejection requirement is met under offline replay — one mechanism satisfying a correctness requirement and an availability requirement at once.</p>
+
+<h3>7.4 Push Notifications</h3>
+<p>An Expo push token is registered per device on sign-in and invalidated on sign-out. Dispatch runs through the job queue (ADR-09), so a slow or failing push provider never blocks a request. Delivery receipts are polled from Expo and recorded per notification, satisfying <code>FR-NTF-06</code>. Quiet hours (<code>FR-NTF-04</code>) and de-duplication (<code>FR-NTF-07</code>) are applied server-side at dispatch, never on the device — the device cannot be trusted to suppress what it has already received.</p>
+
+<!-- ===================== 8 ===================== -->
+<h2>8. Background Processing</h2>
+<p>All deferred work runs through one queue table. Jobs are enqueued in the same transaction as the business change that triggers them, so a rollback removes the job too — no orphaned notifications for a booking that never happened.</p>
+<pre><span class="cm">-- One worker claims a batch; concurrent workers never collide</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> job_queue
+ <span class="kw">WHERE</span> state = 'PENDING' <span class="kw">AND</span> run_after &lt;= now()
+ <span class="kw">ORDER BY</span> priority DESC, run_after
+ <span class="kw">FOR UPDATE SKIP LOCKED</span>     <span class="cm">-- the whole trick: locked rows are skipped, not waited on</span>
+ <span class="kw">LIMIT</span> 20;</pre>
+<table>
+  <thead><tr><th style="width:150px">Job</th><th>Trigger and purpose</th><th style="width:56px">Phase</th></tr></thead>
+  <tbody>
+    <tr><td><code>NotificationDispatch</code></td><td>Any notifiable event; renders the template and sends via Expo Push</td><td class="ctr">1</td></tr>
+    <tr><td><code>StreakRecalc</code></td><td>After a check-in; recomputes streak off the request path</td><td class="ctr">1</td></tr>
+    <tr><td><code>MembershipExpirySweep</code></td><td>Nightly; flags expiring memberships and raises reminders (<code>FR-BIL-06</code>)</td><td class="ctr">1</td></tr>
+    <tr><td><code>SubscriptionSweep</code></td><td>Nightly; gym subscription expiry, grace period, lapse transitions (<code>FR-SUB-06</code>)</td><td class="ctr">1</td></tr>
+    <tr><td><code>SessionGeneration</code></td><td>Nightly; materialises sessions from recurring timetables over the rolling horizon (<code>FR-CLS-03</code>)</td><td class="ctr">3</td></tr>
+    <tr><td><code>WaitlistPromotion</code></td><td>On booking release; promotes and notifies the first waitlisted member (<code>FR-CLS-08</code>)</td><td class="ctr">3</td></tr>
+    <tr><td><code>SessionReminder</code></td><td>Scheduled ahead of each session; also releases the online meeting link (<code>FR-ONL-03</code>)</td><td class="ctr">3</td></tr>
+    <tr><td><code>WhatsAppSend</code></td><td>Outbound templated message with retry and per-member daily cap (<code>FR-WA-10</code>)</td><td class="ctr">4</td></tr>
+    <tr><td><code>HabitualTimeNudge</code></td><td>Derives each member's usual attendance time and prompts on days they have not come (<code>FR-WA-06</code>)</td><td class="ctr">4</td></tr>
+    <tr><td><code>AiGeneration</code></td><td>Calls the provider, stores the draft for human approval — never auto-publishes (<code>FR-AI-03</code>)</td><td class="ctr">4</td></tr>
+    <tr><td><code>ReportMaterialise</code></td><td>Pre-computes heavy reports, satisfying the async escape in <code>NFR-PRF-06</code></td><td class="ctr">4</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 9 ===================== -->
+<h2>9. Integration Architecture</h2>
+<p>Per <code>PRN-05</code>, every integration sits behind an interface owned by our code, with a defined degradation path. No external failure may cascade into core operations (<code>NFR-AVL-04</code>, <code>CM-03</code>).</p>
+<table>
+  <thead><tr><th style="width:110px">Service</th><th style="width:88px">Used for</th><th>Degradation when unavailable</th><th style="width:48px">Phase</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Twilio Verify</strong></td><td>Phone and email OTP</td><td>Email-and-password sign-in remains available. New registration is blocked — the one genuinely hard dependency in Phase 1, which is why DLT registration is on the critical path.</td><td class="ctr">1</td></tr>
+    <tr><td><strong>Expo Push</strong></td><td>Notifications</td><td>Notifications persist in the in-app inbox and are seen on next open; nothing is lost, only delayed.</td><td class="ctr">1</td></tr>
+    <tr><td><strong>Cloudinary</strong></td><td>Media, receipts</td><td>Uploads queue client-side and retry; existing media is briefly unavailable. No write path blocks — media is never on the critical path of a check-in, booking or payment.</td><td class="ctr">1</td></tr>
+    <tr><td><strong>Zoom / Meet</strong></td><td>Online class delivery</td><td>None — links are plain text entered by staff. No API integration exists to fail (<code>SW-04</code>).</td><td class="ctr">3</td></tr>
+    <tr><td><strong>WhatsApp</strong></td><td>Outbound messaging</td><td>Falls back to push notification per <code>FR-WA-09</code>; message rows retain failure status for review.</td><td class="ctr">4</td></tr>
+    <tr><td><strong>AI provider</strong></td><td>Drafts and insights</td><td>All manual authoring paths remain fully functional, as <code>FR-AI-08</code> requires. Interface abstracted so the provider is replaceable — the predecessor used Mistral; the choice is re-evaluated at Phase 4 on cost and quality.</td><td class="ctr">4</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 10 ===================== -->
+<h2>10. Deployment, Environments and CI/CD</h2>
+
+<h3>10.1 Topology</h3>
+<div class="dia">
+  <div class="dia-title">Development topology — current</div>
+  <div class="row">
+    <div class="box"><b>EC2 · ap-southeast-1</b><code>t4g.small/medium</code> (ARM). Nginx + Let's Encrypt → Docker container running Spring Boot. Elastic IP.</div>
+    <div class="arrow">&rarr;</div>
+    <div class="box"><b>Neon · ap-southeast-1</b>Postgres 16, pooled endpoint, scale-to-zero disabled. <strong>Same region — this is the point of ADR-07.</strong></div>
+  </div>
+  <div class="row">
+    <div class="box ext"><b>Cloudinary</b>Media, CDN, transformation</div>
+    <div class="box ext"><b>S3</b>Database backups only</div>
+    <div class="box ext"><b>Secrets Manager</b>Runtime credential injection</div>
+    <div class="box ext"><b>CloudWatch + Sentry</b>Logs, metrics, errors</div>
+  </div>
+</div>
+<div class="dia">
+  <div class="dia-title">Production target — on first paying gym</div>
+  <div class="row">
+    <div class="box"><b>ALB</b>TLS, health checks</div>
+    <div class="arrow">&rarr;</div>
+    <div class="box"><b>EC2 ×2 · ap-south-1</b>Mumbai, stateless, rolling deploys</div>
+    <div class="arrow">&rarr;</div>
+    <div class="box"><b>RDS Postgres · ap-south-1</b>Multi-AZ, automated backups, PITR</div>
+  </div>
+  <p class="small" style="margin-top:4px">Moving to Mumbai for both application and database gives Indian users the lowest achievable latency. Because Neon and RDS are both stock PostgreSQL 16, the migration is a dump, a restore and a connection string — no application change, which is what makes deferring it safe.</p>
+</div>
+
+<h3>10.2 Environments</h3>
+<table>
+  <thead><tr><th style="width:90px">Environment</th><th>Purpose and configuration</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Local</strong></td><td>Docker Compose with Postgres 16, matching production's RLS role separation so isolation bugs surface on a laptop rather than in production.</td></tr>
+    <tr><td><strong>Development</strong></td><td>The EC2 and Neon topology above. Seeded with representative data: several gyms, several locations each, so isolation is exercised continuously rather than at review time.</td></tr>
+    <tr><td><strong>Production</strong></td><td>Introduced at first paying gym. Separate AWS account, separate secrets, no shared infrastructure with development.</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <strong>Seed development with more than one gym, from day one.</strong> The most dangerous defect class in this system is cross-tenant leakage (<code>RSK-06</code>), and it is invisible when only one gym exists in the database. A development environment holding three gyms with two locations each makes isolation failures show up during ordinary feature work, which is by far the cheapest place to find them.
+</div>
+
+<h3>10.3 Pipelines</h3>
+<table>
+  <thead><tr><th style="width:96px">Pipeline</th><th>Steps</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Backend PR</strong></td><td>Compile → unit tests → Testcontainers integration tests including the RLS isolation suite → OWASP dependency-check → Modulith boundary verification. All must pass to merge.</td></tr>
+    <tr><td><strong>Backend deploy</strong></td><td>Build multi-arch image → push to ECR → SSH deploy to EC2 → Flyway migrations run as <code>lb_migrator</code> → rolling container restart → health check → automatic rollback on failure.</td></tr>
+    <tr><td><strong>Mobile build</strong></td><td>EAS Build for iOS and Android → internal distribution for testing → EAS Submit to App Store Connect and Google Play.</td></tr>
+    <tr><td><strong>Mobile hotfix</strong></td><td>EAS Update pushes JavaScript-only changes over the air, bypassing store review entirely — the difference between a same-hour fix and a three-day wait.</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 11 ===================== -->
+<h2>11. Observability, Backup and Recovery</h2>
+<table>
+  <thead><tr><th style="width:120px">Concern</th><th>Approach</th><th style="width:96px">Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>Structured logging</td><td>JSON to stdout, collected by CloudWatch. Every log line carries a correlation ID, and — critically — the acting user, gym and location, so a failed check-in can be reconstructed without reproducing it.</td><td><code>NFR-MNT-02</code></td></tr>
+    <tr><td>Error tracking</td><td>Sentry on both backend and mobile, with release tagging so a spike is attributable to a specific deploy or OTA update.</td><td><code>NFR-MNT-02</code></td></tr>
+    <tr><td>Metrics</td><td>Micrometer via Spring Actuator: request latency percentiles, job queue depth and age, connection pool saturation, check-in throughput.</td><td><code>NFR-PRF-01</code></td></tr>
+    <tr><td>Health checks</td><td><code>/health</code> for the load balancer; <code>/health/deep</code> verifying database and Cloudinary reachability for alerting.</td><td><code>NFR-AVL-01</code></td></tr>
+    <tr><td>Alerting</td><td>Error rate, p95 latency breach, job queue age exceeding threshold, failed deploy, backup failure.</td><td><code>NFR-AVL-01</code></td></tr>
+    <tr><td>Backups</td><td>Neon provides point-in-time restore during development; RDS automated backups with PITR in production. Additionally, a nightly <code>pg_dump</code> to a separate S3 bucket with versioning and a lifecycle policy — because a backup in the same account as the database is only half a backup.</td><td><code>NFR-AVL-02</code></td></tr>
+    <tr><td>Media backups</td><td>Cloudinary holds the only copy of uploaded media, and a database restore would therefore recover the <code>public_id</code> references but not the images themselves. Accepted during development; a periodic export of sensitive media into the same S3 backup bucket is required before any pilot (<code>ARK-10</code>).</td><td><code>NFR-AVL-02</code></td></tr>
+    <tr><td><strong>Restore drills</strong></td><td>A quarterly, documented, actually-executed restore into a scratch environment, timed against the 4-hour RTO. <strong>An untested backup is a hypothesis, not a recovery plan</strong> — and this is the requirement most often quietly skipped, which is exactly why it is named here.</td><td><code>NFR-AVL-03</code></td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 12 ===================== -->
+<h2>12. Performance and Scaling Strategy</h2>
+<p>The SRS targets — 50 gyms, 200 locations, 100,000 members, 500 concurrent users, 5 million attendance rows — are modest for this stack. A single well-sized instance and a single Postgres database handle them with room to spare. The interesting characteristic is not volume but <em>shape</em>: load concentrates violently into the 6–8am and 6–9pm windows (<code>NFR-SCL-04</code>), so capacity must be sized against peak and not average.</p>
+<table>
+  <thead><tr><th style="width:150px">Pressure</th><th>Response, in order</th></tr></thead>
+  <tbody>
+    <tr><td>Check-in bursts</td><td>Java 21 virtual threads absorb concurrent blocking calls without reactive rewriting. Derived work (streaks, notifications) is already off the request path via the job queue.</td></tr>
+    <tr><td>Slow dashboards</td><td>Indexes first; then materialised views refreshed by job for the heaviest reports; then the async escape <code>NFR-PRF-06</code> already permits.</td></tr>
+    <tr><td>Database contention</td><td>Connection pool tuning; read replicas for reporting once write and read patterns genuinely diverge. Not before.</td></tr>
+    <tr><td>Instance saturation</td><td>Vertical scaling first (a one-line change). Then ALB plus a second instance — the application is stateless and the queue already tolerates concurrent consumers, so nothing else changes.</td></tr>
+    <tr><td>Storage growth</td><td>Cloudinary credits are the binding constraint on media, not disk. Cap upload dimensions at the point of upload and rely on derived renditions rather than storing multiple sizes. Monthly partitioning of <code>attendance</code> if row volume ever demands it.</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <strong>Measure before optimising.</strong> Every scaling move above is a response to an observed metric, not a precaution. The metrics in §11 exist to make that possible. The architecture's most valuable performance property is that none of these responses requires re-architecting — each is a configuration or infrastructure change against the same codebase.
+</div>
+
+<!-- ===================== 13 ===================== -->
+<h2>13. Indicative Cost Model</h2>
+<p class="small">Approximate monthly figures at development scale, in INR. Directional only — verify against current pricing.</p>
+<table>
+  <thead><tr><th style="width:150px">Item</th><th style="width:130px">Development</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>EC2 <code>t4g.small</code></td><td>₹1,200–1,600</td><td>2 vCPU / 2GB ARM. Step to <code>t4g.medium</code> (4GB, ~₹2,800) if the JVM proves tight — likely once background workers run alongside the API.</td></tr>
+    <tr><td>Neon Postgres</td><td>₹0 – 1,700</td><td>Free tier initially, then Launch (~$19). Disable scale-to-zero once latency is being measured.</td></tr>
+    <tr><td>Cloudinary</td><td>₹0</td><td>Free tier: 25 credits/month, consumed jointly by storage, bandwidth <em>and</em> transformations. Adequate for development; exercise media and receipts at real volumes will exceed it, at which point the paid tier starts around $89/month (~₹7,400) — the trigger to weigh S3 plus a thumbnail pipeline against it.</td></tr>
+    <tr><td>S3 (backups only)</td><td>₹100–300</td><td>Nightly database dumps. Media no longer lives here.</td></tr>
+    <tr><td>Twilio Verify</td><td>Usage-based</td><td>Roughly ₹0.50–3 per verification into India. A thousand sign-ins and logins a month is a small line item; free credits cover early development.</td></tr>
+    <tr><td>Sentry, CloudWatch</td><td>₹0–500</td><td>Free tiers are adequate at this stage.</td></tr>
+    <tr><td>Expo EAS</td><td>₹0–8,300</td><td>Free tier covers occasional builds; the Production plan (~$99) matters only once release cadence increases.</td></tr>
+    <tr><td><strong>Running total</strong></td><td><strong>₹1,400–5,000</strong></td><td>Excluding EAS Production and Twilio usage.</td></tr>
+    <tr><td>Apple Developer</td><td>₹8,300/year</td><td>$99 annually — mandatory for App Store distribution.</td></tr>
+    <tr><td>Google Play</td><td>₹2,100 once</td><td>$25 one-time registration.</td></tr>
+  </tbody>
+</table>
+<p class="small">Production on RDS Multi-AZ with an ALB and two instances lands around ₹15,000–25,000/month. At 50 gyms that is a negligible fraction of subscription revenue, so the step up is a commercial non-event when it arrives.</p>
+
+<!-- ===================== 14 ===================== -->
+<h2>14. Build Sequence by Phase</h2>
+<table>
+  <thead><tr><th style="width:56px">Phase</th><th style="width:160px">Architectural focus</th><th>What gets built, and why in this order</th></tr></thead>
+  <tbody>
+    <tr><td class="id">0</td><td>Foundations</td><td>Repository layout, Modulith skeleton, Docker Compose, Flyway with the two-role RLS setup, CI pipeline, Expo project scaffold. <strong>The RLS isolation test suite is written before the first feature</strong> — retrofitting isolation tests onto existing code is how gaps survive.</td></tr>
+    <tr><td class="id">1</td><td>Identity, tenancy, operations</td><td><code>platform</code>, <code>identity</code>, <code>org</code>, <code>people</code>, <code>billing</code>, <code>attendance</code>, plus the <code>training</code> module's personal-profile core. Twilio and DLT registration must start on day one of this phase, since sign-in cannot work without it.</td></tr>
+    <tr><td class="id">2</td><td>Coaching</td><td>The rest of <code>training</code> — exercises, routines, set logging, nutrition, progress — plus PT packages in <code>billing</code> and feedback in <code>engagement</code>. The offline outbox ships here, once workout logging exists to use it.</td></tr>
+    <tr><td class="id">3</td><td>Scheduling</td><td><code>scheduling</code> in full: timetables, session generation, bookings, capacity, waitlists, online links. The most concurrency-sensitive module, and the strongest vindication of the single-transaction monolith.</td></tr>
+    <tr><td class="id">4</td><td>Intelligence and reach</td><td><code>insights</code> and the remainder of <code>engagement</code>: reporting, exports, WhatsApp, AI. Materialised views introduced here if dashboard latency requires them.</td></tr>
+    <tr><td class="id">5</td><td>Scale</td><td>Self-service onboarding, per-gym branding, and the RDS Mumbai migration per ADR-07's revisit trigger.</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 15 ===================== -->
+<h2>15. Risks and Open Decisions</h2>
+<table>
+  <thead><tr><th class="w-id">ID</th><th style="width:170px">Risk</th><th>Impact and mitigation</th></tr></thead>
+  <tbody>
+    <tr><td class="id">ARK-01</td><td>RLS misconfiguration silently disables isolation</td><td>The highest-severity technical risk here. Connecting as the table owner, or using <code>SET</code> instead of <code>SET LOCAL</code>, produces a system that passes ordinary testing while protecting nothing. Mitigated by the two-role setup, <code>FORCE ROW LEVEL SECURITY</code>, multi-gym seed data in development, and a standing isolation suite that must never be skipped to green a build.</td></tr>
+    <tr><td class="id">ARK-02</td><td>DLT registration delays Phase 1</td><td>No OTP means no sign-in means no usable system. One to two weeks, outside our control. Start immediately; keep email-and-password sign-in fully functional as a hedge.</td></tr>
+    <tr><td class="id">ARK-03</td><td>Cross-region database latency</td><td>Addressed by co-location (ADR-07), but only if actually configured that way. Assert it: alert on p95 database round-trip time exceeding 5ms.</td></tr>
+    <tr><td class="id">ARK-04</td><td>Neon cold starts breach latency targets</td><td>Scale-to-zero adds 500ms to several seconds on the first request after idle. Disable it wherever latency is measured; be aware the free tier may not permit disabling.</td></tr>
+    <tr><td class="id">ARK-05</td><td>App Store rejection over health data</td><td>Progress photographs, health screening and location access all attract scrutiny. Mitigate with a published privacy policy, in-context permission rationale, and a store listing consistent with <code>CON-07</code>'s position that this is fitness guidance, not medical advice.</td></tr>
+    <tr><td class="id">ARK-06</td><td>Single EC2 instance is a single point of failure</td><td>Accepted during development. Mitigated by automated off-instance backups and a documented rebuild procedure; resolved by the ALB and second instance at production.</td></tr>
+    <tr><td class="id">ARK-07</td><td>Modulith boundaries erode under delivery pressure</td><td>Boundaries decay silently and are expensive to restore. Mitigated by making Modulith verification a build-failing CI step rather than a convention.</td></tr>
+    <tr><td class="id">ARK-08</td><td>PgBouncer transaction mode breaks prepared statements</td><td>Neon's pooled endpoint requires <code>prepareThreshold=0</code> on the JDBC URL. Symptom is intermittent, confusing errors under load rather than a clean failure — worth configuring correctly at the outset.</td></tr>
+    <tr><td class="id">ARK-09</td><td>Progress photographs uploaded to Cloudinary's public delivery type</td><td>The default upload type yields a permanent public URL. One sensitive image uploaded through the default path is a privacy breach that cannot be undone by deleting the record, because the URL may already be cached or shared. Mitigated by routing every upload through <code>MediaService</code> with sensitivity as a required argument rather than an option, and by a test asserting that no sensitive asset is ever created with the public type. Verify plan support for expiring authenticated delivery before Phase 2 (ADR-15).</td></tr>
+    <tr><td class="id">ARK-10</td><td>Media has no second copy</td><td>Cloudinary holds the only copy of every uploaded asset. Unlike the database, there is no nightly dump. Accepted during development; before a pilot, add a periodic export of sensitive media to the same S3 backup bucket used for database dumps.</td></tr>
+  </tbody>
+</table>
+<h3>15.1 Open Decisions</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th style="width:170px">Decision</th><th>Needed by</th></tr></thead>
+  <tbody>
+    <tr><td class="id">AOP-01</td><td>Team size and Phase 1 target date — <code>OPN-01</code> in the SRS, still open</td><td>Affects nothing structural here; the architecture is deliberately viable for one developer. But it determines whether the phase sequence in §14 is realistic.</td></tr>
+    <tr><td class="id">AOP-02</td><td>A person belonging to more than one gym — <code>OPN-04</code></td><td>The <code>role_grants</code> model can express cross-gym grants, but RLS context assumes a single active <code>gym_id</code> per request. If cross-gym users are permitted, a gym-switching mechanism is needed in the token and context. <strong>Decide before the identity module is built</strong> — it is cheap now and expensive later.</td></tr>
+    <tr><td class="id">AOP-03</td><td>AI provider for Phase 4</td><td>Not needed until Phase 4. The interface is abstracted, so the decision can wait for evidence on cost and output quality.</td></tr>
+    <tr><td class="id">AOP-04</td><td>Web console timing</td><td>The SRS requires it for admin work. Whether it ships in Phase 1 alongside mobile, or follows in Phase 2, is a capacity decision rather than an architectural one — the backend is identical either way.</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== APPENDIX A ===================== -->
+<h2>Appendix A — Requirement to Architecture Mapping</h2>
+<p>The SRS requirements that most constrain the design, and where each is satisfied.</p>
+<table>
+  <thead><tr><th style="width:100px">Requirement</th><th style="width:160px">Demand</th><th>Where satisfied</th></tr></thead>
+  <tbody>
+    <tr><td class="id">NFR-SEC-01/01a</td><td>Gym and location isolation</td><td>RLS policies (§5.3), service-layer scope checks (§6.2), standing Testcontainers suite</td></tr>
+    <tr><td class="id">NFR-SEC-01b</td><td>No privilege escalation</td><td>Grant validation against granter scope; delegation-chain test suite</td></tr>
+    <tr><td class="id">NFR-PRF-05</td><td>No overselling a session</td><td>Single transaction with row lock plus unique constraint (§4.2, §5.2)</td></tr>
+    <tr><td class="id">NFR-PRF-02</td><td>Check-in under 2s on 3G</td><td>Local-first write (§7.2); server path measured at 7–17ms (§4.4)</td></tr>
+    <tr><td class="id">FR-ATT-05/07</td><td>Duplicate rejection; offline queue</td><td>Idempotency keys under a unique constraint — one mechanism, both requirements (§7.3)</td></tr>
+    <tr><td class="id">FR-AUTH-26/28</td><td>Trainer + Location Admin; union per location</td><td><code>role_grants</code> with array scope (§5.2); central <code>can()</code> evaluation (§6.2)</td></tr>
+    <tr><td class="id">FR-PFP-01</td><td>Personal profile for every role</td><td><code>training</code> module takes no role parameter and branches on none (§4.3); <code>(training)</code> route group mounted unconditionally (§7.1)</td></tr>
+    <tr><td class="id">FR-ATT-13</td><td>Shift versus personal workout</td><td><code>purpose</code> column on attendance (§5.2); reports filter on it (§8)</td></tr>
+    <tr><td class="id">FR-SUB-*</td><td>Gym subscription lifecycle</td><td><code>platform</code> module; <code>SubscriptionSweep</code> job (§8)</td></tr>
+    <tr><td class="id">NFR-SEC-07</td><td>Media not publicly reachable</td><td>Cloudinary authenticated delivery type with signed, time-limited URLs issued post-authorisation; public and sensitive media deliberately separated (ADR-15). Progress photographs are out of scope, removing the most sensitive media class entirely</td></tr>
+    <tr><td class="id">NFR-SEC-10</td><td>QR replay resistance</td><td>Location-scoped signed payloads plus mandatory device geofence proof on every scan (§6.3)</td></tr>
+    <tr><td class="id">NFR-AVL-03</td><td>Tested restores</td><td>Quarterly executed restore drills, timed against RTO (§11)</td></tr>
+    <tr><td class="id">NFR-MNT-04</td><td>Old app builds keep working</td><td>Versioned API path plus OpenAPI-generated clients (ADR-13)</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== APPENDIX B ===================== -->
+<h2>Appendix B — SRS Amendments Required</h2>
+<p>Decisions taken here that contradict LB-SRS-1.1 and require it to be revised to v1.2. Recorded rather than applied silently, so the SRS remains the authority on requirements.</p>
+<table>
+  <thead><tr><th style="width:100px">Requirement</th><th style="width:170px">Current wording</th><th>Required amendment</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-EXR-05</td><td>"The muscle group taxonomy and seeded exercise data from limitbeyond2.0 shall be carried into the new catalogue."</td><td><strong>Revise.</strong> Per ADR-11, nothing is migrated. The catalogue is authored fresh against the richer model — primary and secondary muscle groups, equipment, difficulty, instructions and media — because the predecessor's records lack those fields and a port would yield incomplete rows requiring manual completion regardless.</td></tr>
+    <tr><td class="id">OPN-02</td><td>Open: migration from limitbeyond2.0 undecided.</td><td><strong>Close.</strong> Clean start; nothing migrated. The predecessor continues running until cutover.</td></tr>
+    <tr><td class="id">OPN-03</td><td>Already closed in v1.1 (gateway withdrawn).</td><td>No change. Confirmed by this architecture — no payment integration exists at any tier.</td></tr>
+    <tr><td class="id">OPN-04</td><td>Open: a person belonging to more than one gym.</td><td><strong>Escalate.</strong> Now a build-blocking decision, not merely an open question — RLS context assumes one active gym per request (<code>AOP-02</code>). Must be settled before the <code>identity</code> module is implemented.</td></tr>
+  </tbody>
+</table>
+
+<div class="note" style="margin-top:20px">
+  <strong>What this document does not decide.</strong> API endpoint signatures, full table definitions, screen designs and test plans belong to implementation, not architecture. What is fixed here is the set of choices that would be expensive to reverse later: the language, the database, how isolation is enforced, the shape of the codebase, and where state lives. Everything else is deliberately left to be decided with more information than we have today.
+</div>
+
+<div class="end-mark">— END OF DOCUMENT —</div>
+
+</body>
+</html>

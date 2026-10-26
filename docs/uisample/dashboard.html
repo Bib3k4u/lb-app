@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LIMITBEYOND — Training Dashboard</title>
+<style>
+  /* =========================================================================
+     LIMITBEYOND — dark theme, ambient-glass treatment.
+
+     Three things carry the look, all taken from the reference:
+       1. A warm bloom behind everything, not a flat fill. Two soft radial
+          glows sit on the ground; nothing else in the UI is a gradient.
+       2. Frosted cards. Translucent white at ~5% over that bloom, with a
+          backdrop blur, so each card picks up the colour behind it and the
+          screen gains depth without a single drop shadow doing the work.
+       3. Pill geometry. Actions and chips are fully round; cards are 22px.
+
+     Accent is switchable at :root[data-accent] so brand orange and the
+     reference yellow can be compared directly. They need different foreground
+     colours — white fails on yellow — so --on-accent moves with it.
+     ========================================================================= */
+  :root {
+    --ground:       #0B0A09;   /* warm near-black, not blue-black */
+
+    /* The bloom. Amber over brand orange, both very low alpha. */
+    --glow-warm:    rgba(247,208,70,.20);
+    --glow-deep:    rgba(230,160,30,.14);
+
+    /* Glass */
+    --glass:        rgba(255,255,255,.048);
+    --glass-2:      rgba(255,255,255,.075);
+    --glass-line:   rgba(255,255,255,.085);
+    --glass-line-2: rgba(255,255,255,.14);
+
+    --ink:          #FFFFFF;
+    --ink-2:        rgba(255,255,255,.68);
+    --dim:          rgba(255,255,255,.44);
+
+    /* Golden yellow, matched to the reference. Deeper than a lemon yellow so it
+       reads warm against the bloom rather than washing out. */
+    --accent:       #F7D046;
+    --on-accent:    #17130A;   /* near-black: white on yellow is ~1.7:1, unreadable */
+    --accent-rgb:   247,208,70;
+
+    --good:         #3FD17C;
+    --alert:        #F04242;   /* --destructive 0 85% 60% — live app */
+
+    --r-card:       22px;
+    --r-pill:       999px;
+  }
+
+  /* Alternate: the live app's brand orange, kept for comparison. Needs white text. */
+  :root[data-accent="brand"] {
+    --accent:     #FF4400;     /* --primary 16 100% 50% — limitbeyond.vercel.app */
+    --on-accent:  #FFFFFF;
+    --accent-rgb: 255,68,0;
+    --glow-warm:  rgba(255,176,48,.20);
+    --glow-deep:  rgba(255,68,0,.14);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--ground); }
+
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    padding-block: 40px;
+    padding-inline: 16px;
+    min-height: 100vh;
+    position: relative;
+  }
+  /* Page-level bloom so the phone sits in the same light as its own screen. */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(70% 55% at 18% 8%,  var(--glow-warm) 0%, transparent 62%),
+      radial-gradient(60% 50% at 88% 78%, var(--glow-deep) 0%, transparent 60%);
+  }
+
+  .display { font-weight: 800; letter-spacing: -.025em; }
+  .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+  /* ---- Stage -------------------------------------------------------------- */
+  .stage {
+    position: relative; z-index: 1;
+    max-width: 1060px; margin: 0 auto;
+    display: grid; grid-template-columns: minmax(0,390px) minmax(0,1fr);
+    gap: 48px; align-items: start;
+  }
+  @media (max-width: 860px) {
+    .stage { grid-template-columns: minmax(0,390px); justify-content: center; gap: 34px; }
+  }
+
+  /* ---- Phone -------------------------------------------------------------- */
+  .phone {
+    width: 390px; max-width: 100%; height: 844px;
+    background: #141210;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 44px; padding: 10px;
+    box-shadow: 0 50px 90px -34px rgba(0,0,0,.95),
+                0 0 90px -30px rgba(var(--accent-rgb),.22);
+  }
+  .screen {
+    position: relative; height: 100%; overflow: hidden;
+    border-radius: 35px; background: var(--ground);
+    display: flex; flex-direction: column;
+  }
+  /* The bloom the cards blur against. Without this the glass has nothing to do. */
+  .screen::before {
+    content: ""; position: absolute; inset: -20%; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(52% 34% at 22% 12%, var(--glow-warm) 0%, transparent 66%),
+      radial-gradient(46% 30% at 92% 46%, var(--glow-deep) 0%, transparent 64%),
+      radial-gradient(60% 34% at 46% 104%, var(--glow-warm) 0%, transparent 66%);
+  }
+  .notch {
+    position: absolute; top: 9px; left: 50%; transform: translateX(-50%);
+    width: 104px; height: 26px; background: #000; border-radius: 14px; z-index: 6;
+  }
+
+  .statusbar {
+    position: relative; z-index: 2;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 24px 2px; font-size: 12px; font-weight: 600;
+  }
+  .statusbar .icons { display: flex; gap: 5px; align-items: center; opacity: .92; }
+
+  .scroll {
+    position: relative; z-index: 2;
+    flex: 1; overflow-y: auto; padding: 6px 17px 16px;
+    display: flex; flex-direction: column; gap: 11px;
+    scrollbar-width: none;
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* ---- Glass -------------------------------------------------------------- */
+  .card {
+    background: var(--glass);
+    border: 1px solid var(--glass-line);
+    border-radius: var(--r-card);
+    padding: 15px;
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    backdrop-filter: blur(22px) saturate(150%);
+  }
+
+  /* ---- Header ------------------------------------------------------------- */
+  .greet { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 5px; }
+  .greet .date { font-size: 11.5px; color: var(--dim); margin: 0 0 3px; font-weight: 500; letter-spacing: .04em; }
+  .greet h2 { font-size: 24px; margin: 0; line-height: 1.1; }
+  .avatar {
+    width: 44px; height: 44px; border-radius: 50%; flex: none;
+    background: var(--accent); color: var(--on-accent);
+    display: grid; place-items: center; font-weight: 700; font-size: 15px;
+    box-shadow: 0 6px 18px -6px rgba(var(--accent-rgb),.7);
+  }
+
+  .venue {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; color: var(--ink-2); font-weight: 500;
+  }
+  .venue .pulse {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--good); flex: none;
+    box-shadow: 0 0 0 3px rgba(63,209,124,.16);
+  }
+  .venue .role {
+    margin-left: auto; font-size: 9.5px; font-weight: 700; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--accent);
+    background: rgba(var(--accent-rgb),.13);
+    border: 1px solid rgba(var(--accent-rgb),.26);
+    padding: 3px 9px; border-radius: var(--r-pill);
+  }
+
+  /* ---- Check-in: the one solid fill on the screen ------------------------- */
+  .checkin {
+    border: none; width: 100%; cursor: pointer; font-family: inherit;
+    background: var(--accent); color: var(--on-accent);
+    border-radius: var(--r-pill);
+    padding: 15px 17px;
+    display: flex; align-items: center; gap: 13px; text-align: left;
+    box-shadow: 0 14px 34px -12px rgba(var(--accent-rgb),.85);
+    transition: transform .16s ease, box-shadow .16s ease;
+  }
+  .checkin:hover { transform: translateY(-1px); box-shadow: 0 18px 40px -12px rgba(var(--accent-rgb),.95); }
+  .checkin:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .checkin .glyph {
+    width: 40px; height: 40px; border-radius: 50%; flex: none;
+    background: rgba(23,19,10,.14); display: grid; place-items: center;
+  }
+  :root[data-accent="brand"] .checkin .glyph { background: rgba(255,255,255,.2); }
+  .checkin .stack { min-width: 0; }
+  .checkin .label { display: block; font-size: 17px; font-weight: 800; letter-spacing: -.015em; line-height: 1.2; }
+  .checkin .sub { display: block; font-size: 11.5px; font-weight: 600; opacity: .84; margin-top: 1px; }
+  .checkin .chev { margin-left: auto; opacity: .85; }
+
+  /* ---- Card chrome -------------------------------------------------------- */
+  .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .lbl { font-size: 9.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 0; }
+  .more { font-size: 11.5px; color: var(--accent); font-weight: 600; text-decoration: none; }
+
+  /* ---- Streak ring: seven arcs, one per day ------------------------------ */
+  .streak { display: flex; align-items: center; gap: 16px; }
+  .ring { position: relative; width: 118px; height: 118px; flex: none; }
+  .ring svg { transform: rotate(-90deg); display: block; }
+  .ring .centre { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+  .ring .n { font-size: 33px; font-weight: 800; line-height: 1; letter-spacing: -.035em; }
+  .ring .u { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); font-weight: 700; margin-top: 3px; }
+
+  .facts { display: flex; flex-direction: column; gap: 10px; min-width: 0; flex: 1; }
+  .fact .v { font-size: 17px; font-weight: 700; letter-spacing: -.015em; }
+  .fact .v small { font-size: 10.5px; font-weight: 600; color: var(--dim); margin-left: 3px; }
+  .fact .v .up { color: var(--good); font-size: 10.5px; font-weight: 700; margin-left: 5px; }
+  .fact .k { font-size: 10.5px; color: var(--dim); margin-top: 1px; }
+
+  /* ---- Workout ------------------------------------------------------------ */
+  .workout .title { font-size: 17.5px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 3px; }
+  .workout .meta { font-size: 11.5px; color: var(--dim); margin: 0 0 10px; }
+  .lift { display: flex; align-items: baseline; gap: 9px; padding: 9px 0; border-top: 1px solid rgba(255,255,255,.06); }
+  .lift .name { font-size: 13.5px; font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lift .prescription { font-size: 12.5px; color: var(--ink-2); font-weight: 600; white-space: nowrap; }
+  .lift .prescription em { font-style: normal; color: var(--dim); font-weight: 500; }
+  .lift .pr {
+    font-size: 8.5px; font-weight: 800; letter-spacing: .07em; flex: none;
+    color: var(--accent); background: rgba(var(--accent-rgb),.14);
+    padding: 2px 7px; border-radius: var(--r-pill);
+  }
+  .rest { font-size: 11px; color: var(--dim); margin: 10px 0 0; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.06); }
+  .ghost {
+    display: block; width: 100%; margin-top: 12px; cursor: pointer; font-family: inherit;
+    background: var(--glass-2); border: 1px solid var(--glass-line-2); color: var(--ink);
+    border-radius: var(--r-pill); padding: 12px; font-size: 14px; font-weight: 700; letter-spacing: -.01em;
+    transition: border-color .16s ease, background .16s ease;
+  }
+  .ghost:hover { border-color: rgba(var(--accent-rgb),.6); background: rgba(var(--accent-rgb),.1); }
+  .ghost:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---- Volume ------------------------------------------------------------- */
+  .bars { display: flex; align-items: flex-end; gap: 7px; height: 74px; }
+  .bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 7px; height: 100%; }
+  .bar .fill { border-radius: var(--r-pill); background: rgba(255,255,255,.12); }
+  .bar.now .fill { background: var(--accent); box-shadow: 0 0 18px -3px rgba(var(--accent-rgb),.9); }
+  .bar .d { font-size: 9px; text-align: center; color: var(--dim); font-weight: 600; }
+  .bar.now .d { color: var(--accent); }
+
+  /* ---- Next class --------------------------------------------------------- */
+  .klass { display: flex; align-items: center; gap: 12px; }
+  .when {
+    width: 56px; flex: none; text-align: center; padding: 9px 4px;
+    background: var(--glass-2); border: 1px solid var(--glass-line); border-radius: 16px;
+  }
+  .when .t { font-size: 15px; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+  .when .m { font-size: 8.5px; color: var(--dim); font-weight: 700; letter-spacing: .08em; }
+  .klass .body { flex: 1; min-width: 0; }
+  .klass .body .n { font-size: 14.5px; font-weight: 700; letter-spacing: -.015em; }
+  .klass .body .w { font-size: 11px; color: var(--dim); margin-top: 2px; }
+  .chip {
+    font-size: 9.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+    padding: 5px 11px; border-radius: var(--r-pill); white-space: nowrap;
+    background: rgba(63,209,124,.14); color: var(--good); border: 1px solid rgba(63,209,124,.26);
+  }
+
+  .plan {
+    display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--dim);
+    padding: 12px 16px; border: 1px dashed rgba(255,255,255,.13); border-radius: var(--r-card);
+  }
+  .plan b { color: var(--ink-2); font-weight: 600; }
+  .plan .right { margin-left: auto; color: var(--ink-2); font-weight: 600; }
+
+  /* ---- Tab bar: floating pill, as the reference -------------------------- */
+  .tabs {
+    position: relative; z-index: 3;
+    margin: 0 14px calc(14px + env(safe-area-inset-bottom, 0px));
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    background: rgba(28,25,22,.72); border: 1px solid var(--glass-line);
+    border-radius: var(--r-pill); padding: 6px;
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    box-shadow: 0 16px 34px -16px rgba(0,0,0,.9);
+  }
+  .tab {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 9.5px; color: var(--dim); font-weight: 600; text-decoration: none;
+    padding: 8px 0 7px; border-radius: var(--r-pill);
+  }
+  .tab.active { color: var(--on-accent); background: var(--accent); }
+
+  /* ---- Caption rail ------------------------------------------------------- */
+  .caption { max-width: 430px; }
+  .caption .eyebrow { font-size: 10.5px; letter-spacing: .15em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin: 0 0 10px; }
+  .caption h1 { font-size: 30px; line-height: 1.1; margin: 0 0 12px; font-weight: 800; letter-spacing: -.03em; text-wrap: balance; }
+  .caption p { color: var(--ink-2); font-size: 14px; line-height: 1.62; margin: 0 0 12px; }
+
+  .switcher {
+    display: flex; gap: 6px; padding: 6px; margin: 4px 0 22px;
+    background: var(--glass); border: 1px solid var(--glass-line);
+    border-radius: var(--r-pill); width: fit-content;
+    -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  }
+  .switcher button {
+    cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 700;
+    border: none; background: transparent; color: var(--dim);
+    padding: 9px 17px; border-radius: var(--r-pill); display: flex; align-items: center; gap: 8px;
+    transition: background .15s, color .15s;
+  }
+  .switcher button .dot { width: 11px; height: 11px; border-radius: 50%; display: block; }
+  .switcher button[aria-pressed="true"] { background: var(--glass-2); color: var(--ink); }
+  .switcher button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .spec { display: flex; flex-direction: column; gap: 22px; }
+  .spec h3 { font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--dim); margin: 0 0 11px; font-weight: 700; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(98px,1fr)); gap: 8px; }
+  .sw { border: 1px solid var(--glass-line); border-radius: 14px; overflow: hidden; background: var(--glass); }
+  .sw .chipc { height: 38px; }
+  .sw .meta { padding: 6px 9px; }
+  .sw .nm { font-size: 10px; font-weight: 600; }
+  .sw .hx { font-size: 9px; color: var(--dim); font-variant-numeric: tabular-nums; }
+
+  .principles { display: flex; flex-direction: column; gap: 11px; margin: 0; padding: 0; list-style: none; }
+  .principles li { font-size: 13px; color: var(--ink-2); line-height: 1.55; padding-left: 16px; position: relative; }
+  .principles li::before { content: ""; position: absolute; left: 0; top: 8px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  .principles b { color: var(--ink); font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <!-- ============ PHONE ============ -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+
+      <div class="statusbar">
+        <span class="num">6:42</span>
+        <span class="icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor" aria-hidden="true"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1" opacity=".35"/></svg>
+          <svg width="24" height="11" viewBox="0 0 24 11" fill="none" aria-hidden="true"><rect x=".5" y=".5" width="19" height="10" rx="3" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="14" height="7" rx="1.6" fill="currentColor"/><path d="M21 4v3a2 2 0 0 0 0-3z" fill="currentColor" opacity=".45"/></svg>
+        </span>
+      </div>
+
+      <div class="scroll">
+
+        <header class="greet">
+          <div>
+            <p class="date">FRIDAY, 17 SEPTEMBER</p>
+            <h2 class="display">Morning, Anjali</h2>
+          </div>
+          <div class="avatar" aria-hidden="true">AR</div>
+        </header>
+
+        <div class="venue">
+          <span class="pulse" aria-hidden="true"></span>
+          Iron Fitness · Koramangala
+          <span class="role">Trainer</span>
+        </div>
+
+        <button class="checkin" type="button">
+          <span class="glyph" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM19 19h2M19 14h2M14 19h2"/>
+            </svg>
+          </span>
+          <span class="stack">
+            <span class="label">Check in</span>
+            <span class="sub">You're 40 m from the gym</span>
+          </span>
+          <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+
+        <section class="card">
+          <div class="card-head"><p class="lbl">This week</p><a class="more" href="#">History</a></div>
+          <div class="streak">
+            <div class="ring">
+              <!-- r=50 → C=314.16. Seven slots of 44.88: a 38.88 arc plus a 6 gap.
+                   Mon–Thu and Sat filled; Fri is today and still open; Sun not reached. -->
+              <svg width="118" height="118" viewBox="0 0 118 118" role="img"
+                   aria-label="Five of the last seven days attended. Current streak 12 days.">
+                <g fill="none" stroke-width="9" stroke-linecap="round">
+                  <circle cx="59" cy="59" r="50" stroke="rgba(255,255,255,.11)" stroke-dasharray="38.88 6"/>
+                  <circle cx="59" cy="59" r="50" stroke="var(--accent)" stroke-dasharray="38.88 275.28" stroke-dashoffset="0"/>
+                  <circle cx="59" cy="59" r="50" stroke="var(--accent)" stroke-dasharray="38.88 275.28" stroke-dashoffset="-44.88"/>
+                  <circle cx="59" cy="59" r="50" stroke="var(--accent)" stroke-dasharray="38.88 275.28" stroke-dashoffset="-89.76"/>
+                  <circle cx="59" cy="59" r="50" stroke="var(--accent)" stroke-dasharray="38.88 275.28" stroke-dashoffset="-134.64"/>
+                  <circle cx="59" cy="59" r="50" stroke="var(--accent)" stroke-dasharray="38.88 275.28" stroke-dashoffset="-179.52" opacity=".34"/>
+                  <circle cx="59" cy="59" r="50" stroke="var(--accent)" stroke-dasharray="38.88 275.28" stroke-dashoffset="-224.4"/>
+                </g>
+              </svg>
+              <div class="centre">
+                <div class="n num">12</div>
+                <div class="u">day streak</div>
+              </div>
+            </div>
+            <div class="facts">
+              <div class="fact"><div class="v num">5 <small>of 7 days</small></div><div class="k">Sessions this week</div></div>
+              <div class="fact"><div class="v num">18,420 <small>kg</small><span class="up">↑ 6%</span></div><div class="k">Volume vs last week</div></div>
+              <div class="fact"><div class="v num">2</div><div class="k">Personal records</div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card workout">
+          <div class="card-head"><p class="lbl">Today · Week 3 of 8</p><a class="more" href="#">Full plan</a></div>
+          <h3 class="title">Push A — Chest &amp; Triceps</h3>
+          <p class="meta">6 exercises · about 50 min · set by Meera Nair</p>
+          <div class="lift"><span class="name">Barbell Bench Press</span><span class="pr">PR</span><span class="prescription">4 × 8 <em>·</em> 62.5 kg</span></div>
+          <div class="lift"><span class="name">Incline Dumbbell Press</span><span class="prescription">3 × 10 <em>·</em> 22.5 kg</span></div>
+          <div class="lift"><span class="name">Cable Fly</span><span class="prescription">3 × 12 <em>·</em> 15 kg</span></div>
+          <p class="rest">+ 3 more · Overhead Press, Triceps Rope, Dips</p>
+          <button class="ghost" type="button">Start workout</button>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><p class="lbl">Volume · last 7 days</p><span class="lbl num" style="color:var(--ink-2)">kg</span></div>
+          <div class="bars" role="img" aria-label="Daily volume: Monday 3,100kg, Tuesday 2,400kg, Wednesday 3,850kg, Thursday 2,900kg, Friday not yet trained, Saturday 4,120kg, Sunday rest.">
+            <div class="bar"><div class="fill" style="height:58%"></div><div class="d">M</div></div>
+            <div class="bar"><div class="fill" style="height:44%"></div><div class="d">T</div></div>
+            <div class="bar"><div class="fill" style="height:73%"></div><div class="d">W</div></div>
+            <div class="bar"><div class="fill" style="height:54%"></div><div class="d">T</div></div>
+            <div class="bar now"><div class="fill" style="height:13%"></div><div class="d">F</div></div>
+            <div class="bar"><div class="fill" style="height:82%"></div><div class="d">S</div></div>
+            <div class="bar"><div class="fill" style="height:8%"></div><div class="d">S</div></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><p class="lbl">Next class</p><a class="more" href="#">Timetable</a></div>
+          <div class="klass">
+            <div class="when"><div class="t num">6:30</div><div class="m">AM</div></div>
+            <div class="body"><div class="n">Power Yoga</div><div class="w">Tomorrow · Studio 2 · Meera Nair</div></div>
+            <span class="chip">Booked</span>
+          </div>
+        </section>
+
+        <div class="plan">
+          <span><b>Annual plan</b> · expires 14 Mar 2027</span>
+          <span class="right num">178 days</span>
+        </div>
+
+      </div>
+
+      <nav class="tabs" aria-label="Main">
+        <a class="tab active" href="#" aria-current="page">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Today
+        </a>
+        <a class="tab" href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="m4 15 5-5 4 4 7-8"/></svg>Progress
+        </a>
+        <a class="tab" href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Bookings
+        </a>
+        <a class="tab" href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v8a3 3 0 0 0 6 0V3"/><path d="M8 11v10"/><path d="M17 3c-1.5 2-2 4-2 6.5 0 2 .7 3 2 3.5v8"/></svg>Nutrition
+        </a>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- ============ CAPTION ============ -->
+  <div class="caption">
+    <p class="eyebrow">Theme · ambient glass</p>
+    <h1 class="display">Same room, better lighting</h1>
+
+    <div class="switcher" role="group" aria-label="Accent colour">
+      <button type="button" data-set="default" aria-pressed="true">
+        <span class="dot" style="background:#F7D046"></span> Yellow #F7D046
+      </button>
+      <button type="button" data-set="brand" aria-pressed="false">
+        <span class="dot" style="background:#FF4400"></span> Brand #FF4400
+      </button>
+    </div>
+
+    <p>
+      Three things carry the reference look, and all three are here. A warm bloom
+      behind everything rather than a flat fill. Frosted cards — translucent white at
+      about <span class="num">5%</span> with a backdrop blur, so each one picks up the
+      colour behind it. And pill geometry on every action.
+    </p>
+    <p>
+      The result is depth without a single heavy drop shadow. Cards separate because
+      they are made of different <em>material</em>, not because they have a border
+      drawn round them.
+    </p>
+
+    <div class="spec">
+      <div>
+        <h3>Palette</h3>
+        <div class="swatches">
+          <div class="sw"><div class="chipc" style="background:#0B0A09"></div><div class="meta"><div class="nm">Ground</div><div class="hx">#0B0A09</div></div></div>
+          <div class="sw"><div class="chipc" style="background:rgba(255,255,255,.048)"></div><div class="meta"><div class="nm">Glass</div><div class="hx">#FFF · 4.8%</div></div></div>
+          <div class="sw"><div class="chipc" style="background:rgba(247,208,70,.22)"></div><div class="meta"><div class="nm">Bloom</div><div class="hx">gold 20%</div></div></div>
+          <div class="sw"><div class="chipc" style="background:#F7D046"></div><div class="meta"><div class="nm">Accent</div><div class="hx">#F7D046</div></div></div>
+          <div class="sw"><div class="chipc" style="background:#3FD17C"></div><div class="meta"><div class="nm">Good</div><div class="hx">#3FD17C</div></div></div>
+          <div class="sw"><div class="chipc" style="background:#F04242"></div><div class="meta"><div class="nm">Destructive</div><div class="hx">#F04242</div></div></div>
+        </div>
+      </div>
+
+      <div>
+        <h3>The one decision left</h3>
+        <ul class="principles">
+          <li><b>Yellow is the default here.</b> <span class="num">#F7D046</span> — golden
+              rather than lemon, so it stays warm against the bloom instead of washing out.
+              Brand orange is still one tap away above for comparison.</li>
+          <li><b>Yellow carries dark text, not white.</b> White on this yellow is about
+              <span class="num">1.7:1</span> and genuinely unreadable; near-black is
+              <span class="num">12:1</span>. The toggle moves
+              <span class="num">--on-accent</span> with the accent for that reason.</li>
+          <li><b>Your live site still ships <span class="num">#FF4400</span>.</b> Going yellow
+              in the app means updating <span class="num">--primary</span> there too, or
+              accepting that the two look like different products.</li>
+        </ul>
+      </div>
+
+      <div>
+        <h3>Carried over</h3>
+        <ul class="principles">
+          <li><b>The streak ring is data.</b> Seven arcs, one per day, filled when you trained
+              and dimmed for today, still open.</li>
+          <li><b>One solid fill on the screen.</b> Everything else is glass, so check-in reads
+              as the action without needing to shout.</li>
+          <li><b>Real units.</b> kg, reps, sets — volume in kilograms, not an invented score.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const root = document.documentElement;
+  document.querySelectorAll('.switcher button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.set === 'default') { root.removeAttribute('data-accent'); }
+      else { root.setAttribute('data-accent', btn.dataset.set); }
+      document.querySelectorAll('.switcher button').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b === btn));
+      });
+    });
+  });
+</script>
+</body>
+</html>

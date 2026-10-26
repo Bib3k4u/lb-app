@@ -1,0 +1,49 @@
+# --- Java / Maven ---
+target/
+*.class
+*.jar
+!**/src/**/*.jar
+.mvn/wrapper/maven-wrapper.jar
+
+# --- Node ---
+node_modules/
+.npm/
+*.tsbuildinfo
+
+# --- Next.js ---
+.next/
+out/
+next-env.d.ts
+
+# --- Expo / React Native ---
+.expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+ios/
+android/
+
+# --- Secrets. NEVER commit. A leaked secret is rotated, not deleted. ---
+.env
+.env.local
+.env.*.local
+!.env.example
+*.pem
+credentials.json
+
+# --- Local databases ---
+*.db
+*.sqlite
+*.sqlite3
+
+# --- Editors / OS ---
+.DS_Store
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json

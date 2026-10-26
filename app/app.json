@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "app",
+    "slug": "app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0A09",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.limitbeyond.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0A09",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.limitbeyond.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "LIMITBEYOND uses your location only to confirm you are at the gym when you check in."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "LIMITBEYOND uses the camera to scan the check-in QR code at your gym."
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-font"
+    ],
+    "scheme": "limitbeyond",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

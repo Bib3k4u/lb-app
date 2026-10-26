@@ -1,0 +1,1326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LIMITBEYOND — Software Requirements Specification v1.1</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+
+  :root {
+    --ink: #1a1d24;
+    --muted: #5a6273;
+    --rule: #d4d9e2;
+    --accent: #0f3d5c;
+    --accent-soft: #eef3f7;
+    --band: #f6f8fa;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    font-family: "Charter", "Georgia", "Times New Roman", serif;
+    font-size: 10.2pt;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  h1, h2, h3, h4, .sans {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  /* ---------- Title page ---------- */
+  .title-page {
+    height: 245mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    break-after: page;
+  }
+  .title-rule { height: 4px; background: var(--accent); width: 70px; margin-bottom: 26px; }
+  .product {
+    font-size: 40pt;
+    letter-spacing: 3px;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 0;
+    line-height: 1.05;
+  }
+  .product-sub {
+    font-size: 12pt;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 10px 0 40px;
+  }
+  .doc-type { font-size: 20pt; font-weight: 600; margin: 0 0 4px; }
+  .doc-sub { font-size: 11pt; color: var(--muted); margin: 0 0 46px; }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    row-gap: 7px;
+    font-size: 10pt;
+    max-width: 420px;
+  }
+  .meta-grid dt { color: var(--muted); }
+  .meta-grid dd { margin: 0; font-weight: 600; }
+  .title-note {
+    margin-top: 44px;
+    padding: 12px 14px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    font-size: 9.2pt;
+    color: var(--muted);
+    max-width: 480px;
+  }
+
+  /* ---------- Headings ---------- */
+  h2 {
+    font-size: 15pt;
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 5px;
+    margin: 0 0 14px;
+    break-before: page;
+    break-after: avoid;
+  }
+  h2.continue { break-before: auto; }
+  h3 {
+    font-size: 11.6pt;
+    margin: 20px 0 7px;
+    color: var(--ink);
+    break-after: avoid;
+  }
+  h4 {
+    font-size: 10.2pt;
+    margin: 14px 0 5px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    break-after: avoid;
+  }
+  p { margin: 0 0 9px; }
+  ul, ol { margin: 0 0 9px; padding-left: 18px; }
+  li { margin-bottom: 3px; }
+
+  /* ---------- Tables ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.9pt;
+    margin: 8px 0 14px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  thead { display: table-header-group; }
+  tr { break-inside: avoid; }
+  th {
+    background: var(--accent);
+    color: #fff;
+    text-align: left;
+    padding: 5px 7px;
+    font-weight: 600;
+    font-size: 8.6pt;
+    letter-spacing: 0.3px;
+  }
+  td {
+    padding: 5px 7px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  tbody tr:nth-child(even) { background: var(--band); }
+  td.id { font-weight: 700; color: var(--accent); white-space: nowrap; font-size: 8.4pt; }
+  td.ctr { text-align: center; white-space: nowrap; }
+  .w-id { width: 74px; }
+  .w-pri { width: 52px; }
+  .w-ph { width: 44px; }
+
+  .pri { font-weight: 700; font-size: 7.8pt; letter-spacing: 0.4px; }
+  .M { color: #9a2c2c; }   /* Must */
+  .S { color: #8a5a00; }   /* Should */
+  .C { color: #2b6a3f; }   /* Could */
+
+  /* ---------- Callouts ---------- */
+  .note {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 9px 12px;
+    margin: 10px 0 14px;
+    font-size: 9.3pt;
+    break-inside: avoid;
+  }
+  .note strong { color: var(--accent); }
+
+  .legend {
+    font-size: 8.6pt;
+    color: var(--muted);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    margin: -6px 0 16px;
+  }
+
+  /* ---------- TOC ---------- */
+  .toc { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.6pt; }
+  .toc ol { list-style: none; padding-left: 0; counter-reset: sec; }
+  .toc > ol > li {
+    counter-increment: sec;
+    padding: 4px 0;
+    border-bottom: 1px dotted var(--rule);
+    font-weight: 600;
+  }
+  .toc > ol > li::before { content: counter(sec) ".  "; color: var(--accent); }
+  .toc ul { list-style: none; padding-left: 20px; margin: 4px 0 2px; font-weight: 400; color: var(--muted); font-size: 9pt; }
+  .toc ul li { margin-bottom: 1px; }
+
+  /* ---------- Flow diagram ---------- */
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    margin: 12px 0 16px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    break-inside: avoid;
+  }
+  .flow-step {
+    flex: 1;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: 8px 9px;
+    font-size: 8.5pt;
+    background: #fff;
+  }
+  .flow-step b { display: block; color: var(--accent); font-size: 9pt; margin-bottom: 3px; }
+  .flow-arrow {
+    align-self: center;
+    color: var(--accent);
+    font-size: 13pt;
+    font-weight: 700;
+  }
+
+  .phase-band {
+    background: var(--accent);
+    color: #fff;
+    padding: 5px 10px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9.5pt;
+    font-weight: 600;
+    margin: 18px 0 0;
+    border-radius: 2px 2px 0 0;
+    break-after: avoid;
+  }
+  .phase-body {
+    border: 1px solid var(--rule);
+    border-top: none;
+    padding: 9px 11px;
+    font-size: 9.3pt;
+    break-before: avoid;
+  }
+  .phase-body dl { display: grid; grid-template-columns: 96px 1fr; row-gap: 4px; margin: 0; }
+  .phase-body dt { color: var(--muted); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 8.6pt; padding-top: 1px; }
+  .phase-body dd { margin: 0; }
+
+  .kv { display: grid; grid-template-columns: 150px 1fr; row-gap: 5px; font-size: 9.6pt; margin: 8px 0 14px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+
+  .small { font-size: 9pt; color: var(--muted); }
+  .end-mark { text-align: center; color: var(--muted); font-size: 9pt; margin-top: 26px; letter-spacing: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ===================== TITLE PAGE ===================== -->
+<section class="title-page">
+  <div class="title-rule"></div>
+  <h1 class="product">LIMITBEYOND</h1>
+  <div class="product-sub">Fitness &amp; Gym Management Platform</div>
+
+  <div class="doc-type">Software Requirements Specification</div>
+  <div class="doc-sub">Version 1.1 &middot; Baseline for architecture and phased delivery</div>
+
+  <dl class="meta-grid">
+    <dt>Document ID</dt><dd>LB-SRS-1.1</dd>
+    <dt>Status</dt><dd>Draft for review</dd>
+    <dt>Date</dt><dd>16 September 2026</dd>
+    <dt>Prepared by</dt><dd>Bibek Jha</dd>
+    <dt>Supersedes</dt><dd>LB-SRS-1.0, 15 Sep 2026</dd>
+    <dt>Predecessor system</dt><dd>limitbeyond2.0</dd>
+    <dt>Next document</dt><dd>System Architecture &amp; Technology Stack</dd>
+  </dl>
+
+  <div class="title-note">
+    <strong>Scope of this document.</strong> This SRS defines <em>what</em> LIMITBEYOND must do and the qualities it must exhibit. It deliberately contains no technology selections, schema designs, or deployment decisions — those belong to the System Architecture &amp; Technology Stack document that follows this one. Requirements here are written to survive that choice.
+  </div>
+</section>
+
+<!-- ===================== REVISION HISTORY ===================== -->
+<h2 class="continue">Revision History</h2>
+<table>
+  <thead><tr><th style="width:52px">Version</th><th style="width:74px">Date</th><th>Change</th></tr></thead>
+  <tbody>
+    <tr><td class="id">1.0</td><td>15 Sep 2026</td><td>First baseline. Four roles, single gym with multiple locations in operation, multi-tenancy designed but not activated until Phase 5.</td></tr>
+    <tr><td class="id">1.1</td><td>16 Sep 2026</td><td>
+      <strong>Three structural changes:</strong>
+      <ul style="margin:5px 0 0">
+        <li><strong>Multi-gym from day one.</strong> The platform operates many gyms, each with many locations, under Super Admin control in Phase 1 — not Phase 5. Sections 1.2, 2.3, 2.4, 8 revised; new module M20 covers the gym subscription lifecycle.</li>
+        <li><strong>Two admin tiers and delegated promotion.</strong> Gym Owner (gym-wide) and Location Admin (scoped to one location). Any admin may promote a trainer or member to Location Admin for a specific location, and the delegation chain may extend. Roles are additive, so Trainer + Location Admin is a first-class combination. New requirements FR-AUTH-16 to FR-AUTH-28 and FR-ORG-10 to FR-ORG-14; Section 3 rewritten from four roles to five.</li>
+        <li><strong>The universal Personal Fitness Profile.</strong> Every account — Super Admin, Gym Owner, Location Admin, Trainer, Member — owns a personal fitness profile and sees the member training dashboard. New Section 2.5 and new module M21. FR-AUTH-11 revised.</li>
+      </ul>
+      <strong>Also:</strong> the member payment gateway is withdrawn from scope entirely (was Phase 5); gym subscriptions are collected as cash by the Super Admin and recorded in the platform. FR-BIL-15 withdrawn; see Section 10.
+    </td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== TOC ===================== -->
+<h2>Table of Contents</h2>
+<div class="toc">
+<ol>
+  <li>Introduction
+    <ul>
+      <li>1.1 Purpose &nbsp;&middot;&nbsp; 1.2 Product Scope &nbsp;&middot;&nbsp; 1.3 Intended Audience</li>
+      <li>1.4 Definitions and Acronyms &nbsp;&middot;&nbsp; 1.5 References &nbsp;&middot;&nbsp; 1.6 Conventions</li>
+    </ul>
+  </li>
+  <li>Overall Description
+    <ul>
+      <li>2.1 Product Perspective &nbsp;&middot;&nbsp; 2.2 Relationship to limitbeyond2.0</li>
+      <li>2.3 Multi-Gym and Location Model &nbsp;&middot;&nbsp; 2.4 The Verification and Activation Chain</li>
+      <li>2.5 The Dual-Facet Model: Operational Role and Personal Profile</li>
+      <li>2.6 Product Functions &nbsp;&middot;&nbsp; 2.7 Operating Environment &nbsp;&middot;&nbsp; 2.8 Constraints</li>
+    </ul>
+  </li>
+  <li>User Classes and Characteristics</li>
+  <li>Functional Requirements (M1 – M21)
+    <ul>
+      <li>M1 Identity &amp; Verification &nbsp;&middot;&nbsp; M2 Gym &amp; Location &nbsp;&middot;&nbsp; M3 Members &nbsp;&middot;&nbsp; M4 Trainers</li>
+      <li>M5 Plans &amp; Billing &nbsp;&middot;&nbsp; M6 Attendance &nbsp;&middot;&nbsp; M7 Group Classes &nbsp;&middot;&nbsp; M8 Personal Training</li>
+      <li>M9 Online Classes &nbsp;&middot;&nbsp; M10 Exercise Library &nbsp;&middot;&nbsp; M11 Workout Plans &nbsp;&middot;&nbsp; M12 Nutrition</li>
+      <li>M13 Progress &amp; Analytics &nbsp;&middot;&nbsp; M14 Feedback &nbsp;&middot;&nbsp; M15 Notifications &nbsp;&middot;&nbsp; M16 Reporting</li>
+      <li>M17 WhatsApp &nbsp;&middot;&nbsp; M18 AI Services &nbsp;&middot;&nbsp; M19 Configuration &amp; Audit</li>
+      <li>M20 Gym Subscription Lifecycle &nbsp;&middot;&nbsp; M21 Personal Fitness Profile (All Roles)</li>
+    </ul>
+  </li>
+  <li>External Interface Requirements</li>
+  <li>Non-Functional Requirements</li>
+  <li>Data Requirements</li>
+  <li>Phased Delivery Plan</li>
+  <li>Assumptions, Dependencies and Decisions on Record</li>
+  <li>Out of Scope</li>
+  <li>Risks and Open Issues</li>
+  <li>Appendix A — Feature Carry-over from limitbeyond2.0</li>
+</ol>
+</div>
+
+<!-- ===================== 1. INTRODUCTION ===================== -->
+<h2>1. Introduction</h2>
+
+<h3>1.1 Purpose</h3>
+<p>This document specifies the complete functional and non-functional requirements for <strong>LIMITBEYOND</strong>, a multi-tenant fitness and gym management platform. It establishes the agreed baseline against which the system will be designed, built, tested and accepted.</p>
+<p>The platform replaces and substantially extends an existing working application, <em>limitbeyond2.0</em>, which today covers member and trainer administration, workout logging, an exercise library, diet chat, feedback and basic check-in. LIMITBEYOND is a ground-up rebuild that carries those capabilities forward onto a domain model designed from the outset for multiple gyms, multiple locations, scheduled classes, structured attendance and commercial operations.</p>
+
+<h3>1.2 Product Scope</h3>
+<p>LIMITBEYOND is operated by a single platform owner who onboards, activates and oversees many independent gyms, each running one or more physical locations. It serves four constituencies through a single mobile application with role-specific dashboards, supported by a web console for administrative work that is impractical on a phone:</p>
+<ul>
+  <li><strong>Gym operations</strong> — member and trainer lifecycle, location management, membership plans, payment records, dues and renewals, reporting.</li>
+  <li><strong>Training delivery</strong> — workout plans and logging, an exercise library, personal training packages, group class scheduling and booking across yoga, Zumba, meditation and conventional strength formats, delivered on-site or online.</li>
+  <li><strong>Member outcomes</strong> — attendance, progress tracking, nutrition plans, analytics and a two-way feedback relationship with trainers and administration.</li>
+  <li><strong>Engagement and intelligence</strong> — notifications, outbound WhatsApp messaging and AI-assisted planning, all delivered in later phases on top of the same core.</li>
+</ul>
+<p>The commercial target is the Indian market: INR pricing, GST-compliant receipts, and a footprint of roughly 10 to 50 gyms. Multiple gyms are supported operationally from Phase 1; a gym becomes live when the Super Admin verifies it and records its subscription payment.</p>
+<p>Two characteristics distinguish the model and shape much of what follows. First, <strong>a location is a strong boundary</strong>: two locations of the same gym have their own trainers, their own members and their own data, and an administrator granted authority over one holds none over the other. Second, <strong>every account is also a trainee</strong>: platform owner, gym owner, location administrator and trainer all train themselves, so each owns the same personal fitness profile and training dashboard a member does, independently of the operational authority they hold.</p>
+
+<h3>1.3 Intended Audience</h3>
+<table>
+  <thead><tr><th style="width:150px">Reader</th><th>What they should take from this document</th></tr></thead>
+  <tbody>
+    <tr><td>Product owner</td><td>Confirmation that the agreed scope, phases and business rules are recorded correctly.</td></tr>
+    <tr><td>Architect / engineering</td><td>The functional surface and quality attributes that the architecture must satisfy. Section 6 and Section 7 constrain the design most directly.</td></tr>
+    <tr><td>QA</td><td>Testable requirement statements, each with an identifier, for building traceable test coverage.</td></tr>
+    <tr><td>Gym stakeholders</td><td>Sections 3, 4 and 8 — who does what in the system, and in what order it arrives.</td></tr>
+  </tbody>
+</table>
+
+<h3>1.4 Definitions and Acronyms</h3>
+<table>
+  <thead><tr><th style="width:120px">Term</th><th>Definition</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Tenant / Gym</strong></td><td>One gym business. All operational data is owned by, and isolated to, exactly one tenant. The platform hosts many.</td></tr>
+    <tr><td><strong>Location</strong></td><td>A physical site belonging to a gym, with its own address, geo-coordinates, operating hours, staff, members, timetable and data. Called a <em>branch</em> in ordinary gym usage; this document says <em>location</em> throughout, because a location is a strong isolation boundary and not merely a label.</td></tr>
+    <tr><td><strong>Super Admin</strong></td><td>The platform operator. Verifies gyms, records their subscription payments, activates and suspends them; the only role that sees across tenants.</td></tr>
+    <tr><td><strong>Gym Owner</strong></td><td>The admin who registered the gym. Holds authority across every location of that gym: pricing, the plan catalogue, locations, and all staff and members.</td></tr>
+    <tr><td><strong>Location Admin</strong></td><td>An admin whose authority is confined to one named location. Manages that location's members, trainers, attendance, timetable and payment records, and nothing at any other location.</td></tr>
+    <tr><td><strong>Personal Fitness Profile</strong></td><td>The training identity every account holds regardless of role — workouts, progress, measurements, diet plan, bookings and personal attendance. Separate from, and unaffected by, the operational authority the account carries.</td></tr>
+    <tr><td><strong>Gym Subscription</strong></td><td>The term for which a gym is entitled to use the platform. Paid in cash to the Super Admin and recorded by them; a gym is live only while its subscription is current.</td></tr>
+    <tr><td><strong>PT</strong></td><td>Personal Training — one-to-one coaching sold as a package of session credits tied to a named trainer.</td></tr>
+    <tr><td><strong>GT</strong></td><td>Group Training — a scheduled group session from a location timetable (yoga, Zumba, meditation, HIIT, strength).</td></tr>
+    <tr><td><strong>Session</strong></td><td>A single dated, timed occurrence of a class or PT appointment.</td></tr>
+    <tr><td><strong>Class Type</strong></td><td>A reusable definition of a format (e.g. "Hatha Yoga") from which sessions are generated.</td></tr>
+    <tr><td><strong>Check-in</strong></td><td>A recorded arrival of a member or trainer at a location, or a join of an online session.</td></tr>
+    <tr><td><strong>Geofence</strong></td><td>A circular boundary around a location's coordinates within which self check-in is permitted.</td></tr>
+    <tr><td><strong>Freeze</strong></td><td>A sanctioned pause of a membership that suspends billing and extends the expiry date accordingly.</td></tr>
+    <tr><td><strong>DPDP</strong></td><td>India's Digital Personal Data Protection Act, 2023.</td></tr>
+    <tr><td><strong>PAR-Q</strong></td><td>Physical Activity Readiness Questionnaire — a pre-exercise health screening.</td></tr>
+  </tbody>
+</table>
+
+<h3>1.5 References</h3>
+<ul>
+  <li><strong>R1</strong> — Predecessor application source: <span class="small">github.com/Bib3k4u/limitbeyond2.0</span> (backend README, API.md, domain models).</li>
+  <li><strong>R2</strong> — Predecessor deployment: <span class="small">limitbeyond2-0.vercel.app</span>.</li>
+  <li><strong>R3</strong> — Requirement elicitation Q&amp;A, September 2026 (recorded in Section 9).</li>
+  <li><strong>R4</strong> — Digital Personal Data Protection Act, 2023 (India).</li>
+  <li><strong>R5</strong> — IEEE 830 / ISO-IEC-IEEE 29148, used as the structural template for this document.</li>
+</ul>
+
+<h3>1.6 Conventions</h3>
+<p>Every requirement carries a stable identifier of the form <strong>FR-XXX-nn</strong> (functional) or <strong>NFR-XXX-nn</strong> (non-functional). Identifiers are permanent: superseded requirements are marked withdrawn rather than renumbered, so that test cases and architecture references never break.</p>
+<p><em>Shall</em> denotes a binding requirement. <em>Should</em> denotes a strong recommendation that may be traded away with the product owner's agreement. Priority follows MoSCoW, and each requirement names the phase in which it is first delivered.</p>
+<p><strong>On the word "Admin".</strong> Where a requirement says <em>an Admin</em> without qualification, it means an account holding admin authority over the location the action concerns — a Gym Owner anywhere in their gym, or a Location Admin at a location they administer. Where a capability is reserved to one tier, the requirement names that tier explicitly. FR-ORG-12 lists what is gym-wide and therefore the Gym Owner's alone.</p>
+<p><strong>On "location".</strong> This document says <em>location</em> where a gym would ordinarily say <em>branch</em>. They mean the same physical site; the term is used consistently to keep the isolation boundary in view.</p>
+<p class="legend"><strong>Priority key:</strong> <span class="pri M">MUST</span> required for the named phase to be accepted &nbsp;·&nbsp; <span class="pri S">SHOULD</span> important, may slip one phase &nbsp;·&nbsp; <span class="pri C">COULD</span> desirable, first candidate for descope. &nbsp; <strong>Phase</strong> refers to Section 8.</p>
+
+<!-- ===================== 2. OVERALL DESCRIPTION ===================== -->
+<h2>2. Overall Description</h2>
+
+<h3>2.1 Product Perspective</h3>
+<p>LIMITBEYOND is a new, self-contained product. It is not a module of a larger system and it does not depend on any incumbent gym software. It does consume external services — messaging, video conferencing, push notification delivery and, in later phases, an AI provider — but each of those is an optional adjunct: the core operational system shall remain usable when any external service is unavailable.</p>
+<p>The product is delivered as a single mobile application that presents every account its own training dashboard, plus the operational dashboards and navigation conferred by whatever role grants it holds and wherever they apply — alongside a web console covering the same backend for administrative work. The two clients are presentation choices over one identical set of capabilities and one identical permission model; no capability exists on one client that is denied on the other purely by virtue of the client.</p>
+
+<h3>2.2 Relationship to limitbeyond2.0</h3>
+<p>The predecessor system is a working application built on a document database with three roles (Admin, Trainer, Member), covering authentication with administrative activation, user and trainer management, trainer-to-member assignment, an exercise library organised by muscle group, workout templates and logging, QR check-in, administrator-recorded payments, a feedback loop, a free-text diet chat, and AI-generated workout suggestions.</p>
+<p>LIMITBEYOND is a <strong>fresh rebuild</strong>, not an extension. The decision rests on three structural limits in the existing model that cannot be resolved incrementally:</p>
+<ul>
+  <li>The check-in record carries only a user and a timestamp. It has no concept of a location, a session, a check-in method, or a trainer's shift — so class attendance, geofencing and trainer utilisation have nowhere to live.</li>
+  <li>The payment record carries only a user, a duration in months and an amount. There is no plan catalogue, no session credits, no dues, no GST breakdown and no renewal lifecycle.</li>
+  <li>Nothing is tenant-scoped or location-scoped. Retrofitting isolation onto every existing record is a migration of comparable cost to a rebuild, with materially higher risk of cross-tenant leakage.</li>
+</ul>
+<p>Functionality that is sound in the predecessor is carried forward as requirements in this document rather than as code. Appendix A maps each existing capability to the requirements that preserve it, so that nothing already working is lost by accident.</p>
+
+<h3>2.3 Multi-Gym and Location Model</h3>
+<p>The platform hosts many independent gyms from the outset. Each gym is a tenant; each tenant runs one or more locations. Every operational record belongs to exactly one tenant and, below that, to exactly one location.</p>
+<p>The hierarchy is: <strong>Platform → Gym (tenant) → Location → People</strong>.</p>
+<p><strong>Location is a hard boundary.</strong> Two locations of the same gym maintain separate trainers, separate members and separate operational data. A trainer at one location does not appear on another location's roster; a member at one location does not appear in another's member list; attendance, timetables, capacity, class bookings and payment records are all properties of a location. A Location Admin granted authority over one location holds no authority whatsoever over a sibling location of the same gym.</p>
+<p>What remains genuinely gym-wide, and therefore the Gym Owner's alone: the gym profile and branding, the plan catalogue and pricing, the list of locations themselves, and consolidated reporting across locations. A member may be granted access to sibling locations, but this is an explicit grant recorded against their record, never a default.</p>
+
+<h3>2.4 The Verification and Activation Chain</h3>
+<p>No gym and no account becomes operational by self-service alone. Each is admitted by a human one level above it, and this chain is the platform's primary defence against fraudulent gyms and unpaid access.</p>
+
+<div class="flow">
+  <div class="flow-step"><b>1. Gym registers</b>A prospective owner signs up, submits the gym profile, its locations and business details. Gym state: <em>Pending Verification</em>.</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><b>2. Super Admin verifies</b>Platform operator reviews and approves or rejects with a reason. Gym state: <em>Verified</em> — but not yet live.</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><b>3. Super Admin activates</b>Subscription cash is collected offline and recorded against the gym with a term. Gym goes <em>Live</em>; the registrant becomes <em>Gym Owner</em>.</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><b>4. Staff &amp; members sign up</b>Trainers and members self-register, selecting the gym and one specific location. State: <em>Pending Verification</em>.</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><b>5. Admin verifies</b>The Gym Owner, or a Location Admin for that location, approves each one. Account becomes <em>Active</em>; the journey begins.</div>
+</div>
+
+<p>Verification and activation are deliberately separate steps. A gym may be a legitimate business (verified) and still not be entitled to operate on the platform because its subscription has not been paid or has lapsed (not live). Until a gym is live, its trainers and members can neither register nor be verified. Until a person is verified, their application is restricted to a holding state: they may view and correct their own profile and see their pending status, and nothing else.</p>
+<p>Beyond this chain, administrative authority is delegated laterally. Any admin may promote an existing trainer or member into a Location Admin <em>for a named location</em>, and that promoted admin may in turn promote others for locations within their own authority. The chain is permitted to extend, and is made safe by scope limits, last-admin protection, Super Admin override and a complete audit trail rather than by forbidding delegation. See FR-AUTH-16 to FR-AUTH-28.</p>
+
+<h3 style="break-before:page">2.5 The Dual-Facet Model: Operational Role and Personal Profile</h3>
+<p>Everyone who works in a gym also trains in it. Owners lift, managers attend yoga, trainers follow their own programmes and track their own progress. A model in which only members can have a workout history is wrong about how gyms actually work, and forces staff to keep a second account to train under.</p>
+<p>LIMITBEYOND therefore separates two independent things that are commonly conflated:</p>
+<ul>
+  <li><strong>The operational role</strong> — what authority an account holds over other people's data. Super Admin, Gym Owner, Location Admin, Trainer or Member, scoped to a gym and a location.</li>
+  <li><strong>The personal fitness profile</strong> — the account's own training life. Workouts, routines, progress, measurements, photographs, diet plan, class bookings and personal attendance.</li>
+</ul>
+<p><strong>Every account owns a personal fitness profile, unconditionally.</strong> It is not a role to be granted, not a permission to be checked, and not contingent on holding a paid membership. A trainer sees the same training dashboard a member does; a gym owner logs their own sets against their own routine; the Super Admin tracks their own progress. Operational dashboards are then layered on top according to role, which is why an Admin's application shows both a training view and a management view.</p>
+<p>Two consequences follow, and both are specified in M21. Staff train without holding or paying for a membership plan, so their personal activity never appears as revenue or plan consumption. And because a trainer arriving at a location may be starting a shift, doing their own workout, or both, attendance records the purpose — otherwise trainer utilisation reports inflate and footfall figures stop meaning anything.</p>
+
+<h3>2.6 Product Functions — Summary</h3>
+<table>
+  <thead><tr><th style="width:52px">Module</th><th style="width:170px">Area</th><th>Principal function</th><th class="w-ph">Phase</th></tr></thead>
+  <tbody>
+    <tr><td class="id">M1</td><td>Identity &amp; Verification</td><td>Registration, phone-OTP authentication, the five-role model, the verification chain, admin promotion and demotion, account lifecycle</td><td class="ctr">1</td></tr>
+    <tr><td class="id">M2</td><td>Gym &amp; Location</td><td>Multi-gym tenancy, location records with geo-coordinates and hours, location data isolation, gym-wide configuration</td><td class="ctr">1</td></tr>
+    <tr><td class="id">M3</td><td>Member Management</td><td>Member profile, fitness and health data, goals, status lifecycle, trainer assignment</td><td class="ctr">1</td></tr>
+    <tr><td class="id">M4</td><td>Trainer Management</td><td>Trainer profile, specialisations, location assignment, availability, member load</td><td class="ctr">1</td></tr>
+    <tr><td class="id">M5</td><td>Plans &amp; Billing</td><td>Plan catalogue, PT packages, offline payment records, dues, renewals, GST receipts</td><td class="ctr">1</td></tr>
+    <tr><td class="id">M6</td><td>Attendance</td><td>QR and geofenced check-in, staff override, trainer attendance against shifts, history and streaks</td><td class="ctr">1</td></tr>
+    <tr><td class="id">M7</td><td>Group Classes</td><td>Class types, recurring timetables, booking, capacity, waitlists, cancellation, no-shows</td><td class="ctr">3</td></tr>
+    <tr><td class="id">M8</td><td>Personal Training</td><td>Session credits, scheduling against trainer availability, completion, session notes</td><td class="ctr">2</td></tr>
+    <tr><td class="id">M9</td><td>Online Classes</td><td>Scheduled sessions delivered over external meeting links, with in-platform booking and attendance</td><td class="ctr">3</td></tr>
+    <tr><td class="id">M10</td><td>Exercise Library</td><td>Exercise templates, muscle groups, equipment, media, search</td><td class="ctr">2</td></tr>
+    <tr><td class="id">M11</td><td>Workout Plans</td><td>Templates, assignment to members, set-level logging, personal records, progression</td><td class="ctr">2</td></tr>
+    <tr><td class="id">M12</td><td>Nutrition</td><td>Structured meal plans authored by trainer or admin, diet consultation thread, adherence</td><td class="ctr">2</td></tr>
+    <tr><td class="id">M13</td><td>Progress &amp; Analytics</td><td>Weight, measurements, photos, personal records, volume trends, goals, streaks</td><td class="ctr">2</td></tr>
+    <tr><td class="id">M14</td><td>Feedback</td><td>Member-raised feedback and ratings; trainer and admin coaching notes to members; announcements</td><td class="ctr">2</td></tr>
+    <tr><td class="id">M15</td><td>Notifications</td><td>In-app and push delivery, event catalogue, per-user preferences, quiet hours</td><td class="ctr">1</td></tr>
+    <tr><td class="id">M16</td><td>Reporting</td><td>Role-specific dashboards, revenue, expiry, attendance, utilisation, churn, exports</td><td class="ctr">4</td></tr>
+    <tr><td class="id">M17</td><td>WhatsApp</td><td>Outbound templated messaging including habitual gym-time nudges</td><td class="ctr">4</td></tr>
+    <tr><td class="id">M18</td><td>AI Services</td><td>Workout progression, diet drafts, progress narratives, churn flags — all human-approved</td><td class="ctr">4</td></tr>
+    <tr><td class="id">M19</td><td>Config &amp; Audit</td><td>Permission matrix, audit trail, consent records, data export, soft deletion</td><td class="ctr">1</td></tr>
+    <tr><td class="id">M20</td><td>Gym Subscription</td><td>Gym verification, subscription terms, cash payments recorded by the Super Admin, activation, lapse and suspension</td><td class="ctr">1</td></tr>
+    <tr><td class="id">M21</td><td>Personal Fitness Profile</td><td>The training profile and dashboard every account holds, whatever its operational role</td><td class="ctr">1</td></tr>
+  </tbody>
+</table>
+
+<h3>2.7 Operating Environment</h3>
+<dl class="kv">
+  <dt>Member client</dt><dd>Native mobile application on Android 9 (API 28) and above, and iOS 15 and above.</dd>
+  <dt>Trainer client</dt><dd>The same mobile application, presenting the trainer dashboard and navigation.</dd>
+  <dt>Admin client</dt><dd>The same mobile application for approvals, daily figures and their own training, plus a responsive web console for member lists, billing, timetables, bulk actions and reporting.</dd>
+  <dt>Super Admin client</dt><dd>Web console for gym verification, activation and cross-gym oversight, with mobile access to the verification queue and to their own training profile.</dd>
+  <dt>Connectivity</dt><dd>Assume intermittent mobile connectivity inside gym floors and basements. Check-in in particular shall tolerate brief loss of network.</dd>
+  <dt>Locale</dt><dd>English interface, Indian Standard Time and INR by default, both configurable per tenant.</dd>
+</dl>
+
+<h3>2.8 Design and Implementation Constraints</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Constraint</th></tr></thead>
+  <tbody>
+    <tr><td class="id">CON-01</td><td>Every operational record shall carry a tenant identifier and a location identifier, and both tenant and location isolation shall be enforced server-side on every read and write. Client-supplied tenant or location context shall never be trusted.</td></tr>
+    <tr><td class="id">CON-02</td><td>Role and permission checks shall be enforced on the server. The client may hide a control, but hiding is never the enforcement.</td></tr>
+    <tr><td class="id">CON-03</td><td>One backend serves both the mobile application and the web console. No capability shall be implemented twice.</td></tr>
+    <tr><td class="id">CON-04</td><td>Payments are recorded, not collected. The system is a book of record for money taken offline — both member payments taken by gym staff and gym subscription payments taken in cash by the Super Admin. No funds flow through the platform in any phase covered by this document.</td></tr>
+    <tr><td class="id">CON-05</td><td>Video for online classes is delivered by external conferencing services. The platform shall not host, transcode or stream video in any phase covered by this document.</td></tr>
+    <tr><td class="id">CON-06</td><td>No AI-generated content shall reach a member without explicit approval by a trainer or admin.</td></tr>
+    <tr><td class="id">CON-07</td><td>The system shall not present diagnostic, medical or therapeutic advice. Health data is collected for screening and safety, not for clinical interpretation.</td></tr>
+    <tr><td class="id">CON-08</td><td>Receipts issued to members shall satisfy Indian GST requirements where the tenant is GST-registered.</td></tr>
+    <tr><td class="id">CON-09</td><td>A location is an isolation boundary within a gym. Authority granted over one location shall never confer access to another, and a location-scoped query shall never return a sibling location's members, trainers, attendance or payment records.</td></tr>
+    <tr><td class="id">CON-10</td><td>Every account shall own a personal fitness profile unconditionally. Personal training data shall never be gated on holding a paid membership, and shall never be conflated with the operational authority the account carries.</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 3. USER CLASSES ===================== -->
+<h2>3. User Classes and Characteristics</h2>
+<p>The platform recognises five operational roles. The Admin role of version 1.0 has been split into two tiers — Gym Owner and Location Admin — because administrative authority is now delegable and must be confinable to a single location. Front-desk receptionist and a nutritionist distinct from the trainer remain excluded: admins absorb front-desk duties, and both trainers and admins author nutrition plans.</p>
+
+<table>
+  <thead><tr><th style="width:88px">Role</th><th style="width:140px">Who they are</th><th>Operational responsibilities and privileges</th><th style="width:82px">Scope</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">Super Admin</td>
+      <td>The platform operator. A very small number of accounts, provisioned directly.</td>
+      <td>Verifies gym registrations; collects subscription cash offline and records it; activates, suspends and reinstates gyms; overrides admin appointments in any gym; configures the global class-type and exercise catalogues; views cross-gym health and growth metrics. Holds no routine access to an individual's health records or progress photographs.</td>
+      <td>All gyms</td>
+    </tr>
+    <tr>
+      <td class="id">Gym Owner</td>
+      <td>The admin who registered the gym. Commercially motivated, accountable for the whole business.</td>
+      <td>Everything a Location Admin can do, at every location of their gym, plus the gym-wide matters reserved to them: the gym profile and branding, the plan catalogue and pricing, creating and closing locations, appointing and removing admins anywhere in the gym, and consolidated cross-location reporting.</td>
+      <td>Own gym, all locations</td>
+    </tr>
+    <tr>
+      <td class="id">Location Admin</td>
+      <td>A trainer, member or hire promoted to run one site. Typically a floor or branch manager.</td>
+      <td>Verifies trainers and members at their location; manages that location's staff, members, timetable, attendance and payment records; assigns trainers to members there; authors plans and issues coaching feedback; may promote others to Location Admin for locations within their own authority. Cannot set pricing, alter the plan catalogue, create locations, or see any sibling location's data.</td>
+      <td>Named location(s) only</td>
+    </tr>
+    <tr>
+      <td class="id">Trainer</td>
+      <td>Coaching staff — strength trainers, yoga and Zumba instructors, meditation leads. Phone-first, often mid-session.</td>
+      <td>Views their assigned member roster; builds and assigns workout and nutrition plans; conducts and logs PT sessions; leads group classes and marks class attendance; records their own shift attendance; issues coaching feedback; reviews member progress and adherence.</td>
+      <td>Assigned members at assigned locations</td>
+    </tr>
+    <tr>
+      <td class="id">Member</td>
+      <td>Gym members across all levels of fitness experience and digital confidence. The largest population by two orders of magnitude.</td>
+      <td>Registers and maintains their profile; checks in; books and attends group and online classes; follows assigned workout and nutrition plans; raises feedback; views plan status, dues and receipts.</td>
+      <td>Self only</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>Every role is also a trainee.</strong> The table above describes authority over <em>other people's</em> data only. Independently of it, every account — Super Admin, Gym Owner, Location Admin, Trainer and Member alike — owns a personal fitness profile and sees the same training dashboard: their own workouts, routines, progress, measurements, photographs, diet plan, class bookings and attendance. Staff need no membership plan to hold one, and may be assigned a trainer and coached like anyone else. See Section 2.5 and module M21.
+</div>
+
+<div class="note">
+  <strong>On holding several roles at once.</strong> Roles are additive rather than exclusive. The commonest case, and an explicitly supported one, is <strong>Trainer + Location Admin</strong>: a trainer promoted to run a site who carries on coaching, keeping their assigned members, their classes and their shifts while gaining admin authority over that location. An owner who instructs a yoga class is the same pattern. The account accumulates the union of its privileges evaluated per location — never the maximum applied everywhere — and the application presents the corresponding dashboards together, each labelled, rather than forcing a context switch. A second account is never required. See FR-AUTH-26 to FR-AUTH-28.
+</div>
+
+<!-- ===================== 4. FUNCTIONAL REQUIREMENTS ===================== -->
+<h2>4. Functional Requirements</h2>
+<p class="legend"><strong>Priority:</strong> <span class="pri M">MUST</span> &nbsp;<span class="pri S">SHOULD</span> &nbsp;<span class="pri C">COULD</span> &nbsp;·&nbsp; <strong>Ph</strong> = delivery phase per Section 8.</p>
+
+<h3>M1 — Identity, Authentication and Verification</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-AUTH-01</td><td>The system shall support registration and sign-in using an Indian mobile number verified by a one-time password, as the primary authentication method for all roles.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-02</td><td>The system shall support email and password as an alternative authentication method, with a verified-email requirement and a self-service password reset.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-03</td><td>Super Admin accounts shall be provisioned by the platform operator and shall not be obtainable through public registration.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-04</td><td>A prospective gym owner shall be able to register a gym by supplying the gym profile, at least one location, and business contact details; the gym shall be created in state <em>Pending Verification</em> and the registrant designated its prospective Gym Owner.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-05</td><td>A Super Admin shall be able to review a pending gym registration and approve or reject it; rejection shall require a reason, which shall be communicated to the applicant.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-06</td><td>Trainers and members shall be able to self-register by selecting a live gym and exactly one of its locations; the account shall be created in state <em>Pending Verification</em> against that location.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-07</td><td>The system shall not permit trainer or member registration against a gym that is not verified and live.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-08</td><td>A Gym Owner shall be able to review, approve or reject pending trainer and member registrations at any location of their gym; a Location Admin shall be able to do so only for locations they administer. A reason shall be recorded on rejection.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-09</td><td>A user in <em>Pending Verification</em> shall be restricted to viewing and correcting their own profile and viewing their pending status; all other functions shall be inaccessible.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-10</td><td>The system shall maintain an explicit account lifecycle — Pending, Active, Suspended, Deactivated — and shall permit an Admin to move accounts between states with a recorded reason and timestamp.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-11</td><td><em>Revised in v1.1.</em> The identity model shall support a set of role grants per account, each grant carrying its own gym and location scope. Where an account holds several grants, the application shall present the union of the corresponding dashboards rather than requiring an explicit context switch. Personal training data is never one of these grants — see FR-PFP-01.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-12</td><td>The system shall rate-limit OTP requests and verification attempts per mobile number and per device, and shall lock an account temporarily after a configurable number of failures.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-13</td><td>A user shall be able to view their active sessions and sign out of all devices.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-AUTH-14</td><td>Every verification, rejection, suspension and reactivation shall be written to the audit trail with actor, subject, timestamp and reason.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-15</td><td>The system shall capture explicit consent for personal data processing at registration, and shall record the consent version and timestamp.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-16</td><td>The registrant of a gym shall become its <strong>Gym Owner</strong> on activation, holding authority across every location of that gym.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-17</td><td>An admin shall be able to promote an existing trainer or member of their gym to <strong>Location Admin</strong>, and the promotion shall name one or more specific locations. A promotion that does not name a location shall be rejected.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-18</td><td>An admin shall only be able to grant authority over locations they themselves administer. A Location Admin shall be unable to appoint an admin for any location outside their own scope, and shall be unable to grant Gym Owner authority.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-19</td><td>A Location Admin so appointed shall be able to promote others within their own location scope; the delegation chain is permitted to extend, bounded at every step by FR-AUTH-18.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-20</td><td>Promotion shall be additive: a trainer promoted to Location Admin shall retain their trainer role, their assigned members and their classes unless separately removed.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-21</td><td>An admin shall be able to demote a Location Admin they appointed, or one appointed within their own scope; a Gym Owner shall be able to demote any admin in their gym. Demotion shall remove only the admin grant, leaving the account's other roles and its personal fitness profile intact.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-22</td><td>The system shall refuse any demotion, suspension or deactivation that would leave a live gym with no Gym Owner, or a location with no administering admin, and shall state the reason for refusal.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-23</td><td>A Super Admin shall be able to appoint, demote or suspend any admin at any gym, and to transfer Gym Owner authority to another account of that gym. Every such action shall require a recorded reason.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-24</td><td>Every promotion, demotion and scope change shall be written to the audit trail with actor, subject, the locations affected, timestamp and reason, and shall be notified to the subject.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-25</td><td>A Gym Owner shall be able to view every admin in their gym with each one's location scope, who appointed them and when; a Super Admin shall be able to view the same across all gyms.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-26</td><td>Holding <strong>Trainer and Location Admin simultaneously</strong> shall be a fully supported, first-class combination, not an exception. Such an account shall keep its assigned members, classes, PT sessions and shift attendance as a trainer while exercising admin authority over its named locations, and shall require no second account and no context switch.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-27</td><td>The application shall present such an account the trainer dashboard, the location admin dashboard and its own training dashboard together, each clearly labelled, and shall make plain in every list and action which authority is being exercised.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-AUTH-28</td><td>Where an account's role grants overlap, its effective authority shall be the union of them evaluated per location, and never the maximum of them applied everywhere.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+  </tbody>
+</table>
+
+<h3>M2 — Gym, Location and Tenant Configuration</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-ORG-01</td><td>Every operational record shall belong to exactly one gym, and no query shall be capable of returning data from a gym other than the caller's, except for a Super Admin acting in an explicitly cross-gym context.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ORG-02</td><td>The system shall maintain a gym profile comprising legal and trading name, logo, contact details, registered address, GSTIN where applicable, default currency and default timezone.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ORG-03</td><td>A <strong>Gym Owner</strong> shall be able to create, edit and deactivate locations, each holding a name, address, geographic coordinates, a check-in radius in metres, contact number, operating hours per weekday, and a floor capacity. A Location Admin shall be able to edit the operating hours and contact details of locations they administer, and nothing further.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ORG-04</td><td>Trainers shall be assignable to one or more locations within their gym, and shall appear on the roster of those locations only.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ORG-05</td><td>Each member shall hold a primary location, and shall optionally be granted explicit access to additional locations of the same gym. Such access shall never be implicit.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ORG-06</td><td>A <strong>Gym Owner</strong> shall be able to transfer a member between locations, preserving their history and remaining plan validity. A Location Admin shall be able to initiate a transfer out of their location but not into one they do not administer.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-ORG-07</td><td>Each location shall maintain a holiday and closure calendar; sessions shall not be generated on closure dates, and existing bookings on a newly declared closure shall be cancelled with notification.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-ORG-08</td><td>An Admin shall be able to configure, for their tenant, the plan catalogue, class types offered, notification templates, and branding elements presented in the member application.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ORG-09</td><td>A Super Admin shall be able to list, inspect, suspend and reinstate gyms, and to view platform-level counts of gyms, locations, staff and members.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ORG-10</td><td>Every operational record below the gym — member, trainer, attendance, session, booking, payment, plan assignment, workout and diet plan assignment — shall additionally belong to exactly one location.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ORG-11</td><td>A query made in the scope of one location shall never return another location's members, trainers, attendance, sessions, bookings or payment records, whether or not the locations belong to the same gym.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ORG-12</td><td>The gym profile, branding, plan catalogue and pricing, the set of locations, and consolidated cross-location reporting shall be gym-wide and reserved to the Gym Owner and the Super Admin.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ORG-13</td><td>A Gym Owner shall be able to view and act across every location of their gym, and to compare locations side by side.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ORG-14</td><td>Closing a location shall preserve its historical records, prevent new registrations, bookings and check-ins against it, and require the Gym Owner to reassign or close out its active members before the closure completes.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+  </tbody>
+</table>
+
+<h3>M3 — Member Management</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-MEM-01</td><td>The system shall maintain a member profile comprising name, mobile number, email, date of birth, gender, address, photograph and emergency contact.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-MEM-02</td><td>The system shall maintain a fitness profile comprising height, current weight, experience level, primary goal (such as weight loss, muscle gain, endurance, flexibility, general health) and preferred training times.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-MEM-03</td><td>The system shall capture a pre-exercise health screening (PAR-Q style) covering injuries, medical conditions, medications and activity restrictions, visible to the assigned trainer and Admin.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-MEM-04</td><td>An Admin shall be able to search and filter members by name, mobile number, location, membership status, plan, expiry window, assigned trainer and joining date.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-MEM-05</td><td>An Admin shall be able to assign, reassign and remove a member's trainer, with the change recorded and both parties notified.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-MEM-06</td><td>The system shall present a consolidated member timeline showing joining, plan events, payments, attendance, assigned plans, feedback and progress entries in chronological order.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-MEM-07</td><td>An Admin shall be able to attach identity or other documents to a member record, with controlled visibility.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-MEM-08</td><td>An Admin and the assigned trainer shall be able to record internal notes against a member, not visible to the member.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-MEM-09</td><td>A member shall be able to view and edit their own profile, and shall not be able to alter their membership status, plan, dues or assigned trainer.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-MEM-10</td><td>An Admin shall be able to perform bulk actions across a filtered member set — sending an announcement, exporting the list, or extending expiry.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+  </tbody>
+</table>
+
+<h3>M4 — Trainer Management</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-TRN-01</td><td>The system shall maintain a trainer profile comprising personal details, photograph, biography, years of experience, specialisations and certifications with issue and expiry dates.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-TRN-02</td><td>Specialisations shall be selectable from a configurable list including strength, functional, yoga, Zumba, meditation, cardio, rehabilitation and nutrition.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-TRN-03</td><td>The system shall record each trainer's weekly availability and shift roster per location.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-TRN-04</td><td>An Admin shall be able to set a maximum assigned-member load per trainer, and the system shall warn when an assignment would exceed it.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-TRN-05</td><td>A trainer shall be able to view their assigned member roster with each member's plan status, recent attendance and adherence at a glance.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-TRN-06</td><td>The system shall record a trainer's personal training rate and, where applicable, commission basis, for use in remuneration reporting.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-TRN-07</td><td>The system shall notify an Admin in advance of a trainer's certification expiring.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-TRN-08</td><td>An Admin shall be able to view trainer utilisation — sessions delivered, classes led, hours present against roster, and assigned member count — over a selectable period.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+  </tbody>
+</table>
+
+<h3>M5 — Membership Plans, PT Packages and Billing Records</h3>
+<div class="note">
+  <strong>Operating premise.</strong> Money is predominantly collected offline — cash, UPI or card at the desk. The platform is the authoritative <em>book of record</em> for those transactions, not the collection mechanism. This is what makes the admin dashboard trustworthy, and it means every requirement below is satisfiable without a payment gateway.
+</div>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-BIL-01</td><td>A <strong>Gym Owner</strong> shall be able to define a catalogue of membership plans, each with name, duration, price, applicable locations, inclusions (such as group class access), and active or retired status. Plans and pricing are gym-wide; a Location Admin may sell from the catalogue but not alter it.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-BIL-02</td><td>An Admin shall be able to assign a plan to a member, producing a membership record with start date, computed expiry date, price agreed, any discount applied, and status.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-BIL-03</td><td>An Admin shall be able to record a payment against a member, capturing amount, date, mode (cash, UPI, card, bank transfer), reference number, the staff member who collected it, and the membership or package it settles.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-BIL-04</td><td>The system shall support partial payment and shall compute and display an outstanding due per member and in aggregate per location.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-BIL-05</td><td>The system shall generate a numbered receipt for every recorded payment, showing the GST breakdown where the tenant is GST-registered, and shall make it available to the member in the application.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-BIL-06</td><td>The system shall track membership expiry and shall surface members expiring within configurable windows (such as 7, 15 and 30 days) to the Admin.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-BIL-07</td><td>An Admin shall be able to renew a membership, with the new term commencing at the later of today and the existing expiry date.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-BIL-08</td><td>An Admin shall be able to freeze a membership for a stated period with a reason; the expiry date shall be extended by the frozen duration, and the member shall be unable to check in while frozen.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-BIL-09</td><td>An Admin shall be able to define PT packages comprising a session count, validity period, price and eligible trainers.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-BIL-10</td><td>The system shall maintain a session credit balance per member per PT package, decrementing on completed sessions and expiring unused credits at the validity date.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-BIL-11</td><td>An Admin shall be able to define class packs — a number of group class entries valid for a period — for members who attend classes without a full membership.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-BIL-12</td><td>An Admin shall be able to record a refund or an adjustment against a payment, with reason; original records shall never be deleted or silently amended.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-BIL-13</td><td>The system shall present a revenue ledger filterable by date range, location, plan, payment mode and collecting staff member, and exportable.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-BIL-14</td><td>A member shall be able to view their current plan, expiry date, payment history, receipts and outstanding dues.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-BIL-15</td><td><em>Withdrawn in v1.1.</em> Online collection through a payment gateway is removed from scope. All money — member fees and gym subscriptions alike — is collected offline and recorded. See Section 10.</td><td class="ctr">—</td><td class="ctr">—</td></tr>
+    <tr><td class="id">FR-BIL-16</td><td>Staff accounts shall not require a membership plan in order to train. A Gym Owner, Location Admin or Trainer shall be able to hold a personal fitness profile with no plan, no dues and no revenue attribution.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-BIL-17</td><td>Where a gym elects to sell a membership to a staff member, it shall be recorded as an ordinary membership so that revenue reporting remains accurate.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+  </tbody>
+</table>
+
+<h3>M6 — Attendance and Check-in</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-ATT-01</td><td>Each location shall have a fixed, signed check-in QR code that an Admin can print and post at that location. A member scans it in the application to record arrival; the scan shall include a device-location proof within that location's configured radius.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ATT-02</td><td>A member shall be able to self check-in from the application when their device's location is within the configured radius of the location's coordinates.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ATT-03</td><td>An Admin or trainer shall be able to record attendance manually on behalf of a member, with the acting user recorded on the entry.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ATT-04</td><td>Every attendance record shall capture member, location, timestamp, method (QR, geofence, manual), and the acting user where not self-recorded.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ATT-05</td><td>The system shall reject a duplicate check-in for the same member and location within a configurable window.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ATT-06</td><td>The system shall refuse check-in for a member whose membership has expired or is frozen, and shall advise the member of the reason rather than failing silently.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ATT-07</td><td>The system shall queue a check-in attempted without connectivity and submit it on reconnection, retaining the original timestamp and flagging it as deferred.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-ATT-08</td><td>The system shall support optional check-out to derive session duration and live occupancy.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-ATT-09</td><td>Trainers shall record their own check-in and check-out by the same QR and geofence methods, evaluated against their shift roster, with late arrival and absence derived.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ATT-10</td><td>A member shall be able to view their own attendance history and current streak; an Admin shall be able to view attendance for any member in their tenant.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ATT-11</td><td>The system shall flag attendance records exhibiting indicators of location spoofing for administrative review rather than rejecting them outright.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-ATT-12</td><td>Attendance at a booked group or online session shall be recorded against that session as well as against the location.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-ATT-13</td><td>Every attendance record shall carry a purpose of <em>shift</em>, <em>personal workout</em>, or both, so that a trainer or admin arriving to train is distinguished from one arriving to work.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ATT-14</td><td>Trainer utilisation and staffing reports shall count only shift attendance; member footfall figures shall count personal-workout attendance separately and shall not silently merge the two.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+  </tbody>
+</table>
+
+<h3>M7 — Group Classes, Scheduling and Booking</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-CLS-01</td><td>An Admin shall be able to define class types — such as Hatha Yoga, Power Yoga, Zumba, Guided Meditation, HIIT and Strength Circuit — each with description, duration, default capacity, intensity and required trainer specialisation.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-02</td><td>An Admin shall be able to build a recurring weekly timetable per location, placing class types at specific days and times with an assigned trainer, a room or an online delivery mode, and a capacity.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-03</td><td>The system shall generate dated sessions from the timetable over a rolling horizon, skipping location closure dates.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-04</td><td>An Admin shall be able to create, amend or cancel an individual session without disturbing the recurring pattern.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-05</td><td>A member shall be able to browse the timetable of any location they may access, filtered by class type, trainer, day and delivery mode.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-06</td><td>A member shall be able to book a session while the booking window is open and capacity remains, subject to their membership entitling them to that class.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-07</td><td>The system shall enforce capacity and shall place further members on a waitlist in order of request.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-08</td><td>The system shall automatically promote the first waitlisted member when a booking is released, and shall notify them.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-09</td><td>A member shall be able to cancel a booking up to a configurable cutoff before the session; cancellation after the cutoff shall be recorded as a late cancellation.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-10</td><td>A trainer shall be able to view the roster for a session they lead and mark attended, absent or late for each booked member.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-11</td><td>The system shall record no-shows and shall allow an Admin to configure a consequence, such as a temporary restriction after a threshold of no-shows.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-CLS-12</td><td>An Admin shall be able to substitute the trainer on a session, notifying booked members of the change.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-13</td><td>Cancelling a session shall release all bookings, notify every affected member and restore any consumed class-pack entries.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-14</td><td>The system shall prevent double-booking a trainer or a room across overlapping sessions at the same location.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-CLS-15</td><td>A member shall be able to view their upcoming and past bookings in a personal schedule.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+  </tbody>
+</table>
+
+<h3>M8 — Personal Training</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-PT-01</td><td>An Admin shall be able to sell a PT package to a member against a named trainer, establishing a credit balance and a validity period.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PT-02</td><td>A member or trainer shall be able to schedule a PT session within the trainer's declared availability, avoiding conflicts with the trainer's classes and other appointments.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PT-03</td><td>A trainer shall be able to mark a PT session complete, which shall decrement the member's credit balance by one.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PT-04</td><td>A trainer shall be able to record session notes — work performed, observations, form corrections and next-session intent — visible to the member and Admin.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PT-05</td><td>The system shall apply a configurable cancellation policy: a session cancelled inside the cutoff may consume a credit at the Admin's configured discretion.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-PT-06</td><td>Both member and trainer shall be able to view the remaining credit balance and the package expiry date at any time.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PT-07</td><td>The system shall notify the member and Admin when a package falls below a configurable remaining-credit threshold or approaches expiry.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PT-08</td><td>The system shall report PT sessions delivered per trainer per period, for remuneration and utilisation purposes.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+  </tbody>
+</table>
+
+<h3>M9 — Online Classes</h3>
+<div class="note">
+  <strong>Delivery model.</strong> An online class is the same scheduled session object as a physical one, distinguished by delivery mode and carrying an external conferencing link (Zoom, Google Meet or equivalent). Booking, capacity, waitlist, reminders and attendance all live in LIMITBEYOND; only the video stream is external. The platform hosts no video in any phase covered by this document.
+</div>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-ONL-01</td><td>A session shall carry a delivery mode of on-site, online or hybrid.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-ONL-02</td><td>An Admin or trainer shall be able to attach an external meeting link and passcode to an online session.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-ONL-03</td><td>The meeting link shall be revealed only to booked members, and only within a configurable interval before the session start.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-ONL-04</td><td>Online sessions shall support the same booking, capacity, waitlist and cancellation behaviour as on-site sessions.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-ONL-05</td><td>A member's use of the join action shall be recorded as attendance for that session; the trainer shall be able to correct the roster afterwards.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-ONL-06</td><td>Members shall be reminded of an online session at configurable intervals before it starts.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-ONL-07</td><td>A trainer shall be able to publish a recording link against a completed online session, available to members who were booked.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-ONL-08</td><td>Online sessions shall display in the member's local timezone.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">3</td></tr>
+  </tbody>
+</table>
+
+<h3>M10 — Exercise Library</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-EXR-01</td><td>The system shall maintain an exercise catalogue, each entry holding name, primary and secondary muscle groups, required equipment, difficulty, and step-by-step instructions.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-EXR-02</td><td>Each exercise shall support illustrative media — images and short demonstration video links.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-EXR-03</td><td>The catalogue shall comprise a platform-curated global set maintained by the Super Admin, plus tenant-specific exercises added by an Admin or trainer.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-EXR-04</td><td>Users shall be able to search and filter the catalogue by name, muscle group, equipment and difficulty.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-EXR-05</td><td>The muscle group taxonomy and seeded exercise data from limitbeyond2.0 shall be carried into the new catalogue.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-EXR-06</td><td>The catalogue shall accommodate non-resistance disciplines — yoga asanas, mobility drills and meditation practices — alongside gym exercises.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">3</td></tr>
+  </tbody>
+</table>
+
+<h3>M11 — Workout Plans, Routines and Logging</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-WKT-01</td><td>A trainer or Admin shall be able to build a reusable workout template comprising ordered exercises with prescribed sets, repetitions, load, rest interval and notes.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-WKT-02</td><td>A trainer or Admin shall be able to compose a multi-week routine that assigns workout templates to specific days.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-WKT-03</td><td>A routine shall be assignable to a member over a date range, with the member notified on assignment.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-WKT-04</td><td>A member shall be able to view the workout scheduled for today and for any date in their routine.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-WKT-05</td><td>A member shall be able to log each set actually performed — repetitions, load and an optional exertion rating — against the prescribed workout.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-WKT-06</td><td>A member shall be able to log an unplanned workout not drawn from an assigned routine.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-WKT-07</td><td>The system shall detect and record a personal record when a member exceeds their previous best for an exercise.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-WKT-08</td><td>A trainer shall be able to view the workout history and completion rate of their assigned members.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-WKT-09</td><td>A trainer shall be able to clone and adapt an existing template or routine rather than authoring from scratch.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-WKT-10</td><td>The system shall support progressive overload by allowing a routine to express week-on-week increments in load or volume.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-WKT-11</td><td>The system shall remind a member of a scheduled workout not yet logged, respecting their notification preferences.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+  </tbody>
+</table>
+
+<h3>M12 — Nutrition and Diet Plans</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-NUT-01</td><td>A trainer or Admin shall be able to author a structured diet plan for a member following consultation, comprising meals across the day, items and quantities per meal, and guidance notes.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-NUT-02</td><td>A diet plan shall carry a validity date range, a stated objective, and optional daily calorie and macronutrient targets.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-NUT-03</td><td>A diet plan shall record dietary preferences and restrictions — vegetarian, vegan, eggetarian, allergies, intolerances and religious restrictions.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-NUT-04</td><td>Plans shall be versioned: revising a plan shall preserve the prior version and the reason for change.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-NUT-05</td><td>A member shall be able to view their current plan and the history of previous plans.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-NUT-06</td><td>The system shall provide a diet consultation thread between a member and their trainer or Admin, carrying text and images, preserving the capability present in limitbeyond2.0.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-NUT-07</td><td>A member shall be able to record daily adherence against their plan, per meal.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-NUT-08</td><td>The system shall provide a searchable food database of common Indian foods with per-portion calorie and macronutrient values, from which plans and logs may be composed.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-NUT-09</td><td>Where a food database is present, the system shall compute plan totals against targets and shall show adherence in progress analytics.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-NUT-10</td><td>The system shall display a clear notice that nutrition guidance is general fitness advice and not medical or clinical dietetics.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+  </tbody>
+</table>
+
+<h3>M13 — Progress Tracking and Member Analytics</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-PRG-01</td><td>A member shall be able to record body weight over time, and shall see the history charted.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PRG-02</td><td>A member shall be able to record body measurements — chest, waist, hips, arms, thighs, neck — and body fat percentage, each with its own history.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PRG-03</td><td>A member shall be able to upload dated progress photographs, and shall control whether their assigned trainer may view them.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PRG-04</td><td>The system shall derive and present training volume, workout frequency, attendance streaks and personal records over a selectable period.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PRG-05</td><td>A member shall be able to set a measurable goal with a target value and target date, and shall see progress toward it.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PRG-06</td><td>A trainer shall be able to view the full progress record of their assigned members, subject to the member's photograph visibility setting.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PRG-07</td><td>The system shall present a comparison between any two dates for weight, measurements and photographs.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-PRG-08</td><td>A member shall be able to export their own progress data.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-PRG-09</td><td>The system shall prompt a member to update measurements on a configurable cadence.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">4</td></tr>
+  </tbody>
+</table>
+
+<h3>M14 — Feedback and Communication</h3>
+<div class="note">
+  <strong>Both directions.</strong> Feedback travels member-to-staff <em>and</em> staff-to-member. The second direction — coaching notes, form corrections and plan reviews issued by trainers and admins — was a specific requirement of the brief and is not a byproduct of the first.
+</div>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-FBK-01</td><td>A member shall be able to raise feedback under a category — facility, equipment, trainer, cleanliness, billing, application, other — with a description and optional images.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-FBK-02</td><td>Feedback shall carry a status lifecycle of Open, In Progress, Resolved and Closed, with the member able to see the current state.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-FBK-03</td><td>An Admin or trainer shall be able to respond to feedback in a threaded conversation.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-FBK-04</td><td>A trainer or Admin shall be able to issue structured feedback to a member — coaching notes, form corrections, plan reviews and periodic assessments — delivered to the member with notification.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-FBK-05</td><td>A member shall be able to rate a completed PT session or group class, with the rating attributed to the trainer and session.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-FBK-06</td><td>An Admin shall be able to view aggregate trainer and class ratings over a period.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-FBK-07</td><td>An Admin shall be able to broadcast an announcement to all members, to a location, or to a filtered segment.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-FBK-08</td><td>Each user shall have an in-application inbox consolidating announcements, feedback responses, coaching notes and system notifications.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-FBK-09</td><td>A member shall be able to raise feedback anonymously to the Admin, with the trainer unable to see the author.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">4</td></tr>
+  </tbody>
+</table>
+
+<h3>M15 — Notifications</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-NTF-01</td><td>The system shall deliver notifications in-application and by mobile push.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-NTF-02</td><td>The system shall raise notifications for at least: account verified or rejected; plan assigned; plan expiring; payment recorded; due outstanding; workout assigned; workout not logged; class booked, cancelled, rescheduled or waitlist-promoted; session reminder; PT credits low; coaching feedback received; feedback responded to; announcement published.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-NTF-03</td><td>A user shall be able to configure which notification categories they receive and by which channel.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-NTF-04</td><td>The system shall observe configurable quiet hours per user, deferring non-urgent notifications.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-NTF-05</td><td>Notification content shall be template-driven and editable per tenant.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-NTF-06</td><td>The system shall record delivery status per notification and shall surface failures to an Admin.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-NTF-07</td><td>The system shall de-duplicate and batch notifications so that a single user event does not produce a burst of messages.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+  </tbody>
+</table>
+
+<h3>M16 — Reporting and Dashboards</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-RPT-01</td><td>Each account shall be presented, on sign-in, the training dashboard of FR-RPT-02 together with the operational dashboards corresponding to every role grant it holds, within a single application.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-RPT-02</td><td>The training dashboard — presented to <em>every</em> account regardless of role — shall show today's workout, next booked session, attendance streak, a progress snapshot and, where a membership is held, plan status, expiry and dues outstanding.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-RPT-03</td><td>The Trainer dashboard shall show today's sessions and classes, assigned member count, members needing attention by adherence or absence, and pending feedback.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-RPT-04</td><td>The Location Admin dashboard shall show, for their locations only, active members, pending verifications, today's attendance, revenue for the period, memberships expiring and outstanding dues.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-RPT-05</td><td>The Gym Owner dashboard shall show the same figures consolidated across every location of the gym, with a location-by-location comparison and the gym's own subscription status and expiry.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-RPT-05a</td><td>The Super Admin dashboard shall show gyms by status, pending gym verifications, subscriptions due or lapsed, and platform-level activity across all gyms.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-RPT-05b</td><td>Every report and dashboard shall be filtered to the caller's location scope, and a Location Admin shall be unable to obtain figures for a location they do not administer by any means, including export.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-RPT-06</td><td>The system shall provide a revenue report by period, location, plan and payment mode.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-RPT-07</td><td>The system shall provide an attendance report showing footfall by day, hour and location, and per-member frequency.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-RPT-08</td><td>The system shall provide a class performance report covering fill rate, waitlist depth, no-show rate and rating, by class type and trainer.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-RPT-09</td><td>The system shall provide a membership report covering new joins, renewals, expiries, freezes and churn rate.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-RPT-10</td><td>All reports shall be filterable by date range and location and exportable to spreadsheet and PDF.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-RPT-11</td><td>The system shall identify members at risk of lapsing, based on declining attendance and approaching expiry, and present them to the Admin as a worklist.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+  </tbody>
+</table>
+
+<h3>M17 — WhatsApp Integration</h3>
+<div class="note">
+  <strong>Outbound only.</strong> This release sends; it does not receive. Inbound conversational booking and a staffed support inbox were considered and deferred — they duplicate flows the application already serves and require staffing that a gym of this size cannot reliably provide.
+</div>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-WA-01</td><td>The system shall send outbound templated WhatsApp messages to members who have opted in, using an approved message template catalogue.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-WA-02</td><td>The system shall record explicit opt-in consent per member, and shall provide a means to withdraw it at any time.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-WA-03</td><td>The system shall send membership expiry and renewal reminders on a configurable schedule ahead of expiry.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-WA-04</td><td>The system shall send payment receipt confirmations and outstanding-due reminders.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-WA-05</td><td>The system shall send class booking confirmations, session reminders and cancellation notices.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-WA-06</td><td>The system shall derive each member's habitual attendance time from their check-in history and send a motivational prompt at that time on days they have not yet attended.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-WA-07</td><td>The system shall send a re-engagement prompt to a member whose attendance streak has broken or who has been absent beyond a configurable number of days.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-WA-08</td><td>Message copy shall be template-driven and editable per tenant within the constraints of template approval.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-WA-09</td><td>The system shall record delivery, read and failure status per message, and shall fall back to push notification on failure.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-WA-10</td><td>The system shall enforce a per-member daily cap on outbound messages to prevent fatigue and opt-outs.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-WA-11</td><td>Inbound messages received on the business number shall be acknowledged with a standard reply directing the member to the application; no inbound routing is in scope for this release.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+  </tbody>
+</table>
+
+<h3>M18 — AI-Assisted Services</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-AI-01</td><td>The system shall generate workout progression suggestions for a member from their logged history, presented to the trainer for acceptance, amendment or rejection.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-AI-02</td><td>The system shall generate a draft diet plan from a member's profile, goal and stated restrictions, which a trainer or Admin shall edit and approve before it becomes visible to the member.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-AI-03</td><td>No AI-generated content shall become visible to a member without recorded human approval.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-AI-04</td><td>The system shall produce a plain-language periodic progress summary for a member from their attendance, workout and measurement data.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-AI-05</td><td>The system shall generate churn-risk indications for the Admin worklist, with the contributing factors stated.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-AI-06</td><td>Every AI generation shall be logged with its inputs, output, the model used, and the approving user.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-AI-07</td><td>An Admin shall be able to disable AI features for their tenant.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-AI-08</td><td>The system shall degrade gracefully when the AI provider is unavailable, leaving all manual authoring paths fully functional.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-AI-09</td><td>AI features shall not present medical, diagnostic or therapeutic advice, and generated content shall carry a visible advisory notice.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+    <tr><td class="id">FR-AI-10</td><td>Personal identifiers shall be minimised in data sent to an external AI provider.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">4</td></tr>
+  </tbody>
+</table>
+
+<h3>M19 — Configuration, Permissions and Audit</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-ADM-01</td><td>The system shall enforce a documented role-permission matrix on the server for every operation.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ADM-02</td><td>The system shall maintain an immutable audit trail of privileged actions — verification decisions, status changes, plan and price changes, payment and refund entries, manual attendance, permission changes and data exports — recording actor, subject, timestamp, and before and after values.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ADM-03</td><td>Deletion of member, trainer, payment and attendance records shall be logical rather than physical, preserving history.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ADM-04</td><td>A user shall be able to request an export of their personal data, and an Admin shall be able to fulfil it.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-ADM-05</td><td>A user shall be able to request erasure of their account, and the system shall support anonymisation that preserves aggregate operational history.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-ADM-06</td><td>Consent records shall be retained with version and timestamp, and shall be inspectable by the user.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-ADM-07</td><td>An Admin shall be able to configure tenant-level settings — business hours, cancellation cutoffs, check-in radius and window, notification defaults and reminder cadences — without engineering involvement.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-ADM-08</td><td>The permission matrix shall express authority as a function of both role and location scope, so that the same role held at two locations confers no authority at a third.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+  </tbody>
+</table>
+
+<h3>M20 — Gym Subscription and Lifecycle</h3>
+<div class="note">
+  <strong>Cash, recorded.</strong> Gyms pay the platform in cash, collected by the Super Admin, exactly as members pay their gyms. No gateway is involved at either level. What the platform provides is the record, the term, and the enforcement: a gym is live only while its subscription is current.
+</div>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-SUB-01</td><td>A Super Admin shall be able to define subscription offerings, each with a name, term, price and any limits on locations or members.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-SUB-02</td><td>A Super Admin shall be able to record a subscription payment received from a gym, capturing amount, date, mode, reference and the term it purchases.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-SUB-03</td><td>Recording a payment against a verified gym shall make that gym <em>Live</em>, at which point its staff and members may register and be verified.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-SUB-04</td><td>The system shall maintain an explicit gym lifecycle — Pending Verification, Verified, Live, Lapsed, Suspended, Closed — and shall record every transition with actor, timestamp and reason.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-SUB-05</td><td>The system shall notify the Super Admin and the Gym Owner in advance of a subscription expiring, on a configurable schedule.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-SUB-06</td><td>On expiry without renewal the gym shall become <em>Lapsed</em>. A configurable grace period shall apply, during which the gym continues to operate and the Gym Owner is warned.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-SUB-07</td><td>Beyond the grace period, the gym's administrative functions shall be restricted while its members retain read access to their own training data. A lapsed subscription shall never destroy or hide a member's personal history.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-SUB-08</td><td>A Super Admin shall be able to renew a subscription, with the new term commencing at the later of today and the existing expiry date.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-SUB-09</td><td>A Super Admin shall be able to suspend a live gym immediately for cause, and to reinstate it, with a reason recorded in both directions.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-SUB-10</td><td>A Gym Owner shall be able to view their own subscription status, term, expiry and payment history.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-SUB-11</td><td>The system shall present the Super Admin a ledger of subscription revenue across all gyms, filterable by period and status, and a worklist of subscriptions due or lapsed.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-SUB-12</td><td>The system shall issue the gym a receipt for each recorded subscription payment.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-SUB-13</td><td>Where a subscription offering limits locations or members, the system shall warn on approach and shall require the Super Admin's action rather than silently blocking the gym's operation.</td><td class="ctr"><span class="pri C">COULD</span></td><td class="ctr">4</td></tr>
+  </tbody>
+</table>
+
+<h3>M21 — Personal Fitness Profile (All Roles)</h3>
+<div class="note">
+  <strong>Why this is its own module.</strong> Everything below already exists in M6, M7, M11, M12 and M13 for members. This module exists to state, once and unambiguously, that none of it is conditional on being a member — so that no requirement elsewhere is implemented with a role check that quietly excludes staff from their own training data.
+</div>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th><th class="w-pri">Pri</th><th class="w-ph">Ph</th></tr></thead>
+  <tbody>
+    <tr><td class="id">FR-PFP-01</td><td>Every account, whatever its role — Super Admin, Gym Owner, Location Admin, Trainer or Member — shall own a personal fitness profile. It shall be created with the account and shall not be grantable, revocable or contingent on any role.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-PFP-02</td><td>The personal fitness profile shall comprise height, weight, experience level, goals, preferred training times and health screening, on the same terms as a member's (FR-MEM-02, FR-MEM-03).</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-PFP-03</td><td>Every account shall be able to record and view its own progress data — weight, measurements, body fat, photographs, personal records, volume trends, streaks and goals — as specified in M13.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PFP-04</td><td>Every account shall be able to hold assigned routines, log workouts and log unplanned workouts, as specified in M11.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PFP-05</td><td>Every account shall be able to hold a diet plan and use the consultation thread, as specified in M12.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PFP-06</td><td>Every account shall be able to record personal attendance and to book group and online classes, subject to the same capacity and waitlist rules as any other attendee.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">3</td></tr>
+    <tr><td class="id">FR-PFP-07</td><td>A staff account shall be able to be assigned a trainer, receive workout and diet plans, and receive coaching feedback, on the same terms as a member.</td><td class="ctr"><span class="pri S">SHOULD</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PFP-08</td><td>A trainer shall not be assignable as their own trainer, and the system shall reject such an assignment.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">2</td></tr>
+    <tr><td class="id">FR-PFP-09</td><td>A personal fitness profile shall be private to its owner, subject to the same sharing rules a member's is: the assigned trainer sees what the owner permits, and no administrative role gains access to it by virtue of holding authority over the account.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-PFP-10</td><td>A staff account's personal activity shall never be counted as membership revenue, plan consumption or a due, and shall be excluded from commercial reporting unless a membership was genuinely sold (FR-BIL-17).</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-PFP-11</td><td>Demotion, role change or loss of an operational role shall leave the personal fitness profile and all its history entirely intact.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+    <tr><td class="id">FR-PFP-12</td><td>Where an account holds an operational role, the application shall present the training dashboard and the operational dashboards together, with an unambiguous visual separation between the account's own data and data it administers.</td><td class="ctr"><span class="pri M">MUST</span></td><td class="ctr">1</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 5. EXTERNAL INTERFACES ===================== -->
+<h2>5. External Interface Requirements</h2>
+
+<h3>5.1 User Interfaces</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="id">UI-01</td><td>A single mobile application shall serve all five roles, presenting every account its training dashboard plus the operational dashboards its role grants confer, with navigation and available actions derived from those grants and their location scope.</td></tr>
+    <tr><td class="id">UI-02</td><td>A member shall be able to complete a check-in within three interactions from opening the application.</td></tr>
+    <tr><td class="id">UI-03</td><td>The web console shall be responsive and shall cover, at minimum, member and trainer management, verification queues, plans and payments, timetable construction, bulk actions and all reporting.</td></tr>
+    <tr><td class="id">UI-04</td><td>The application shall present a clear empty, loading and error state for every data-bearing view; failures shall state what went wrong and what the user may do.</td></tr>
+    <tr><td class="id">UI-05</td><td>Member-facing terminology shall avoid jargon; the interface language is English.</td></tr>
+    <tr><td class="id">UI-06</td><td>Tenant branding — logo and accent colour — shall be reflected in the member-facing application.</td></tr>
+  </tbody>
+</table>
+
+<h3>5.2 Hardware Interfaces</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="id">HW-01</td><td>The application shall use the device camera to scan location check-in QR codes.</td></tr>
+    <tr><td class="id">HW-02</td><td>The application shall use device location services to evaluate geofenced check-in, requesting permission with a clear explanation and degrading to QR check-in when permission is refused.</td></tr>
+    <tr><td class="id">HW-03</td><td>The application shall use the device camera and photo library for progress photographs and profile images.</td></tr>
+    <tr><td class="id">HW-04</td><td>Biometric and RFID access-control hardware is explicitly out of scope; the requirement set shall not preclude its later addition as an additional attendance method.</td></tr>
+  </tbody>
+</table>
+
+<h3>5.3 Software Interfaces</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th style="width:150px">Interface</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="id">SW-01</td><td>SMS / OTP provider</td><td>Delivery of one-time passwords to Indian mobile numbers, with delivery status returned. Required from Phase 1.</td></tr>
+    <tr><td class="id">SW-02</td><td>Push notification service</td><td>Delivery of push notifications to Android and iOS devices. Required from Phase 1.</td></tr>
+    <tr><td class="id">SW-03</td><td>Object storage</td><td>Storage and controlled retrieval of profile images, progress photographs, exercise media and generated receipts. Required from Phase 1.</td></tr>
+    <tr><td class="id">SW-04</td><td>Video conferencing</td><td>Zoom, Google Meet or equivalent, referenced by link. No API integration is required in Phase 3; links are entered by staff. Automated link provisioning is a later enhancement.</td></tr>
+    <tr><td class="id">SW-05</td><td>WhatsApp Business Platform</td><td>Outbound templated messaging with delivery callbacks. Required from Phase 4. Template approval lead time shall be planned for.</td></tr>
+    <tr><td class="id">SW-06</td><td>AI provider</td><td>Text generation for workout, nutrition and narrative features. Required from Phase 4. The interface shall be abstracted so the provider may be replaced.</td></tr>
+    <tr><td class="id">SW-07</td><td>Payment gateway</td><td><em>Withdrawn in v1.1.</em> No gateway integration in any phase. Member fees and gym subscriptions are both collected offline and recorded.</td></tr>
+  </tbody>
+</table>
+
+<h3>5.4 Communication Interfaces</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="id">CM-01</td><td>All client-server communication shall be encrypted in transit using TLS 1.2 or above.</td></tr>
+    <tr><td class="id">CM-02</td><td>Mobile and web clients shall consume the same server interface; no client-exclusive capability shall exist.</td></tr>
+    <tr><td class="id">CM-03</td><td>Outbound calls to external services shall be timed out and retried with backoff, and their failure shall not cascade into a failure of core operations.</td></tr>
+    <tr><td class="id">CM-04</td><td>The application shall function on 3G-class mobile connections, with image payloads sized accordingly.</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 6. NFRs ===================== -->
+<h2>6. Non-Functional Requirements</h2>
+
+<h3>6.1 Performance</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="id">NFR-PRF-01</td><td>95% of read operations shall complete server-side within 400 ms under expected load.</td></tr>
+    <tr><td class="id">NFR-PRF-02</td><td>A check-in shall complete end to end, including user feedback, within 2 seconds on a 3G-class connection.</td></tr>
+    <tr><td class="id">NFR-PRF-03</td><td>Dashboards shall render within 2 seconds for a 12-month data range.</td></tr>
+    <tr><td class="id">NFR-PRF-04</td><td>The mobile application shall reach an interactive state within 3 seconds of a cold start on mid-range hardware.</td></tr>
+    <tr><td class="id">NFR-PRF-05</td><td>Class booking shall resolve capacity and waitlist position correctly under concurrent demand, with no overselling of a session.</td></tr>
+    <tr><td class="id">NFR-PRF-06</td><td>Reports over a 12-month range shall return within 10 seconds, or shall be produced asynchronously with notification on completion.</td></tr>
+  </tbody>
+</table>
+
+<h3>6.2 Scalability and Capacity</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="id">NFR-SCL-01</td><td>The system shall support at least 50 gyms, 200 locations and 100,000 members without architectural change, with multiple gyms operating concurrently from Phase 1.</td></tr>
+    <tr><td class="id">NFR-SCL-02</td><td>The system shall sustain at least 500 concurrent active users, with peaks concentrated in early morning and evening windows.</td></tr>
+    <tr><td class="id">NFR-SCL-03</td><td>The system shall accommodate at least 5 million attendance records and 20 million workout set records with query performance held within the Section 6.1 targets.</td></tr>
+    <tr><td class="id">NFR-SCL-04</td><td>Check-in load shall be assumed to concentrate into narrow windows; capacity shall be sized against peak rather than average.</td></tr>
+  </tbody>
+</table>
+
+<h3>6.3 Security</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="id">NFR-SEC-01</td><td>Gym isolation shall be enforced on the server for every read and write. A test suite shall demonstrate that a user of one gym cannot reach another gym's data by any interface.</td></tr>
+    <tr><td class="id">NFR-SEC-01a</td><td>Location isolation shall be enforced on the same terms. A standing test suite shall demonstrate that a Location Admin cannot reach a sibling location's members, trainers, attendance, bookings or payment records by any interface, including reports, exports and identifier guessing.</td></tr>
+    <tr><td class="id">NFR-SEC-01b</td><td>Privilege escalation shall be structurally prevented: no admin shall be able to grant, to themselves or to another, authority exceeding their own scope. A test suite shall cover the delegation chain permitted by FR-AUTH-19.</td></tr>
+    <tr><td class="id">NFR-SEC-02</td><td>Authorisation shall be evaluated server-side on every request against both role and location scope; client-side concealment of controls shall never be the sole control.</td></tr>
+    <tr><td class="id">NFR-SEC-03</td><td>Passwords shall be stored using a current adaptive hashing algorithm with a per-user salt.</td></tr>
+    <tr><td class="id">NFR-SEC-04</td><td>Access tokens shall be short-lived and refreshable, and shall be revocable on sign-out and on account suspension.</td></tr>
+    <tr><td class="id">NFR-SEC-05</td><td>The system shall defend against the OWASP Top Ten and the OWASP Mobile Top Ten.</td></tr>
+    <tr><td class="id">NFR-SEC-06</td><td>Personal data and media shall be encrypted at rest.</td></tr>
+    <tr><td class="id">NFR-SEC-07</td><td>Media shall be served through expiring, access-checked links; progress photographs shall never be reachable by unauthenticated URL.</td></tr>
+    <tr><td class="id">NFR-SEC-08</td><td>Authentication endpoints, OTP issuance and check-in shall be rate-limited per account and per device.</td></tr>
+    <tr><td class="id">NFR-SEC-09</td><td>Secrets and credentials shall never be committed to source control, and shall be injected by the runtime environment.</td></tr>
+    <tr><td class="id">NFR-SEC-10</td><td>Check-in QR payloads shall be signed and single-location scoped. Every QR check-in shall also require a contemporaneous geofence proof, so that a captured image cannot be used to check in away from the location.</td></tr>
+    <tr><td class="id">NFR-SEC-11</td><td>Dependencies shall be scanned for known vulnerabilities as part of the build.</td></tr>
+  </tbody>
+</table>
+
+<h3>6.4 Privacy and Compliance</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="id">NFR-PRV-01</td><td>The system shall comply with India's Digital Personal Data Protection Act, 2023, including notice, consent, purpose limitation and the rights of the data principal.</td></tr>
+    <tr><td class="id">NFR-PRV-02</td><td>Health screening data, body measurements and progress photographs shall be treated as sensitive, with access restricted to the member, their assigned trainer subject to the member's setting, and the tenant Admin.</td></tr>
+    <tr><td class="id">NFR-PRV-03</td><td>No administrative role shall have routine access to any individual's health data or progress photographs — a Super Admin's across gyms, a Gym Owner's or Location Admin's over their staff and members alike. Any such access shall require an explicit, audited justification.</td></tr>
+    <tr><td class="id">NFR-PRV-04</td><td>Data retention periods shall be defined per data category and enforced, with financial records retained per statutory requirement.</td></tr>
+    <tr><td class="id">NFR-PRV-05</td><td>Receipts shall meet Indian GST requirements, including GSTIN, applicable tax breakdown and the relevant service classification code, where the tenant is registered.</td></tr>
+    <tr><td class="id">NFR-PRV-06</td><td>Marketing and WhatsApp communication shall require explicit opt-in, held separately from the consent to operate the service.</td></tr>
+    <tr><td class="id">NFR-PRV-07</td><td>A personal data breach shall be detectable, and a documented notification procedure shall exist.</td></tr>
+  </tbody>
+</table>
+
+<h3>6.5 Availability and Reliability</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="id">NFR-AVL-01</td><td>The platform shall target 99.5% monthly availability during Phase 1, rising to 99.9% by Phase 4.</td></tr>
+    <tr><td class="id">NFR-AVL-02</td><td>Data shall be backed up at least daily, with a recovery point objective of 24 hours and a recovery time objective of 4 hours in Phase 1.</td></tr>
+    <tr><td class="id">NFR-AVL-03</td><td>Backup restoration shall be tested on a defined cadence, not merely configured.</td></tr>
+    <tr><td class="id">NFR-AVL-04</td><td>Failure of any external service shall degrade only the dependent feature; core operations — sign-in, check-in, member lookup and payment recording — shall remain available.</td></tr>
+    <tr><td class="id">NFR-AVL-05</td><td>Planned maintenance shall be scheduled outside peak gym hours and announced in advance.</td></tr>
+  </tbody>
+</table>
+
+<h3>6.6 Usability, Accessibility and Maintainability</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="id">NFR-USA-01</td><td>A new member shall be able to complete registration unaided in under three minutes.</td></tr>
+    <tr><td class="id">NFR-USA-02</td><td>Routine trainer actions — marking class attendance, completing a PT session — shall be achievable one-handed on a phone.</td></tr>
+    <tr><td class="id">NFR-USA-03</td><td>The web console shall target WCAG 2.1 Level AA, and the mobile application shall support platform accessibility services and dynamic type.</td></tr>
+    <tr><td class="id">NFR-USA-04</td><td>All dates, times and currency shall render in the tenant's configured timezone and currency, defaulting to IST and INR.</td></tr>
+    <tr><td class="id">NFR-MNT-01</td><td>Business rules subject to routine change — cutoffs, radii, windows, cadences, thresholds — shall be configuration, not code.</td></tr>
+    <tr><td class="id">NFR-MNT-02</td><td>The system shall emit structured logs, metrics and traces sufficient to diagnose a failed check-in, booking or payment entry without reproducing it.</td></tr>
+    <tr><td class="id">NFR-MNT-03</td><td>Automated tests shall cover authorisation boundaries, tenant isolation, billing arithmetic, credit decrementing and booking concurrency as a minimum.</td></tr>
+    <tr><td class="id">NFR-MNT-04</td><td>Interface changes shall be versioned so that an older mobile application build continues to function until users upgrade.</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 7. DATA ===================== -->
+<h2>7. Data Requirements</h2>
+<p>The following are the principal entities the system shall hold. Attributes, relationships, storage technology and indexing are matters for the System Architecture document; this section fixes <em>what</em> must be represented.</p>
+<table>
+  <thead><tr><th style="width:120px">Entity</th><th>Purpose and essential content</th><th style="width:70px">Retention</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Gym (Tenant)</strong></td><td>Gym business: identity, GSTIN, branding, configuration, lifecycle state.</td><td>Life of contract</td></tr>
+    <tr><td><strong>Gym Subscription</strong></td><td>Offering, term, expiry, state; the cash payments recorded against it by the Super Admin.</td><td>8 years</td></tr>
+    <tr><td><strong>Location</strong></td><td>Physical site: address, coordinates, check-in radius, hours, capacity, closures.</td><td>Life of gym</td></tr>
+    <tr><td><strong>User</strong></td><td>Identity, credentials, status, consent records. Carries no authority of itself.</td><td>Life + statutory</td></tr>
+    <tr><td><strong>Role Grant</strong></td><td>One authority held by a user: the role, its gym, its locations, who granted it and when. A user may hold several.</td><td>Life + 8 years</td></tr>
+    <tr><td><strong>Personal Fitness Profile</strong></td><td>Held by every user unconditionally: height, weight, level, goals, health screening, preferred times, optional assigned trainer.</td><td>Life + 3 years</td></tr>
+    <tr><td><strong>Trainer Profile</strong></td><td>Specialisations, certifications, availability, location assignments, rates, load.</td><td>Life + statutory</td></tr>
+    <tr><td><strong>Plan</strong></td><td>Catalogue entry: duration, price, inclusions, applicable locations.</td><td>Indefinite</td></tr>
+    <tr><td><strong>Membership</strong></td><td>Member's held plan: term, expiry, freezes, status, price agreed.</td><td>8 years</td></tr>
+    <tr><td><strong>PT Package</strong></td><td>Session credits held by a member against a trainer, with validity.</td><td>8 years</td></tr>
+    <tr><td><strong>Payment</strong></td><td>Money recorded: amount, mode, reference, collector, allocation, GST, receipt number.</td><td>8 years</td></tr>
+    <tr><td><strong>Attendance</strong></td><td>Arrival record: person, location, session, timestamp, method, acting user, flags.</td><td>3 years</td></tr>
+    <tr><td><strong>Class Type</strong></td><td>Reusable format: duration, capacity, intensity, required specialisation.</td><td>Indefinite</td></tr>
+    <tr><td><strong>Session</strong></td><td>Dated occurrence: type, trainer, location or link, capacity, delivery mode, status.</td><td>3 years</td></tr>
+    <tr><td><strong>Booking</strong></td><td>Member's claim on a session: state, waitlist position, cancellation, attendance.</td><td>3 years</td></tr>
+    <tr><td><strong>Exercise</strong></td><td>Catalogue entry: muscle groups, equipment, difficulty, instructions, media.</td><td>Indefinite</td></tr>
+    <tr><td><strong>Workout Template / Routine</strong></td><td>Prescribed exercises, sets, load, rest; multi-week day assignment.</td><td>Indefinite</td></tr>
+    <tr><td><strong>Workout Log</strong></td><td>Sets actually performed: reps, load, exertion, date, personal records.</td><td>Life of member</td></tr>
+    <tr><td><strong>Diet Plan</strong></td><td>Meals, items, quantities, targets, restrictions, validity, version history.</td><td>Life of member</td></tr>
+    <tr><td><strong>Progress Entry</strong></td><td>Weight, measurements, body fat, photographs, goals — each dated.</td><td>Life of member</td></tr>
+    <tr><td><strong>Feedback</strong></td><td>Both directions: category, content, thread, status, rating, attribution.</td><td>3 years</td></tr>
+    <tr><td><strong>Notification</strong></td><td>Event, recipient, channel, template, delivery status, read state.</td><td>12 months</td></tr>
+    <tr><td><strong>Audit Entry</strong></td><td>Actor, subject, action, timestamp, before and after values.</td><td>8 years</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 8. PHASES ===================== -->
+<h2>8. Phased Delivery Plan</h2>
+<p>Scope is complete in this document; delivery is sequenced. Each phase is independently useful — a phase that ships alone still leaves the gyms on the platform better off than before it. The ordering follows the operating reality that a gym must first be able to admit, charge and track its members before it can schedule classes for them.</p>
+<p class="small"><strong>Changed in v1.1.</strong> Multi-gym operation, the two admin tiers with delegated promotion, the gym subscription lifecycle, and the universal personal fitness profile have all moved into Phase 1 — they are foundational to the identity and isolation model and cannot sensibly be retrofitted. Phase 5 is correspondingly reduced to self-service and scale conveniences, and the payment gateway has left the plan entirely.</p>
+
+<div class="phase-band">PHASE 1 — Foundation, Multi-Gym Onboarding and Core Operations</div>
+<div class="phase-body">
+<dl>
+  <dt>Objective</dt><dd>The Super Admin can onboard and activate multiple gyms, and each of those gyms can run its daily operation across its locations entirely on the platform: admit people, take money, know who came in — while everyone on it, staff included, tracks their own training.</dd>
+  <dt>Scope</dt><dd>Multi-gym tenancy with location isolation &middot; phone-OTP authentication &middot; the full verification and activation chain &middot; gym subscription offerings, recorded cash payments, activation, lapse and suspension &middot; the five-role model with Gym Owner and Location Admin tiers &middot; admin promotion, demotion, scope limits and last-admin protection &middot; the universal personal fitness profile and training dashboard for every role &middot; member and trainer profiles &middot; trainer assignment &middot; plan catalogue and memberships &middot; offline payment recording, dues and GST receipts &middot; QR and geofenced check-in with shift-versus-workout purpose &middot; role dashboards scoped by location &middot; in-app and push notifications &middot; audit trail and consent.</dd>
+  <dt>Modules</dt><dd>M1, M2, M3, M4, M5, M6, M15, M19, M20, M21; the Phase 1 subset of M16.</dd>
+  <dt>Acceptance</dt><dd>Two or more gyms are registered, verified, paid for in cash and made live by the Super Admin; each runs at least two locations; trainers and members register against one location and are verified there; an admin promotes a trainer to Location Admin for one location and that admin is demonstrably unable to see the sibling location's data; a plan is sold, a payment recorded and a receipt issued; members and trainers check in by both QR and geofence for a full week, with shift and personal-workout attendance distinguished; a Gym Owner, a Location Admin and a Trainer each log their own workout and see their own progress without holding a membership; a gym's subscription is allowed to lapse and the grace-period behaviour is observed; every dashboard reconciles against the desk's own figures.</dd>
+</dl>
+</div>
+
+<div class="phase-band">PHASE 2 — Training, Nutrition and Member Outcomes</div>
+<div class="phase-body">
+<dl>
+  <dt>Objective</dt><dd>The platform becomes the medium of coaching, not merely of administration.</dd>
+  <dt>Scope</dt><dd>Exercise library carried over from limitbeyond2.0 &middot; workout templates, routines and set-level logging &middot; personal records &middot; PT packages, credits, scheduling and session notes &middot; structured diet plans and the consultation thread &middot; progress tracking with weight, measurements and photographs &middot; two-directional feedback and coaching notes &middot; announcements and the unified inbox &middot; membership freeze &middot; data export and erasure.</dd>
+  <dt>Modules</dt><dd>M8, M10, M11, M12, M13, M14; remaining items of M3, M5 and M15.</dd>
+  <dt>Acceptance</dt><dd>A trainer builds a routine and assigns it; the member logs workouts against it and records measurements; a PT package is sold and its credits decrement correctly on completed sessions; a diet plan is authored after consultation and revised with history preserved; coaching feedback reaches the member.</dd>
+</dl>
+</div>
+
+<div class="phase-band">PHASE 3 — Classes, Scheduling and Online Delivery</div>
+<div class="phase-body">
+<dl>
+  <dt>Objective</dt><dd>Yoga, Zumba and meditation become first-class scheduled offerings, on-site and online.</dd>
+  <dt>Scope</dt><dd>Class type catalogue &middot; recurring per-location timetables and session generation &middot; booking with capacity, waitlist and auto-promotion &middot; cancellation cutoffs and late cancellation &middot; class rosters and attendance &middot; no-show handling &middot; trainer substitution and double-booking prevention &middot; online sessions over external meeting links with timed link release and join tracking &middot; location closure calendars &middot; class packs &middot; session ratings.</dd>
+  <dt>Modules</dt><dd>M7, M9; class-related items of M6, M14 and M2.</dd>
+  <dt>Acceptance</dt><dd>A weekly timetable generates sessions across locations; members book, join a waitlist and are promoted automatically on a release; a session is cancelled and every booked member is notified and restored; an online yoga class runs end to end with attendance recorded in-platform.</dd>
+</dl>
+</div>
+
+<div class="phase-band">PHASE 4 — Analytics, Engagement and AI</div>
+<div class="phase-body">
+<dl>
+  <dt>Objective</dt><dd>The platform starts telling the gym what to do, and starts reaching members where they already are.</dd>
+  <dt>Scope</dt><dd>Full reporting suite — revenue, attendance, class performance, membership and churn — with filters and exports &middot; trainer utilisation and remuneration reporting &middot; at-risk member worklist &middot; WhatsApp outbound messaging including habitual gym-time nudges and re-engagement prompts &middot; AI workout progression, diet drafts, progress narratives and churn indications, all human-approved &middot; nutrition adherence logging and the Indian food database &middot; bulk member actions &middot; spoofing review.</dd>
+  <dt>Modules</dt><dd>M16, M17, M18; deferred items of M12, M13 and M6.</dd>
+  <dt>Acceptance</dt><dd>Reports reconcile with ledger and attendance data; WhatsApp reminders deliver against approved templates with status recorded and daily caps honoured; an AI-drafted diet plan is edited and approved by a trainer before the member ever sees it, with the approval logged.</dd>
+</dl>
+</div>
+
+<div class="phase-band">PHASE 5 — Self-Service and Scale</div>
+<div class="phase-body">
+<dl>
+  <dt>Objective</dt><dd>Reduce the Super Admin's manual effort per gym as the platform grows. Multi-gym operation already works from Phase 1; this phase makes it cheap to run.</dd>
+  <dt>Scope</dt><dd>Self-service gym onboarding with document upload and verification workflow &middot; per-gym branding and subdomains &middot; subscription renewal reminders and self-service renewal requests &middot; cross-gym benchmarking for the Super Admin &middot; usage limits per subscription offering &middot; bulk gym administration tooling.</dd>
+  <dt>Modules</dt><dd>Extensions to M1, M2, M16 and M20.</dd>
+  <dt>Acceptance</dt><dd>A gym completes onboarding end to end with the Super Admin only approving and recording payment; gym and location isolation are demonstrated under a standing test suite; the Super Admin manages a subscription renewal cycle across a dozen gyms without per-gym manual reconstruction.</dd>
+</dl>
+</div>
+<div class="note">
+  <strong>No payment gateway, in any phase.</strong> Version 1.0 placed member online payments in Phase 5. That is withdrawn. Member fees are collected offline by gym staff and recorded; gym subscriptions are collected in cash by the Super Admin and recorded. The platform is a book of record at both levels and never touches funds. Should this change, it is a new requirement against a later version of this document, not a deferred item of this one.
+</div>
+
+<!-- ===================== 9. ASSUMPTIONS ===================== -->
+<h2>9. Assumptions, Dependencies and Decisions on Record</h2>
+
+<h3>9.1 Decisions Taken During Elicitation</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th style="width:150px">Question</th><th>Decision</th></tr></thead>
+  <tbody>
+    <tr><td class="id">DEC-01</td><td>Relationship to limitbeyond2.0</td><td>Fresh rebuild. Proven features are carried forward as requirements, not as code. See Section 2.2 and Appendix A.</td></tr>
+    <tr><td class="id">DEC-02</td><td>Tenancy</td><td><em>Revised v1.1.</em> Multi-gym from day one: many gyms, each with many locations, all under Super Admin control in Phase 1. A location is a hard isolation boundary — separate trainers, members and data.</td></tr>
+    <tr><td class="id">DEC-03</td><td>Clients</td><td>One mobile application for all roles with role-specific dashboards; a web console additionally for administration. Identical backend and permission model.</td></tr>
+    <tr><td class="id">DEC-04</td><td>Onboarding</td><td><em>Revised v1.1.</em> Super Admin verifies the gym, then records its cash subscription payment to make it live. The Gym Owner, or a Location Admin, then verifies trainers and members at their location. No gym operates before activation; no account before verification.</td></tr>
+    <tr><td class="id">DEC-05</td><td>Roles</td><td><em>Revised v1.1.</em> Five: Super Admin, Gym Owner, Location Admin, Trainer, Member. Receptionist and separate nutritionist remain excluded. The former Admin role is split into the two tiers.</td></tr>
+    <tr><td class="id">DEC-13</td><td>Admin delegation</td><td>Any admin may promote a trainer or member to Location Admin, always for named locations and never beyond their own scope. The chain may extend. Safety comes from scope limits, last-admin protection, Super Admin override and full audit — not from forbidding delegation.</td></tr>
+    <tr><td class="id">DEC-14</td><td>Role combination</td><td>Roles are additive. Trainer + Location Admin is a first-class supported combination; the account keeps its members, classes and shifts while gaining admin authority, with no second account and no context switch.</td></tr>
+    <tr><td class="id">DEC-15</td><td>Personal profiles</td><td>Every account owns a personal fitness profile and sees the training dashboard, whatever its role. Operational authority and personal training data are separate concerns.</td></tr>
+    <tr><td class="id">DEC-16</td><td>Gym subscriptions</td><td>Collected as cash by the Super Admin and recorded in the platform. A gym is live only while its subscription is current.</td></tr>
+    <tr><td class="id">DEC-17</td><td>Payment gateway</td><td>Withdrawn from scope entirely. All money at both levels is collected offline and recorded.</td></tr>
+    <tr><td class="id">DEC-06</td><td>Attendance</td><td>Both QR at the desk and geofenced self check-in, with a manual staff override always available.</td></tr>
+    <tr><td class="id">DEC-07</td><td>Online classes</td><td>Scheduled sessions with full in-platform booking and attendance, delivered over external Zoom or Google Meet links. No platform-hosted video.</td></tr>
+    <tr><td class="id">DEC-08</td><td>Billing</td><td>Duration-based membership plans and PT session-credit packages. Payment is predominantly offline and recorded by the Admin; the record is what drives the dashboard.</td></tr>
+    <tr><td class="id">DEC-09</td><td>Nutrition</td><td>Trainer or Admin authors the plan following consultation with the member. A macro-costed food database is deferred to Phase 4.</td></tr>
+    <tr><td class="id">DEC-10</td><td>WhatsApp</td><td>Outbound only, including motivational prompts at the member's habitual gym time. Inbound conversation is out of scope.</td></tr>
+    <tr><td class="id">DEC-11</td><td>Market</td><td>India. INR, GST, English, growing to roughly 10–50 gyms.</td></tr>
+    <tr><td class="id">DEC-12</td><td>Scope strategy</td><td>Everything is specified; delivery is phased. Nothing is cut from requirements to fit a phase.</td></tr>
+  </tbody>
+</table>
+
+<h3>9.2 Assumptions</h3>
+<p class="small">Recorded here because they were not independently confirmed. Each is cheap to change now and expensive to change after the architecture is fixed — challenge any that reads wrongly.</p>
+<table>
+  <thead><tr><th class="w-id">ID</th><th>Assumption</th></tr></thead>
+  <tbody>
+    <tr><td class="id">ASM-01</td><td>Mobile number with OTP is the primary sign-in for all roles; email and password is the alternative. Members self-register and wait in a pending state until verified.</td></tr>
+    <tr><td class="id">ASM-02</td><td>PT means one-to-one coaching sold as session credits against a named trainer. GT means a scheduled group session from a location timetable.</td></tr>
+    <tr><td class="id">ASM-03</td><td>Trainers record attendance by the same QR and geofence methods as members, evaluated against a shift roster; session delivery is logged separately from presence.</td></tr>
+    <tr><td class="id">ASM-04</td><td>Class timetables are weekly-recurring per location, with capacity, a booking window, a waitlist, a cancellation cutoff and no-show marking.</td></tr>
+    <tr><td class="id">ASM-05</td><td>Progress tracking covers weight, body measurements, body fat, photographs, personal records, volume trends, attendance streaks and diet adherence.</td></tr>
+    <tr><td class="id">ASM-06</td><td>Feedback runs in both directions — member to staff, and staff to member as coaching notes.</td></tr>
+    <tr><td class="id">ASM-07</td><td>Structured meal plans arrive in Phase 2; a searchable Indian food database with per-portion macros is a Phase 4 undertaking in its own right and does not gate the plan feature.</td></tr>
+    <tr><td class="id">ASM-08</td><td>AI covers workout progression, diet drafts, progress narratives and churn flags, with mandatory human approval before anything reaches a member.</td></tr>
+    <tr><td class="id">ASM-09</td><td>The gym possesses a WhatsApp Business account, or can obtain one, and will maintain approved message templates.</td></tr>
+    <tr><td class="id">ASM-10</td><td>Members possess smartphones capable of running the application and are willing to grant camera and location permissions for check-in.</td></tr>
+    <tr><td class="id">ASM-11</td><td>Location staff will maintain the timetable and enter meeting links for online sessions; no automated conferencing provisioning is assumed.</td></tr>
+    <tr><td class="id">ASM-12</td><td>The gym will record offline payments promptly and accurately. The value of every financial report rests on this operational discipline, not on the software.</td></tr>
+    <tr><td class="id">ASM-13</td><td><em>Added v1.1.</em> Staff train without holding or paying for a membership plan, and their personal activity is excluded from revenue and plan consumption (FR-BIL-16, FR-PFP-10). Where a gym does sell a membership to staff, it is recorded as an ordinary one.</td></tr>
+    <tr><td class="id">ASM-14</td><td><em>Added v1.1.</em> Attendance records whether a staff arrival is a shift, a personal workout or both, so that utilisation and footfall figures stay separable (FR-ATT-13). Without this the two inflate each other.</td></tr>
+    <tr><td class="id">ASM-15</td><td><em>Added v1.1.</em> Staff may be assigned a trainer and coached like any member (FR-PFP-07). A trainer cannot be their own trainer.</td></tr>
+    <tr><td class="id">ASM-16</td><td><em>Added v1.1.</em> The system refuses any change leaving a gym without a Gym Owner or a location without an admin (FR-AUTH-22), so that no gym can be locked out of its own account. This was not explicitly requested and may be struck if unwanted.</td></tr>
+    <tr><td class="id">ASM-17</td><td><em>Added v1.1.</em> A member belongs to one location by default; access to a sibling location is an explicit grant on their record, never automatic.</td></tr>
+    <tr><td class="id">ASM-18</td><td><em>Added v1.1.</em> A lapsed gym subscription restricts administrative function but never hides or destroys a member's own training history (FR-SUB-07).</td></tr>
+  </tbody>
+</table>
+
+<h3>9.3 Dependencies</h3>
+<ul>
+  <li>An OTP delivery provider and a push notification service must be contracted before Phase 1 can complete.</li>
+  <li>WhatsApp Business Platform access and template approval must be secured ahead of Phase 4; approval lead times are outside the project's control.</li>
+  <li>An AI provider account is required for Phase 4. The predecessor system used Mistral; the choice is re-evaluated in the architecture document and the interface must remain replaceable.</li>
+  <li>Accurate location geo-coordinates and a sensible check-in radius must be supplied per location before geofenced check-in can operate.</li>
+  <li>Apple and Google developer accounts are required for mobile distribution.</li>
+</ul>
+
+<!-- ===================== 10. OUT OF SCOPE ===================== -->
+<h2>10. Out of Scope</h2>
+<p>Recorded explicitly so that their absence reads as a decision rather than an oversight.</p>
+<table>
+  <thead><tr><th style="width:190px">Excluded</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td>Supplement and merchandise retail, and inventory management</td><td>A separate commercial domain with its own stock, tax and supplier concerns. It would materially expand Phase 1 for no operational gain.</td></tr>
+    <tr><td>Locker and equipment allocation</td><td>Low value relative to build cost at the target gym size; typically handled on paper without friction.</td></tr>
+    <tr><td>Biometric and RFID turnstile integration</td><td>Requires per-location hardware procurement and device-specific integration. The attendance model is designed to accept it later as an additional method.</td></tr>
+    <tr><td>Platform-hosted video streaming and a recorded video library</td><td>Encoding, storage and bandwidth costs are disproportionate. External conferencing covers live delivery; a video library may be revisited once demand is evidenced.</td></tr>
+    <tr><td>Inbound WhatsApp conversation and bot-driven booking</td><td>Duplicates flows the application already provides and requires staffed response within the session window.</td></tr>
+    <tr><td>Online payment collection through a gateway</td><td><em>Withdrawn in v1.1, previously Phase 5.</em> Member fees are collected offline by gym staff; gym subscriptions are collected in cash by the Super Admin. The platform records money at both levels and never handles it, which removes settlement, reconciliation, refund and PCI concerns from the design entirely.</td></tr>
+    <tr><td>Payroll and accounting system integration</td><td>The platform reports the figures; posting them to an accounting ledger is deferred until a specific integration target exists.</td></tr>
+    <tr><td>A public marketing website and lead management funnel</td><td>A distinct product surface with its own goals. May be specified separately once the operational platform is live.</td></tr>
+    <tr><td>Wearable and health-platform synchronisation</td><td>Attractive but not load-bearing for gym operations. Reconsider after Phase 4.</td></tr>
+    <tr><td>Multi-language interface</td><td>English is sufficient for the initial market. Localisation of dates, currency and timezone is in scope; translation is not.</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== 11. RISKS ===================== -->
+<h2>11. Risks and Open Issues</h2>
+
+<h3>11.1 Risks</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th style="width:210px">Risk</th><th>Impact and mitigation</th></tr></thead>
+  <tbody>
+    <tr><td class="id">RSK-01</td><td>Offline payment records are not kept up to date</td><td>Every financial report becomes untrustworthy, and the dashboard's core value evaporates. Mitigate with fast entry, same-day reconciliation prompts, and a visible unreconciled figure on the Admin dashboard.</td></tr>
+    <tr><td class="id">RSK-02</td><td>Geofenced check-in is spoofed</td><td>Attendance data and streaks are corrupted. Mitigate by flagging rather than blocking (FR-ATT-11), retaining QR as the trusted method, and reporting anomalies to the Admin.</td></tr>
+    <tr><td class="id">RSK-03</td><td>WhatsApp template rejection or policy change</td><td>Phase 4 engagement slips. Mitigate by designing every message to fall back to push notification, and by submitting templates early.</td></tr>
+    <tr><td class="id">RSK-04</td><td>Sourcing the Indian food database</td><td>Nutrition macro tracking stalls. Mitigate by keeping the structured plan feature independent of the database (Phase 2 versus Phase 4), so plans ship regardless.</td></tr>
+    <tr><td class="id">RSK-05</td><td>Manual meeting-link management for online classes</td><td>Staff overhead and human error at scale. Acceptable at Phase 3 volumes; revisit automated provisioning if online class volume grows.</td></tr>
+    <tr><td class="id">RSK-06</td><td>Cross-gym or cross-location data leakage</td><td>The single most damaging possible defect here, and materially more likely in v1.1 now that many gyms operate concurrently and locations within a gym must also stay separate. Mitigate by enforcing both boundaries at the data access layer rather than per-endpoint, and by making isolation a standing automated test (NFR-SEC-01, NFR-SEC-01a).</td></tr>
+    <tr><td class="id">RSK-10</td><td>Privilege escalation through the delegation chain</td><td>Admins may promote admins, so authority spreads without a natural ceiling and a gym can end up with more admins than its owner realises. Mitigated by hard scope limits (FR-AUTH-18), a visible register of who appointed whom (FR-AUTH-25), Super Admin override (FR-AUTH-23), full audit (FR-AUTH-24) and a standing escalation test (NFR-SEC-01b). Residual risk is accepted as the cost of delegation.</td></tr>
+    <tr><td class="id">RSK-11</td><td>Gym subscription lapses disrupt a live gym</td><td>A gym mid-operation loses administrative access because cash was not collected in time. Mitigate with advance reminders to both parties (FR-SUB-05), a grace period (FR-SUB-06), and the guarantee that members keep read access to their own data throughout (FR-SUB-07).</td></tr>
+    <tr><td class="id">RSK-12</td><td>Manual subscription collection does not scale</td><td>Collecting cash from every gym personally is fine at ten gyms and painful at fifty. Phase 5 reduces the per-gym effort; if growth outruns it, revisit DEC-17.</td></tr>
+    <tr><td class="id">RSK-13</td><td>Staff and member data conflated in reporting</td><td>If staff personal workouts are counted as member footfall, or staff shifts as training attendance, every operational figure drifts. Mitigated by attendance purpose (FR-ATT-13) and reporting separation (FR-ATT-14, FR-PFP-10) — but these must be honoured in every report, not just the obvious ones.</td></tr>
+    <tr><td class="id">RSK-07</td><td>Scope breadth against delivery capacity</td><td>Nineteen modules is a large surface for a small team. The phase boundaries exist precisely to make partial delivery viable; resist pulling later-phase features forward.</td></tr>
+    <tr><td class="id">RSK-08</td><td>Member adoption of the application</td><td>If members do not install it, check-in and engagement features are stillborn. Mitigate by making check-in the single most frictionless action in the product, and by retaining a staff-marked fallback.</td></tr>
+    <tr><td class="id">RSK-09</td><td>AI output quality or cost</td><td>Unreliable suggestions erode trainer trust. Mitigated structurally by mandatory human approval (FR-AI-03) and graceful degradation (FR-AI-08).</td></tr>
+  </tbody>
+</table>
+
+<h3>11.2 Open Issues</h3>
+<table>
+  <thead><tr><th class="w-id">ID</th><th style="width:190px">Issue</th><th>Required to resolve</th></tr></thead>
+  <tbody>
+    <tr><td class="id">OPN-01</td><td>Delivery timeline and team size</td><td>Not yet supplied. Phase boundaries are drawn on functional coherence rather than effort. Once team size and the Phase 1 target date are known, phase contents should be re-checked against capacity and the MoSCoW priorities adjusted.</td></tr>
+    <tr><td class="id">OPN-02</td><td>Migration from limitbeyond2.0</td><td>Not yet decided. It is unresolved whether existing users, workout history and the exercise library are migrated or whether LIMITBEYOND starts clean. The exercise library and muscle-group taxonomy are assumed to carry over (FR-EXR-05); member and workout history is not yet assumed either way. This decision affects Phase 1 and Phase 2 scope and should be settled before the architecture document is finalised.</td></tr>
+    <tr><td class="id">OPN-03</td><td><s>Payment gateway selection</s></td><td><em>Closed in v1.1.</em> Withdrawn from scope — see DEC-17 and Section 10.</td></tr>
+    <tr><td class="id">OPN-04</td><td>A person belonging to more than one gym</td><td>Now live, not deferred, since many gyms operate from Phase 1. The model assumes one person, one gym. A trainer working at two gyms on the platform, or a member of both, would need several role grants across tenants — which FR-AUTH-11 can express but which no requirement yet governs. Needs a decision before the architecture fixes the identity model.</td></tr>
+    <tr><td class="id">OPN-07</td><td>Subscription pricing and terms</td><td>What a gym pays, on what term, and whether price varies by location or member count is not yet set. FR-SUB-01 makes offerings configurable so the commercial decision can follow the build.</td></tr>
+    <tr><td class="id">OPN-08</td><td>Grace period length on lapse</td><td>FR-SUB-06 makes it configurable; the default value needs setting.</td></tr>
+    <tr><td class="id">OPN-05</td><td>Class-pack versus membership entitlement rules</td><td>How group class access is granted — included in membership, purchased as a pack, or both — needs a firm commercial rule per class type before Phase 3 build.</td></tr>
+    <tr><td class="id">OPN-06</td><td>Financial record retention period</td><td>Stated as 8 years pending confirmation against the gym's statutory obligations and its accountant's advice.</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== APPENDIX A ===================== -->
+<h2>Appendix A — Feature Carry-over from limitbeyond2.0</h2>
+<p>Every capability working in the predecessor system, mapped to the requirements that preserve it. This table exists so that the rebuild decision cannot quietly lose functionality the gym already relies on.</p>
+<table>
+  <thead><tr><th style="width:170px">Existing capability</th><th style="width:130px">Carried by</th><th>Change in LIMITBEYOND</th></tr></thead>
+  <tbody>
+    <tr><td>Three roles: Admin, Trainer, Member</td><td>Section 3, FR-AUTH-11</td><td>Extended to five — Super Admin added, Admin split into Gym Owner and Location Admin. Roles become a set of location-scoped grants per account rather than a single value, and every account additionally owns a personal fitness profile.</td></tr>
+    <tr><td>Sign-up with administrator activation</td><td>FR-AUTH-06, 08, 09</td><td>Formalised into a verification and activation chain and an explicit account lifecycle, scoped to a single location.</td></tr>
+    <tr><td>User and trainer management</td><td>M3, M4</td><td>Substantially extended: health screening, goals, certifications, availability, load limits.</td></tr>
+    <tr><td>Trainer-to-member assignment</td><td>FR-MEM-05, FR-TRN-05</td><td>Preserved, with change history and notification added.</td></tr>
+    <tr><td>Exercise library with muscle groups</td><td>M10, FR-EXR-05</td><td>Preserved, including the seeded taxonomy and data. Extended to yoga and mobility.</td></tr>
+    <tr><td>Workout templates and set logging</td><td>M11</td><td>Preserved and extended with multi-week routines, personal records and progressive overload.</td></tr>
+    <tr><td>QR check-in</td><td>FR-ATT-01</td><td>Preserved and hardened: fixed printable codes are signed and location-scoped; every scan is paired with geofence verification.</td></tr>
+    <tr><td>Administrator-recorded payments</td><td>M5</td><td>Replaced by a full plan catalogue, memberships, dues, receipts and GST, rather than a bare amount and duration.</td></tr>
+    <tr><td>Feedback with responses</td><td>M14</td><td>Preserved and extended with categories, status lifecycle, ratings, and the staff-to-member direction.</td></tr>
+    <tr><td>Diet chat</td><td>FR-NUT-06</td><td>Preserved as the consultation thread, now alongside structured, versioned diet plans.</td></tr>
+    <tr><td>AI workout suggestions</td><td>FR-AI-01</td><td>Preserved, moved to Phase 4, with mandatory trainer approval and provider abstraction added.</td></tr>
+    <tr><td>Workout notifications</td><td>M15</td><td>Generalised into a full notification subsystem with preferences, quiet hours and multiple channels.</td></tr>
+    <tr><td>Weight history on the user record</td><td>FR-PRG-01, M21</td><td>Promoted to a full progress subsystem with measurements, body fat, photographs and goals — and extended to every account, not only members.</td></tr>
+    <tr><td>Role-based dashboards</td><td>M16, FR-RPT-01</td><td>Preserved and extended; Super Admin and Gym Owner dashboards added, admin dashboards scoped by location, and a training dashboard now shown to every role.</td></tr>
+    <tr><td>Administrator-recorded payments, as a model</td><td>M20</td><td>The same offline-recording pattern is applied one level up: the Super Admin records the cash a gym pays for its platform subscription.</td></tr>
+  </tbody>
+</table>
+
+<div class="note" style="margin-top:20px">
+  <strong>Next document.</strong> This SRS is the input to the <em>System Architecture &amp; Technology Stack</em> specification, which will settle backend and mobile technology, data storage, the two-level isolation strategy for gyms and locations, the authorisation model for location-scoped role grants, the integration approach for each external service in Section 5.3, deployment topology, and the environment and release process. Requirements here should be treated as fixed unless deliberately revised; open issues OPN-01, OPN-02 and OPN-04 in particular should be closed before that document is finalised, since each one constrains the identity and data model directly.
+</div>
+
+<div class="end-mark">— END OF DOCUMENT —</div>
+
+</body>
+</html>

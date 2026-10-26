@@ -1,0 +1,24 @@
+# Local Postgres for development and Testcontainers-free manual testing.
+#
+# Mirrors production's two-role RLS setup (NN-2) so an isolation bug surfaces on
+# a laptop rather than in front of a customer. lb_migrator owns the schema and
+# runs Flyway; lb_app owns nothing and serves requests.
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: limitbeyond
+      POSTGRES_USER: lb_migrator
+      POSTGRES_PASSWORD: lb_migrator
+    ports:
+      - "5432:5432"
+    volumes:
+      - lb-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lb_migrator -d limitbeyond"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  lb-pgdata:
