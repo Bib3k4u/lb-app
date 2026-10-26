@@ -19,8 +19,12 @@ public class LocationService {
 
     private final LocationRepository locationRepository;
 
-    public LocationService(LocationRepository locationRepository) {
+    private final com.limitbeyond.shared.jobs.JobQueueService jobQueueService;
+
+    public LocationService(LocationRepository locationRepository,
+            com.limitbeyond.shared.jobs.JobQueueService jobQueueService) {
         this.locationRepository = locationRepository;
+        this.jobQueueService = jobQueueService;
     }
 
     /** FR-ORG-03: only the Gym Owner may create a location. NN-5: scope and
@@ -36,6 +40,12 @@ public class LocationService {
         Location location = new Location(caller.gymId(), slug, name, addressLine1, addressLine2,
                 city, state, pincode, latitude, longitude, phoneE164);
         location = locationRepository.save(location);
+        // A branch added by a gym owner waits for Super Admin review: tell them.
+        // (A Super Admin adding one is the reviewer, so nobody needs telling.)
+        if (!caller.superAdmin()) {
+            jobQueueService.enqueue(com.limitbeyond.shared.jobs.JobTypes.LOCATION_ADDED_ADMIN_EMAIL,
+                    java.util.Map.of("gymId", caller.gymId(), "locationId", location.getId()));
+        }
         return toSummary(location);
     }
 
@@ -98,6 +108,12 @@ public class LocationService {
         }
         location.review(approved, AuthContextHolder.get().userId(), reason == null ? null : reason.trim());
         locationRepository.save(location);
+        java.util.Map<String, Object> payload = new java.util.LinkedHashMap<>();
+        payload.put("gymId", location.getGymId());
+        payload.put("locationId", location.getId());
+        payload.put("outcome", approved ? "APPROVED" : "REJECTED");
+        payload.put("reason", approved || reason == null ? "" : reason.trim());
+        jobQueueService.enqueue(com.limitbeyond.shared.jobs.JobTypes.LOCATION_REVIEW_RESULT_EMAIL, payload);
     }
 
     @Transactional

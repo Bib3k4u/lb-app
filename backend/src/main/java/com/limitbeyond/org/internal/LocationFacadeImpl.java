@@ -15,9 +15,17 @@ class LocationFacadeImpl implements LocationFacade {
     private final LocationRepository locationRepository;
     private final RlsContext rlsContext;
 
-    LocationFacadeImpl(LocationRepository locationRepository, RlsContext rlsContext) {
+    private final LocationService locationService;
+
+    LocationFacadeImpl(LocationRepository locationRepository, RlsContext rlsContext, LocationService locationService) {
         this.locationRepository = locationRepository;
         this.rlsContext = rlsContext;
+        this.locationService = locationService;
+    }
+
+    @Override
+    public void reviewLocation(UUID locationId, boolean approved, String reason) {
+        locationService.review(locationId, approved, reason);
     }
 
     // Bypassed for the same reason as GymFacadeImpl: these are existence/

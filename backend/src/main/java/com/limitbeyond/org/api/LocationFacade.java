@@ -34,6 +34,10 @@ public interface LocationFacade {
      */
     UUID createInitialLocation(NewLocation location);
 
+    /** Approves or rejects a branch awaiting review. The caller must already be
+     *  running as a Super Admin ({@code AuthContextHolder}); a rejection needs a reason. */
+    void reviewLocation(UUID locationId, boolean approved, String reason);
+
     /**
      * Every location at a gym, for a prospective member/trainer choosing
      * where to join — not a gym-scoped read, so it needs the same RLS

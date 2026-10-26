@@ -54,3 +54,9 @@ export function recordSubscriptionPayment(gymId: string, input: SubscriptionPaym
     idempotencyHeaders(idempotencyKey),
   );
 }
+
+/** Approve/reject a gym or branch from the Super Admin notification email. The
+ *  signed token in the link is the authorisation; no session is needed. */
+export function decideByEmailToken(input: { token: string; approved: boolean; reason?: string }) {
+  return api.post<void>("platform/email-actions/decide", input);
+}

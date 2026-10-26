@@ -140,6 +140,9 @@ public class PlatformService {
         jobQueueService.enqueue(
                 com.limitbeyond.shared.jobs.JobTypes.WELCOME_EMAIL, java.util.Map.of("userId", registrantUserId));
 
+        jobQueueService.enqueue(
+                com.limitbeyond.shared.jobs.JobTypes.GYM_REGISTERED_ADMIN_EMAIL, java.util.Map.of("gymId", gym.getId()));
+
         return gym.getId();
     }
 
@@ -153,6 +156,13 @@ public class PlatformService {
             gym.reject(reason);
         }
         gymRepository.save(gym);
+        // Tell the person who registered it, however the decision was made
+        // (console or the review link in the notification email).
+        java.util.Map<String, Object> payload = new java.util.LinkedHashMap<>();
+        payload.put("gymId", gymId);
+        payload.put("outcome", approve ? "APPROVED" : "REJECTED");
+        payload.put("reason", approve || reason == null ? "" : reason);
+        jobQueueService.enqueue(com.limitbeyond.shared.jobs.JobTypes.GYM_REVIEW_RESULT_EMAIL, payload);
     }
 
     @Transactional

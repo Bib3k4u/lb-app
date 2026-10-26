@@ -2,11 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getAllStates, getDistricts } from "india-state-district";
-import { Dumbbell, LocateFixed, MapPin, Search, X } from "lucide-react";
+import { ArrowUpRight, Dumbbell, LocateFixed, MapPin, Search, X } from "lucide-react";
 import { searchPublicGyms } from "@/lib/api/discovery";
 import { PublicGymListing } from "@/lib/api/types";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Badge } from "@/components/ui/Badge";
 import { TextField } from "@/components/ui/TextField";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { ChipGroup } from "@/components/ui/ChipGroup";
@@ -24,6 +23,16 @@ const radiusOptions = [
   { value: "25", label: "25 km" },
   { value: "50", label: "50 km" },
 ];
+
+/** Directions link: exact pin when the location has coordinates, otherwise a
+ *  Maps search by name and city (a gym registered without a captured location
+ *  is stored at 0,0, which would point into the ocean). */
+function directionsUrl(gym: { latitude: number; longitude: number; gymName: string; locationName: string; city: string }) {
+  if (gym.latitude === 0 && gym.longitude === 0) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${gym.gymName} ${gym.locationName} ${gym.city}`)}`;
+  }
+  return `https://www.google.com/maps?q=${gym.latitude},${gym.longitude}`;
+}
 
 export function GymFinder() {
   const [search, setSearch] = useState("");
@@ -98,8 +107,8 @@ export function GymFinder() {
   return (
     <section className="mx-auto max-w-6xl px-5 py-20">
       <FadeIn>
-        <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-lb-navy/50">Find a gym</p>
-        <h2 className="max-w-xl text-3xl font-extrabold tracking-tight sm:text-4xl">
+        <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-lb-dim">Find a gym</p>
+        <h2 className="max-w-xl font-heading text-4xl font-bold tracking-wide uppercase sm:text-5xl">
           Gyms already running on LimitBeyond.
         </h2>
       </FadeIn>
@@ -133,16 +142,16 @@ export function GymFinder() {
               disabled={!stateCode}
             />
             <div className="flex flex-col gap-1.5">
-              <span className="text-[13px] font-medium text-lb-navy/70">Near me</span>
+              <span className="text-[13px] font-medium text-current/70">Near me</span>
               {coords ? (
-                <Button variant="ghost" size="md" className="border-lb-navy/15 bg-lb-navy/5 text-lb-navy" onClick={() => setCoords(null)}>
+                <Button variant="ghost" size="md" onClick={() => setCoords(null)}>
                   <X className="size-4" /> Clear location
                 </Button>
               ) : (
                 <Button
                   variant="ghost"
                   size="md"
-                  className="border-lb-navy/15 bg-lb-navy/5 text-lb-navy"
+                 
                   loading={locating}
                   onClick={useMyLocation}
                 >
@@ -166,7 +175,7 @@ export function GymFinder() {
         {loading ? (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="lb-skeleton-light h-36 rounded-[var(--radius-lb-card)]" />
+              <div key={i} className="lb-skeleton h-36 rounded-[var(--radius-lb-card)]" />
             ))}
           </div>
         ) : error ? (
@@ -181,54 +190,52 @@ export function GymFinder() {
           <StaggerList className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {results.map((gym) => (
               <StaggerItem key={gym.locationId}>
-                <div className="group relative h-full overflow-hidden rounded-[var(--radius-lb-card)] border border-lb-glass-line bg-lb-glass-2 shadow-[0_1px_0_rgba(23,42,53,0.04)] transition-all duration-300 hover:-translate-y-1.5 hover:border-lb-navy/15 hover:shadow-[0_24px_48px_-20px_rgba(23,42,53,0.22)]">
-                  {/* Gradient banner with a watermark icon */}
-                  <div className="relative h-20 overflow-hidden bg-gradient-to-br from-[#172a35] to-[#0f2029]">
-                    <div
-                      className="absolute inset-0 opacity-70"
-                      style={{
-                        background:
-                          "radial-gradient(60% 90% at 15% 0%, rgba(247,208,70,.35) 0%, transparent 60%), radial-gradient(50% 80% at 100% 100%, rgba(247,208,70,.18) 0%, transparent 60%)",
-                      }}
-                    />
-                    <Dumbbell className="absolute -right-3 -top-3 size-24 rotate-12 text-white/10" strokeWidth={1.25} />
+                <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-lb-glass-line bg-lb-glass-2 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-lb-accent/60 hover:shadow-[0_24px_48px_-24px_rgba(246,220,60,0.45)]">
+                  {/* soft brand glow in the corner */}
+                  <div
+                    className="pointer-events-none absolute -top-16 -right-16 size-44 rounded-full opacity-60 blur-2xl transition-opacity group-hover:opacity-100"
+                    style={{ background: "radial-gradient(circle, var(--color-lb-glow), transparent 70%)" }}
+                    aria-hidden
+                  />
+
+                  <div className="relative flex items-start justify-between gap-3">
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-lb-accent text-lb-on-accent shadow-lb-accent">
+                      <Dumbbell className="size-6" />
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-lb-glass-line-2 bg-lb-glass px-3 py-1 text-[11px] font-bold tracking-wide text-lb-ink2">
+                      <span className="size-1.5 rounded-full bg-lb-good" aria-hidden />
+                      Live
+                    </span>
+                  </div>
+
+                  <div className="relative mt-5 min-w-0">
+                    <h3 className="font-heading text-2xl leading-tight font-bold tracking-wide text-lb-ink uppercase">
+                      {gym.gymName}
+                    </h3>
+                    <p className="mt-1 text-sm font-semibold text-lb-ink2">{gym.locationName}</p>
+                  </div>
+
+                  <div className="relative mt-4 flex flex-wrap items-center gap-2 text-sm text-lb-ink2">
+                    <span className="inline-flex items-center gap-1.5">
+                      <MapPin className="size-4 shrink-0 text-lb-accent" />
+                      {gym.city}, {gym.state}
+                    </span>
                     {gym.distanceKm !== undefined && (
-                      <span className="lb-num absolute right-3 top-3 rounded-[var(--radius-lb-pill)] bg-black/30 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
+                      <span className="lb-num rounded-full bg-lb-accent/15 px-2.5 py-0.5 text-xs font-bold text-lb-ink">
                         {gym.distanceKm < 1 ? `${Math.round(gym.distanceKm * 1000)} m` : `${gym.distanceKm.toFixed(1)} km`} away
                       </span>
                     )}
                   </div>
 
-                  {/* Overlapping icon avatar */}
-                  <div className="relative -mt-7 px-5">
-                    <span className="flex size-14 items-center justify-center rounded-2xl border-4 border-lb-ground bg-lb-accent text-lb-on-accent shadow-[0_8px_18px_-6px_rgba(247,208,70,0.6)]">
-                      <Dumbbell className="size-6" />
-                    </span>
-                  </div>
-
-                  <div className="px-5 pb-5 pt-3">
-                    <h3 className="truncate text-lg font-extrabold text-lb-navy">{gym.gymName}</h3>
-                    <p className="mt-1 truncate text-sm font-medium text-lb-navy/55">{gym.locationName}</p>
-
-                    <p className="mt-3 flex items-center gap-1.5 text-sm text-lb-navy/60">
-                      <MapPin className="size-3.5 shrink-0 text-lb-navy/40" />
-                      {gym.city}, {gym.state}
-                    </p>
-
-                    <div className="mt-4 flex items-center gap-2">
-                      <Badge tone="good">Live on LimitBeyond</Badge>
-                    </div>
-
-                    <a
-                      href={`https://www.google.com/maps?q=${gym.latitude},${gym.longitude}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-4 flex items-center justify-center gap-2 rounded-[var(--radius-lb-pill)] border border-lb-navy/15 bg-lb-navy/5 py-2.5 text-sm font-semibold text-lb-navy transition-colors hover:bg-lb-navy hover:text-white"
-                    >
-                      <MapPin className="size-4" /> Get directions
-                    </a>
-                  </div>
-                </div>
+                  <a
+                    href={directionsUrl(gym)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="relative mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-lb-glass-line-2 bg-lb-glass px-5 py-3 text-sm font-bold text-lb-ink transition-colors group-hover:border-lb-accent group-hover:bg-lb-accent group-hover:text-lb-on-accent"
+                  >
+                    Get directions <ArrowUpRight className="size-4" />
+                  </a>
+                </article>
               </StaggerItem>
             ))}
           </StaggerList>

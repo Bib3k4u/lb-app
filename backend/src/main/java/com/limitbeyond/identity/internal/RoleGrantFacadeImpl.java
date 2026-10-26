@@ -44,6 +44,28 @@ class RoleGrantFacadeImpl implements RoleGrantFacade {
 
     @Override
     @Transactional(readOnly = true)
+    public java.util.List<UUID> superAdminUserIds() {
+        return roleGrantRepository.findByRoleAndRevokedAtIsNull(RoleGrant.Role.SUPER_ADMIN).stream()
+                .map(RoleGrant::getUserId).distinct().toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<UUID> gymOwnerUserIds(UUID gymId) {
+        return roleGrantRepository.findByGymIdAndRevokedAtIsNull(gymId).stream()
+                .filter(grant -> grant.getRole() == RoleGrant.Role.GYM_OWNER)
+                .map(RoleGrant::getUserId).distinct().toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isSuperAdmin(UUID userId) {
+        return roleGrantRepository.findByUserIdAndRevokedAtIsNull(userId).stream()
+                .anyMatch(grant -> grant.getRole() == RoleGrant.Role.SUPER_ADMIN);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public boolean belongsToGym(UUID userId, UUID gymId) {
         return roleGrantRepository.findByUserIdAndRevokedAtIsNull(userId).stream()
                 .anyMatch(grant -> gymId.equals(grant.getGymId()));

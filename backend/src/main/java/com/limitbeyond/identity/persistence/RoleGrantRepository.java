@@ -13,5 +13,7 @@ public interface RoleGrantRepository extends JpaRepository<RoleGrant, UUID> {
 
     List<RoleGrant> findByGymIdAndRevokedAtIsNull(UUID gymId);
 
+    List<RoleGrant> findByRoleAndRevokedAtIsNull(RoleGrant.Role role);
+
     long countByGymIdAndRoleAndRevokedAtIsNull(UUID gymId, RoleGrant.Role role);
 }

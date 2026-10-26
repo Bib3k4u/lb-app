@@ -116,8 +116,13 @@ public class Location {
         this.updatedAt = now;
     }
 
+    /** A gym's first location is approved together with the gym itself, so it is
+     *  listed the same way an admin-approved location is (see {@link #review}).
+     *  The public directory still requires the GYM to be listed as well, so this
+     *  stays hidden until the gym goes live. */
     public void markInitialLocationApproved() {
         this.approvalState = LocationState.APPROVED;
+        this.publiclyListed = true;
         this.reviewedAt = Instant.now();
         this.updatedAt = this.reviewedAt;
     }

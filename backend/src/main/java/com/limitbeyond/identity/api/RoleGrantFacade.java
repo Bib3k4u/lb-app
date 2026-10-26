@@ -12,6 +12,14 @@ public interface RoleGrantFacade {
 
     void grantGymOwner(UUID userId, UUID gymId);
 
+    /** Every account currently holding the SUPER_ADMIN role (the platform operators). */
+    java.util.List<UUID> superAdminUserIds();
+
+    boolean isSuperAdmin(UUID userId);
+
+    /** Accounts holding GYM_OWNER at the given gym. */
+    java.util.List<UUID> gymOwnerUserIds(UUID gymId);
+
     boolean belongsToGym(UUID userId, UUID gymId);
 
     boolean hasRoleAt(UUID userId, UUID gymId, UUID locationId, String... roles);

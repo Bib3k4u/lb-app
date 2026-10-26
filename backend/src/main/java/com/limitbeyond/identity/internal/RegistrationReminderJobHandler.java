@@ -5,9 +5,11 @@ import com.limitbeyond.identity.persistence.RoleGrantRepository;
 import com.limitbeyond.identity.persistence.UserRepository;
 import com.limitbeyond.platform.api.GymFacade;
 import com.limitbeyond.shared.config.EmailProperties;
+import com.limitbeyond.shared.email.EmailLayout;
 import com.limitbeyond.shared.email.EmailSender;
 import com.limitbeyond.shared.jobs.JobHandler;
 import com.limitbeyond.shared.jobs.JobTypes;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
@@ -21,8 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 class RegistrationReminderJobHandler implements JobHandler {
-
-    private static final String TEMPLATE = EmailTemplates.load("reminder.html");
 
     private final UserRepository userRepository;
     private final RoleGrantRepository roleGrantRepository;
@@ -57,16 +57,36 @@ class RegistrationReminderJobHandler implements JobHandler {
         if (hasAccess || gymSubmitted) {
             return; // already finished — no reminder
         }
-        String name = EmailTemplates.firstNameOrThere(user.getFirstName());
-        String url = EmailTemplates.baseUrl(emailProperties.consoleUrl()) + "/admin/register";
+        String name = WelcomeEmailJobHandler.firstNameOrThere(user.getFirstName());
+        String url = WelcomeEmailJobHandler.baseUrl(emailProperties.consoleUrl()) + "/admin/register";
         emailSender.send(
                 user.getEmail(),
                 name.equals("there")
                         ? "You're one step away from your gym on LimitBeyond"
                         : name + ", you're one step away from your gym on LimitBeyond",
-                EmailTemplates.fill(TEMPLATE, name, url),
+                html(name, url),
                 text(name, url),
                 "registration-reminder:" + userId);
+    }
+
+    private static String html(String name, String url) {
+        String body = EmailLayout.eyebrowLabel("ALMOST THERE")
+                + EmailLayout.heading("One step left. About 2 minutes.")
+                + EmailLayout.paragraph("You've created your account. Add your gym's details and first location and you're ready for review. What you've entered is saved.")
+                + EmailLayout.eyebrowLabel("WHAT'S WAITING FOR YOU")
+                + EmailLayout.heading("Everything in one console")
+                + EmailLayout.feature("Members, plans and billing", "Run the business side without the spreadsheets.")
+                + EmailLayout.feature("Attendance and feedback", "See every branch at a glance.")
+                + EmailLayout.feature("Built by Neelkanth Gym", "Made for gym owners, by a gym.");
+        return EmailLayout.render(
+                "Finish setting up your gym on LimitBeyond. It takes about 2 minutes.",
+                "ALMOST THERE",
+                "You're almost<br>" + EmailLayout.highlight("there"),
+                "Hi " + EmailLayout.strongYellow(name) + ", you started setting up your gym. Let's finish it.",
+                body,
+                List.of(new EmailLayout.Button("Finish setting up my gym", url, true)),
+                "See you inside.<br><b>Team Neelkanth Gym</b>",
+                "You received this because you started registering a gym with this email address.");
     }
 
     private static String text(String name, String url) {

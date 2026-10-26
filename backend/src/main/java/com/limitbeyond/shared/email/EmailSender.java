@@ -41,12 +41,17 @@ public class EmailSender {
 
     /** @return false when email is switched off (no API key), true once Resend accepted it. */
     public boolean send(String to, String subject, String html, String text, String logRef) {
+        return send(properties.from(), to, subject, html, text, logRef);
+    }
+
+    /** Same, from an explicit sender (it must be on the domain verified in Resend). */
+    public boolean send(String from, String to, String subject, String html, String text, String logRef) {
         if (!properties.isConfigured()) {
             log.info("Email skipped (no Resend key configured) for {}", logRef);
             return false;
         }
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("from", properties.from());
+        body.put("from", from);
         body.put("to", List.of(to));
         body.put("subject", subject);
         body.put("html", html);
