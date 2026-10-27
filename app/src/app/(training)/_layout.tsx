@@ -50,8 +50,10 @@ export default function TrainingLayout() {
           tabBarLabel: ({ color }) => <Text style={{ color: workoutsActive ? colors.accent : color, fontSize: 10, fontWeight: '600' }}>Workouts</Text>,
         }}
       />
-      <Tabs.Screen name="workout" options={{ href: null }} />
-      <Tabs.Screen name="feedback" options={{ href: null }} />
+      {/* Routable but not shown in the bar. `href: null` would mark these hidden, and
+          Expo Router 58 redirects navigation into a hidden tab to the first tab. */}
+      <Tabs.Screen name="workout" options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tabs.Screen name="feedback" options={{ tabBarItemStyle: { display: 'none' } }} />
       <Tabs.Screen
         name="nutrition"
         options={{ title: 'Nutrition', tabBarIcon: ({ color, size }) => <Ionicons name="nutrition-outline" size={size} color={color as string} /> }}

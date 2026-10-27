@@ -56,6 +56,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final Set<RoleGrant.Role> ADMIN_ROLES =
+            Set.of(RoleGrant.Role.SUPER_ADMIN, RoleGrant.Role.GYM_OWNER, RoleGrant.Role.LOCATION_ADMIN);
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 
     private final UserRepository userRepository;
@@ -203,6 +205,7 @@ public class AuthService {
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
             throw new DomainException(ErrorCode.UNAUTHENTICATED, "Incorrect email or password.");
         }
+        requireConsoleAccess(user);
 
         // Same bootstrap reasoning as verifyOtp(): no JWT exists yet on this
         // request, so nothing has set AuthContextHolder to this user's own
@@ -242,6 +245,7 @@ public class AuthService {
                 .orElseThrow(() -> new DomainException(
                         ErrorCode.UNAUTHENTICATED, "No account is linked to this Google account."));
 
+        requireConsoleAccess(user);
         user.markEmailVerified();
         userRepository.save(user);
 
@@ -290,6 +294,9 @@ public class AuthService {
                 scheduleRegistrationReminder(user.getId());
             }
         } else {
+            if (!fromMemberApp) {
+                requireConsoleAccess(user);
+            }
             user.markEmailVerified();
             userRepository.save(user);
         }
@@ -536,6 +543,18 @@ public class AuthService {
                 com.limitbeyond.shared.jobs.JobTypes.REGISTRATION_REMINDER_EMAIL,
                 java.util.Map.of("userId", userId),
                 java.time.Duration.ofHours(1));
+    }
+
+    /** The admin console is for gym admins only. An account that holds grants but
+     *  none of them administrative (a member or trainer) is turned away at
+     *  sign-in. Accounts with no grants yet are let through: they are people
+     *  registering a gym, whose authority only arrives on activation. */
+    private void requireConsoleAccess(User user) {
+        List<RoleGrant> grants = roleGrantRepository.findByUserIdAndRevokedAtIsNull(user.getId());
+        if (!grants.isEmpty() && grants.stream().noneMatch(g -> ADMIN_ROLES.contains(g.getRole()))) {
+            throw new DomainException(ErrorCode.FORBIDDEN,
+                    "This portal is for gym admins. Please use the LimitBeyond app.");
+        }
     }
 
     private void checkRateLimit(String key, int limitPerHour) {

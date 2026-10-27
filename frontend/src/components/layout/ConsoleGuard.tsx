@@ -4,19 +4,20 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { isSuperAdmin, primaryGymId } from "@/lib/auth/permissions";
+import { isAdmin } from "@/lib/auth/permissions";
 
 export function ConsoleGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
 
   const grants = user?.grants ?? [];
-  // A gym that's registered but not yet activated (FR-AUTH-16) holds no
-  // grants yet — that's still a legitimate console visitor, just one who
-  // sees their gym's status on the dashboard instead of real data, not
-  // someone to turn away. Only a genuinely unfinished sign-up (no grants,
-  // no gym at all) has nothing to show here.
-  const authorized = user && (isSuperAdmin(grants) || primaryGymId(grants) !== null || Boolean(user.pendingGym));
+  // Only admin roles belong here. A gym that's registered but not yet
+  // activated (FR-AUTH-16) holds no grants yet — that's still a legitimate
+  // console visitor, who sees their gym's status instead of real data.
+  // Members and trainers hold grants too, but never get in. The backend
+  // enforces the same rule at sign-in and on every request; this only keeps
+  // the UI from rendering for someone who has no business here.
+  const authorized = user && (isAdmin(grants) || Boolean(user.pendingGym));
 
   useEffect(() => {
     if (loading) return;
