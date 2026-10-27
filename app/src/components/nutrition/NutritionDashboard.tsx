@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Text,
   View,
+  type ScrollViewInstance,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -117,7 +118,7 @@ export function NutritionDashboard({
   const [error, setError] = useState<string | null>(null);
   const [waterLocked, setWaterLocked] = useState(false);
   const [historyView, setHistoryView] = useState<"chart" | "bars">("chart");
-  const planScrollRef = useRef<ScrollView>(null);
+  const planScrollRef = useRef<ScrollViewInstance>(null);
   const planFormY = useRef(0);
   const queryKey = ["nutrition", owner, date] as const;
   const day = useQuery({

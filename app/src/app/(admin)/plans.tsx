@@ -89,7 +89,7 @@ export default function PlansScreen() {
             data={query.data}
             keyExtractor={(p) => p.id}
             contentContainerStyle={styles.list}
-            refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={query.refetch} tintColor={colors.accent} />}
+            refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} tintColor={colors.accent} />}
             renderItem={({ item }) => {
               const assignedMembers = (rosterQuery.data ?? []).filter((person) =>
                 person.role === 'MEMBER'

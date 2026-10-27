@@ -79,7 +79,7 @@ export default function TrainerHome() {
             data={filtered}
             keyExtractor={(p) => p.userId}
             contentContainerStyle={styles.list}
-            refreshControl={<RefreshControl refreshing={rosterQuery.isRefetching} onRefresh={rosterQuery.refetch} tintColor={colors.accent} />}
+            refreshControl={<RefreshControl refreshing={rosterQuery.isRefetching} onRefresh={() => void rosterQuery.refetch()} tintColor={colors.accent} />}
             renderItem={({ item }) => <PersonCard person={item}>{item.role === 'MEMBER' ? <Button label="View progress & diet" onPress={() => router.push({ pathname: '/(training)/manage/member/[userId]', params: { userId: item.userId, name: `${item.firstName} ${item.lastName}` } })} variant="ghost" /> : null}</PersonCard>}
           />
         )}

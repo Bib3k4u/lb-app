@@ -137,7 +137,7 @@ export default function ApprovalsScreen() {
             data={data}
             keyExtractor={(p) => p.userId}
             contentContainerStyle={styles.list}
-            refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.accent} />}
+            refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} tintColor={colors.accent} />}
             renderItem={({ item }) => (
               <PersonCard person={item}>
                 <ApprovalDetails person={item} locations={locationsQuery.data ?? []} loadingLocations={locationsQuery.isPending} />

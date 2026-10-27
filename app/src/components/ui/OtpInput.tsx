@@ -5,7 +5,7 @@
  * character of that single value and pops in when filled.
  */
 import { useEffect, useRef } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View, type TextInputInstance } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { colors, radius, spacing } from '../../lib/theme';
 
@@ -18,7 +18,7 @@ interface OtpInputProps {
 }
 
 export function OtpInput({ value, onChangeValue, autoFocus = true }: OtpInputProps) {
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
 
   useEffect(() => {
     if (autoFocus) {

@@ -1,6 +1,7 @@
 /** Step 2: enter the 6-digit code emailed to the address from the previous screen. */
 import { useEffect, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Text, View, StyleSheet, Pressable } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Screen, OtpInput, Button } from '../../components/ui';
 import { colors, spacing, typography } from '../../lib/theme';
@@ -49,6 +50,13 @@ export default function OtpScreen() {
     }
   }
 
+  // Lets people paste the emailed code in one tap; the input itself is hidden.
+  async function pasteCode() {
+    const digits = (await Clipboard.getStringAsync()).replace(/\D/g, '').slice(0, 6);
+    if (digits.length === 6) setCode(digits);
+    else setError('Copy the 6-digit code from your email first.');
+  }
+
   async function resend() {
     if (resendIn > 0) return;
     setError(null);
@@ -83,6 +91,10 @@ export default function OtpScreen() {
             </View>
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
+
+            <Pressable onPress={() => void pasteCode()} accessibilityRole="button" style={styles.resend}>
+              <Text style={styles.resendLabel}>Paste code</Text>
+            </Pressable>
 
             <Button label={busy ? 'Verifying…' : 'Verify'} onPress={verify} disabled={code.length < 6} loading={busy} />
 

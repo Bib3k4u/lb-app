@@ -36,17 +36,17 @@ export default function TrainingLayout() {
     >
       <Tabs.Screen
         name="today"
-        options={{ title: 'Today', tabBarIcon: ({ color, size }) => <Ionicons name="today-outline" size={size} color={color} /> }}
+        options={{ title: 'Today', tabBarIcon: ({ color, size }) => <Ionicons name="today-outline" size={size} color={color as string} /> }}
       />
       <Tabs.Screen
         name="progress"
-        options={{ title: 'Progress', tabBarIcon: ({ color, size }) => <Ionicons name="trending-up-outline" size={size} color={color} /> }}
+        options={{ title: 'Progress', tabBarIcon: ({ color, size }) => <Ionicons name="trending-up-outline" size={size} color={color as string} /> }}
       />
       <Tabs.Screen
         name="bookings"
         options={{
           title: 'Workouts',
-          tabBarIcon: ({ color, size }) => <Ionicons name="barbell-outline" size={size} color={workoutsActive ? colors.accent : color} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="barbell-outline" size={size} color={workoutsActive ? colors.accent : (color as string)} />,
           tabBarLabel: ({ color }) => <Text style={{ color: workoutsActive ? colors.accent : color, fontSize: 10, fontWeight: '600' }}>Workouts</Text>,
         }}
       />
@@ -54,13 +54,13 @@ export default function TrainingLayout() {
       <Tabs.Screen name="feedback" options={{ href: null }} />
       <Tabs.Screen
         name="nutrition"
-        options={{ title: 'Nutrition', tabBarIcon: ({ color, size }) => <Ionicons name="nutrition-outline" size={size} color={color} /> }}
+        options={{ title: 'Nutrition', tabBarIcon: ({ color, size }) => <Ionicons name="nutrition-outline" size={size} color={color as string} /> }}
       />
       <Tabs.Screen
         name="manage"
         options={{
           title: 'Manage',
-          tabBarIcon: ({ color, size }) => <Ionicons name="business-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="business-outline" size={size} color={color as string} />,
           ...(canManage ? {} : { href: null }),
         }}
       />
@@ -68,7 +68,7 @@ export default function TrainingLayout() {
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color, size }) => <Ionicons name="person-circle-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="person-circle-outline" size={size} color={color as string} />,
         }}
       />
     </Tabs>

@@ -153,7 +153,7 @@ export default function RosterScreen() {
             refreshControl={
               <RefreshControl
                 refreshing={rosterQuery.isRefetching}
-                onRefresh={rosterQuery.refetch}
+                onRefresh={() => void rosterQuery.refetch()}
                 tintColor={colors.accent}
               />
             }

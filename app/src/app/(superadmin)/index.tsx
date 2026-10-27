@@ -16,6 +16,7 @@ import {
   Text,
   TextInput,
   View,
+  type ViewInstance,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -270,7 +271,7 @@ export default function SuperAdminHome() {
           <ScrollView
             contentContainerStyle={styles.dashboard}
             showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={gymsQuery.isRefetching} onRefresh={gymsQuery.refetch} tintColor={colors.accent} />}
+            refreshControl={<RefreshControl refreshing={gymsQuery.isRefetching} onRefresh={() => void gymsQuery.refetch()} tintColor={colors.accent} />}
           >
             <GlassCard style={styles.overviewCard} raised>
               <View style={styles.overviewCopy}>
@@ -342,7 +343,7 @@ export default function SuperAdminHome() {
             refreshControl={
               <RefreshControl
                 refreshing={gymsQuery.isRefetching}
-                onRefresh={gymsQuery.refetch}
+                onRefresh={() => void gymsQuery.refetch()}
                 tintColor={colors.accent}
               />
             }
@@ -432,7 +433,7 @@ function LocationReviewPane({ query, gyms }: {
       contentContainerStyle={[styles.locationReviewList, locations.length === 0 && styles.emptyList]}
       showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} tintColor={colors.accent} />}
-      ListHeaderComponent={error ? <View style={styles.errorBanner}><Text style={styles.errorBannerText}>{error}</Text></View> : null}
+      ListHeaderComponent={error ? <View style={styles.errorBanner}><Text style={styles.errorBannerText}>{error}</Text></View> : undefined}
       ListEmptyComponent={
         <View style={styles.stateWrap}>
           <View style={styles.stateIcon}><Ionicons name="checkmark-done" size={27} color={colors.good} /></View>
@@ -523,7 +524,7 @@ function FilterDropdown({ value, gyms, onChange }: {
 }) {
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState({ x: 0, y: 0, width: 190, height: 36 });
-  const triggerRef = useRef<View>(null);
+  const triggerRef = useRef<ViewInstance>(null);
   const options: { value: QueueFilter; label: string; shortLabel: string }[] = [
     { value: 'ALL', label: 'All gyms', shortLabel: 'All' },
     { value: 'PENDING_VERIFICATION', label: 'Awaiting review', shortLabel: 'Review' },

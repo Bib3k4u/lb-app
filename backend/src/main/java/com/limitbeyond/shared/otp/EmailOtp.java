@@ -41,7 +41,7 @@ public class EmailOtp {
     boolean send(String email) {
         String code = codeFor(email, window(Instant.now()));
         String body = EmailLayout.eyebrowLabel("YOUR CODE")
-                + EmailLayout.heading(code)
+                + "<p style=\"margin:6px 0 14px;font-family:Menlo,Consolas,monospace;font-size:36px;font-weight:700;letter-spacing:6px;color:#0a0a0a;-webkit-user-select:all;user-select:all\">" + code + "</p>"
                 + EmailLayout.paragraph("It works for the next few minutes. If you didn't ask for it, you can ignore this email.");
         String html = EmailLayout.render("Your LimitBeyond sign-in code is " + code, "SIGN IN",
                 "Your sign-in<br>" + EmailLayout.highlight("code"),

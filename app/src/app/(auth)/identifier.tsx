@@ -7,6 +7,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  type TextInputInstance,
   TextInput,
   View,
 } from 'react-native';
@@ -23,7 +24,7 @@ export default function IdentifierScreen() {
   const [value, setValue] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
 
   const identifier = value.trim().toLowerCase();
   const valid = EMAIL_RE.test(identifier);

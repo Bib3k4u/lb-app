@@ -4,7 +4,7 @@
  * GlassCard, just reacting to interaction instead of sitting still.
  */
 import { forwardRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, View, type TextInputProps, type ViewStyle } from 'react-native';
+import { StyleSheet, Text, TextInput, View, type TextInputInstance, type TextInputProps, type ViewStyle } from 'react-native';
 import { colors, radius, spacing, typography } from '../../lib/theme';
 
 interface TextFieldProps extends TextInputProps {
@@ -14,7 +14,7 @@ interface TextFieldProps extends TextInputProps {
   containerStyle?: ViewStyle;
 }
 
-export const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
+export const TextField = forwardRef<TextInputInstance, TextFieldProps>(function TextField(
   { label, error, leftAdornment, containerStyle, style, onFocus, onBlur, ...rest },
   ref,
 ) {

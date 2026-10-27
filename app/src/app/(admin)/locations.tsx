@@ -115,7 +115,7 @@ export default function LocationsScreen() {
             data={query.data}
             keyExtractor={(l) => l.id}
             contentContainerStyle={styles.list}
-            refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={query.refetch} tintColor={colors.accent} />}
+            refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} tintColor={colors.accent} />}
             renderItem={({ item }) => (
               <GlassCard style={styles.card}>
                 <View style={styles.cardMain}>
