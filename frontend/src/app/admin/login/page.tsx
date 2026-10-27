@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { LogIn, Mail } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { TextField } from "@/components/ui/TextField";
@@ -11,23 +11,37 @@ import { AuthBusyOverlay } from "@/components/auth/AuthBusyOverlay";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { ApiError } from "@/lib/api/types";
+import { canUseConsole, isNonAdminWithRoles } from "@/lib/auth/permissions";
 
 export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminLoginContent />
+    </Suspense>
+  );
+}
+
+const NOT_ADMIN_MESSAGE = "This portal is for gym admins. Please use the LimitBeyond app.";
+
+function AdminLoginContent() {
   const router = useRouter();
-  const { user, loading: authLoading, login, registerWithGoogle } = useAuth();
+  const denied = useSearchParams().has("denied");
+  const { user, loading: authLoading, login, registerWithGoogle, logout } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   const googleEnabled = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(denied ? NOT_ADMIN_MESSAGE : null);
 
   // Already signed in (session cookies survive across visits): go straight in.
   useEffect(() => {
     if (!authLoading && user && !googleBusy) {
-      router.replace((user.grants?.length ?? 0) > 0 || user.pendingGym ? "/console" : "/admin/register");
+      if (canUseConsole(user)) router.replace("/console");
+      else if (isNonAdminWithRoles(user)) void logout(); // a member or trainer has no business here
+      else router.replace("/admin/register");
     }
-  }, [authLoading, user, googleBusy, router]);
+  }, [authLoading, user, googleBusy, logout, router]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -35,7 +49,7 @@ export default function AdminLoginPage() {
     setError(null);
     try {
       const me = await login(email, password);
-      if ((me.grants?.length ?? 0) > 0 || me.pendingGym) router.push("/console");
+      if (canUseConsole(me)) router.push("/console");
       else router.push("/admin/register");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
@@ -53,7 +67,7 @@ export default function AdminLoginPage() {
     try {
       const me = await registerWithGoogle(idToken);
       // Stay busy until the next page has taken over.
-      if ((me.grants?.length ?? 0) > 0 || me.pendingGym) router.push("/console");
+      if (canUseConsole(me)) router.push("/console");
       else router.push("/admin/register");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");

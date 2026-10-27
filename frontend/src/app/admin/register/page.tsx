@@ -1,5 +1,6 @@
 "use client";
 
+import { canUseConsole, isNonAdminWithRoles } from "@/lib/auth/permissions";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -93,12 +94,17 @@ export default function AdminRegisterPage() {
   // Arriving already signed in (e.g. straight from the login page's Google
   // button): existing access goes to the console, an unreviewed gym to its
   // status page, and a fresh account lands directly on the gym details step.
-  const hasAccess = (user?.grants?.length ?? 0) > 0;
-  const freshSession = !authLoading && Boolean(user) && !hasAccess && !user?.pendingGym;
+  const hasAccess = canUseConsole(user);
+  const turnedAway = isNonAdminWithRoles(user);
+  const freshSession = !authLoading && Boolean(user) && !hasAccess && !turnedAway;
   useEffect(() => {
     if (authLoading || !user) return;
-    if (hasAccess || user.pendingGym) router.replace("/console");
-  }, [authLoading, user, hasAccess, router]);
+    if (hasAccess) {
+      router.replace("/console");
+    } else if (turnedAway) {
+      void logout().finally(() => router.replace("/admin/login?denied=1"));
+    }
+  }, [authLoading, user, hasAccess, turnedAway, logout, router]);
 
   const step: 1 | 2 = freshSession ? 2 : stepState;
   const viaGoogle = viaGoogleState || freshSession;

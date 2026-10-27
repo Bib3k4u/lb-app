@@ -30,6 +30,17 @@ export function isAdmin(grants: GrantView[]): boolean {
   return isSuperAdmin(grants) || isGymOwner(grants) || isLocationAdmin(grants);
 }
 
+/** Who may use the admin console: admin roles, or a gym registrant whose gym is
+ *  still awaiting review. Members and trainers hold grants too but never qualify. */
+export function canUseConsole(user: { grants?: GrantView[]; pendingGym?: unknown } | null | undefined): boolean {
+  return Boolean(user) && (isAdmin(user?.grants ?? []) || Boolean(user?.pendingGym));
+}
+
+/** Signed in with roles, but none of them administrative (a member or trainer). */
+export function isNonAdminWithRoles(user: { grants?: GrantView[]; pendingGym?: unknown } | null | undefined): boolean {
+  return Boolean(user) && (user?.grants?.length ?? 0) > 0 && !canUseConsole(user);
+}
+
 export function primaryGymId(grants: GrantView[]): string | null {
   return grants.find((g) => g.gymId)?.gymId ?? null;
 }
