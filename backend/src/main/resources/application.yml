@@ -127,7 +127,7 @@ limitbeyond:
     sign-in-per-hour: ${RATE_LIMIT_SIGN_IN:10}
     check-in-per-hour: ${RATE_LIMIT_CHECK_IN:30}
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:19006,https://admin.neelkanthgym.in}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:19006,https://neelkanthgym.in,https://admin.neelkanthgym.in}
 
 springdoc:
   api-docs:

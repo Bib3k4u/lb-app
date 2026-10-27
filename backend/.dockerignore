@@ -1,0 +1,12 @@
+target
+target 2
+target 3
+.git
+.env
+.env.*
+!.env.example
+*.md
+compose.yaml
+.idea
+.vscode
+.mvn/wrapper/maven-wrapper.jar
