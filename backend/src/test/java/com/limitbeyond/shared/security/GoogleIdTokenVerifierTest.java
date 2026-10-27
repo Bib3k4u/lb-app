@@ -31,10 +31,11 @@ class GoogleIdTokenVerifierTest {
     }
 
     @Test
-    void audienceValidatorOnlyAcceptsOurOwnClientId() {
-        var validator = GoogleIdTokenVerifier.audienceValidator("ours");
+    void audienceValidatorOnlyAcceptsOurOwnClientIds() {
+        var validator = GoogleIdTokenVerifier.audienceValidator(java.util.List.of("ours", "ours-mobile"));
 
         assertThat(validator.validate(jwtWith("iss", "https://accounts.google.com", "aud", "ours")).hasErrors()).isFalse();
+        assertThat(validator.validate(jwtWith("iss", "https://accounts.google.com", "aud", "ours-mobile")).hasErrors()).isFalse();
         assertThat(validator.validate(jwtWith("iss", "https://accounts.google.com", "aud", "someone-else")).hasErrors()).isTrue();
     }
 

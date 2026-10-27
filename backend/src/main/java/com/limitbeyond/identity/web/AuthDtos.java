@@ -55,7 +55,9 @@ public final class AuthDtos {
 
     /** The ID token Google's browser SDK hands the console after the user
      *  picks an account. Verified server-side; see AuthService.googleSignIn. */
-    public record GoogleLoginRequest(@NotBlank String idToken) {
+    public record GoogleLoginRequest(@NotBlank String idToken,
+            /** Optional: "app" when the member/trainer mobile app is signing in. */
+            String client) {
     }
 
     public record AdminRegistrationRequest(

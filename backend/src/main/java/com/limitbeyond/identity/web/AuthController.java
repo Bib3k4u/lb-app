@@ -56,7 +56,7 @@ class AuthController {
      *  tokens so the client can go straight on to the gym-details step. */
     @PostMapping("/google/register")
     AuthDtos.TokenResponse googleRegister(@Valid @RequestBody AuthDtos.GoogleLoginRequest request, HttpServletRequest httpRequest) {
-        return authService.googleRegister(request.idToken(), deviceFingerprint(httpRequest));
+        return authService.googleRegister(request.idToken(), deviceFingerprint(httpRequest), "app".equals(request.client()));
     }
 
     @PostMapping("/admin/register")

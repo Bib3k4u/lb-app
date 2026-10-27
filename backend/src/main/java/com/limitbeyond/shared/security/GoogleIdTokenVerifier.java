@@ -76,7 +76,7 @@ public class GoogleIdTokenVerifier {
                     built.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
                             new JwtTimestampValidator(),
                             issuerValidator(),
-                            audienceValidator(properties.clientId())));
+                            audienceValidator(properties.clientIds())));
                     decoder = local = built;
                 }
             }
@@ -93,10 +93,10 @@ public class GoogleIdTokenVerifier {
         };
     }
 
-    static OAuth2TokenValidator<Jwt> audienceValidator(String clientId) {
+    static OAuth2TokenValidator<Jwt> audienceValidator(List<String> clientIds) {
         return jwt -> {
             List<String> aud = jwt.getAudience();
-            return aud != null && aud.contains(clientId)
+            return aud != null && aud.stream().anyMatch(clientIds::contains)
                     ? OAuth2TokenValidatorResult.success()
                     : OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token", "Wrong audience", null));
         };

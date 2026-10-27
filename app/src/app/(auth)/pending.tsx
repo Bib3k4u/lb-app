@@ -58,8 +58,9 @@ export default function PendingScreen() {
           </View>
           <Text style={styles.title}>Awaiting verification</Text>
           <Text style={styles.body}>
-            Your gym&apos;s administrator needs to approve your account before you can check in,
-            book classes or see your training plan. You&apos;ll be notified as soon as that happens.
+            Your gym&apos;s administrator has been alerted and needs to approve your account before you
+            can check in or see your training plan. Once approved, you&apos;ll get a welcome email
+            with how to start. You can close the app and come back any time.
           </Text>
         </GlassCard>
 

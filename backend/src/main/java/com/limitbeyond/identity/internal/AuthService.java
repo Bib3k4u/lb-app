@@ -264,7 +264,7 @@ public class AuthService {
      *  still only arrives later, when the gym they register is activated
      *  (FR-AUTH-16). An already-existing account is simply signed in. */
     @Transactional
-    public AuthDtos.TokenResponse googleRegister(String idToken, String deviceFingerprint) {
+    public AuthDtos.TokenResponse googleRegister(String idToken, String deviceFingerprint, boolean fromMemberApp) {
         checkRateLimit("google-register-device:" + deviceFingerprint, rateLimitProperties.signInPerHour() * 4);
 
         GoogleIdTokenVerifier.GoogleIdentity identity = googleIdTokenVerifier.verify(idToken);
@@ -284,7 +284,11 @@ public class AuthService {
             user.markEmailVerified();
             userRepository.save(user);
             fitnessProfileRepository.save(new FitnessProfile(user.getId()));
-            scheduleRegistrationReminder(user.getId());
+            // The reminder nudges a gym owner to finish registering a gym; members
+            // and trainers signing in from the app have no such step.
+            if (!fromMemberApp) {
+                scheduleRegistrationReminder(user.getId());
+            }
         } else {
             user.markEmailVerified();
             userRepository.save(user);
@@ -399,6 +403,13 @@ public class AuthService {
 
         if (role == RoleGrant.Role.MEMBER) {
             memberFacade.createIfAbsent(callerUserId, gymId, locationId);
+        }
+
+        // Same transaction as the grant, so an alert exists iff the request does.
+        // Only accounts still awaiting approval need an admin's attention.
+        if (user.getState() == User.AccountState.PENDING_VERIFICATION) {
+            jobQueueService.enqueue(com.limitbeyond.shared.jobs.JobTypes.ACCESS_REQUESTED_ADMIN_EMAIL,
+                    java.util.Map.of("userId", callerUserId, "gymId", gymId, "locationId", locationId, "role", role.name()));
         }
 
         return issueTokens(user, null);

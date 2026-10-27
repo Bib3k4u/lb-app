@@ -15,6 +15,9 @@ public interface GymFacade {
 
     boolean exists(UUID gymId);
 
+    /** Trading name, falling back to the legal name; empty if the gym is gone. */
+    Optional<String> displayName(UUID gymId);
+
     /**
      * The gym this person registered, if it exists and isn't LIVE yet —
      * empty once it goes live, since FR-AUTH-16's activation grants them

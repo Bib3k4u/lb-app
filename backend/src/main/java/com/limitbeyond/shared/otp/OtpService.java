@@ -33,10 +33,12 @@ public class OtpService {
 
     private final TwilioProperties properties;
     private final OtpAuditWriter auditWriter;
+    private final EmailOtp emailOtp;
 
-    public OtpService(TwilioProperties properties, OtpAuditWriter auditWriter) {
+    public OtpService(TwilioProperties properties, OtpAuditWriter auditWriter, EmailOtp emailOtp) {
         this.properties = properties;
         this.auditWriter = auditWriter;
+        this.emailOtp = emailOtp;
     }
 
     /**
@@ -63,6 +65,9 @@ public class OtpService {
             // can authenticate deterministically.
             log.info("[OTP DEV MODE] Code for {} is {}", identifier, properties.devModeCode());
             success = true;
+        } else if (isEmail(identifier)) {
+            // Email never goes through Twilio: we send the code ourselves.
+            success = emailOtp.send(identifier);
         } else {
             Verification.creator(properties.verifyServiceSid(), identifier, channel).create();
             success = true; // Verification.creator throws on failure; reaching here means it was accepted
@@ -74,6 +79,8 @@ public class OtpService {
         boolean approved;
         if (!properties.isConfigured() || properties.devModeEnabled()) {
             approved = properties.devModeCode().equals(code);
+        } else if (isEmail(identifier)) {
+            approved = emailOtp.verify(identifier, code);
         } else {
             VerificationCheck check = VerificationCheck.creator(properties.verifyServiceSid())
                     .setTo(identifier)
@@ -83,6 +90,10 @@ public class OtpService {
         }
         auditWriter.record(identifier, "SMS", deviceFingerprint, "VERIFY", approved);
         return approved;
+    }
+
+    private static boolean isEmail(String identifier) {
+        return identifier != null && identifier.contains("@");
     }
 
     /**

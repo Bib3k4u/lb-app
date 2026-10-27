@@ -1,4 +1,4 @@
-/** Phone-only entry point for the OTP authentication flow. */
+/** Entry point: sign in with an email address and a one-time code. */
 import { useRef, useState } from 'react';
 import {
   Keyboard,
@@ -16,7 +16,7 @@ import { Screen, TextField, Button, GlassCard } from '../../components/ui';
 import { colors, spacing, typography } from '../../lib/theme';
 import { api, problemFrom } from '../../lib/api/client';
 
-const PHONE_RE = /^[6-9]\d{9}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function IdentifierScreen() {
   const router = useRouter();
@@ -25,8 +25,8 @@ export default function IdentifierScreen() {
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
 
-  const valid = PHONE_RE.test(value);
-  const identifier = `+91${value}`;
+  const identifier = value.trim().toLowerCase();
+  const valid = EMAIL_RE.test(identifier);
 
   async function continueFlow() {
     if (!valid) return;
@@ -34,7 +34,7 @@ export default function IdentifierScreen() {
     setBusy(true);
     setError(null);
     try {
-      await api.post('/auth/otp/request', { identifier, channel: 'sms' });
+      await api.post('/auth/otp/request', { identifier, channel: 'email' });
       router.push({ pathname: '/(auth)/otp', params: { identifier } });
     } catch (e) {
       setError(problemFrom(e).detail ?? 'Could not send the code. Try again.');
@@ -59,15 +59,15 @@ export default function IdentifierScreen() {
           <GlassCard style={styles.form}>
             <TextField
                 ref={inputRef}
-                label="Phone number"
+                label="Email"
                 value={value}
                 onChangeText={setValue}
-                placeholder="9876543210"
-                leftAdornment="+91"
-                keyboardType="number-pad"
+                placeholder="you@example.com"
+                keyboardType="email-address"
+                textContentType="emailAddress"
+                autoComplete="email"
                 autoCapitalize="none"
                 autoCorrect={false}
-                maxLength={10}
                 returnKeyType="go"
                 onSubmitEditing={continueFlow}
               />

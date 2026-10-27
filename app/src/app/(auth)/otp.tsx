@@ -1,8 +1,4 @@
-/**
- * Step 2 of ADR-08. Twilio Verify owns code generation, expiry and attempt
- * limits — no OTP is generated or stored by us, which keeps the most
- * security-sensitive logic in a service built for it.
- */
+/** Step 2: enter the 6-digit code emailed to the address from the previous screen. */
 import { useEffect, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Text, View, StyleSheet, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -57,7 +53,7 @@ export default function OtpScreen() {
     if (resendIn > 0) return;
     setError(null);
     try {
-      await api.post('/auth/otp/request', { identifier, channel: 'sms' });
+      await api.post('/auth/otp/request', { identifier, channel: 'email' });
       setResendIn(RESEND_SECONDS);
     } catch (e) {
       setError(problemFrom(e).detail ?? 'Could not resend the code.');
@@ -72,16 +68,16 @@ export default function OtpScreen() {
             <View style={styles.header}>
               <Text style={styles.title}>Enter the code</Text>
               <Text style={styles.subtitle}>
-                Sent by SMS to <Text style={styles.identifier}>{identifier}</Text>
+                Sent by email to <Text style={styles.identifier}>{identifier}</Text>
               </Text>
             </View>
 
             <View style={styles.otpBlock}>
               <OtpInput value={code} onChangeValue={setCode} />
               <View style={styles.changeNumberRow}>
-                <Text style={styles.changeNumberPrompt}>Not your number?</Text>
+                <Text style={styles.changeNumberPrompt}>Wrong email?</Text>
                 <Pressable onPress={() => router.back()} accessibilityRole="button" hitSlop={8}>
-                  <Text style={styles.changeNumberLink}>Change number</Text>
+                  <Text style={styles.changeNumberLink}>Change email</Text>
                 </Pressable>
               </View>
             </View>

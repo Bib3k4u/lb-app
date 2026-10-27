@@ -36,18 +36,21 @@ public class VerificationService {
     private final MemberFacade memberFacade;
     private final MembershipFacade membershipFacade;
     private final FitnessProfileRepository fitnessProfileRepository;
+    private final com.limitbeyond.shared.jobs.JobQueueService jobQueueService;
 
     public VerificationService(
             UserRepository userRepository,
             RoleGrantRepository roleGrantRepository,
             MemberFacade memberFacade,
             MembershipFacade membershipFacade,
-            FitnessProfileRepository fitnessProfileRepository) {
+            FitnessProfileRepository fitnessProfileRepository,
+            com.limitbeyond.shared.jobs.JobQueueService jobQueueService) {
         this.userRepository = userRepository;
         this.roleGrantRepository = roleGrantRepository;
         this.memberFacade = memberFacade;
         this.membershipFacade = membershipFacade;
         this.fitnessProfileRepository = fitnessProfileRepository;
+        this.jobQueueService = jobQueueService;
     }
 
     @Transactional
@@ -79,6 +82,7 @@ public class VerificationService {
 
         user.activate();
         userRepository.save(user);
+        enqueueDecisionEmail(targetUserId, grant, true, null);
     }
 
     @Transactional
@@ -90,6 +94,7 @@ public class VerificationService {
         User user = userRepository.findById(targetUserId).orElseThrow(() -> DomainException.notFound("Account"));
         user.suspend(reason); // DEACTIVATED is the closest fit — see class Javadoc
         userRepository.save(user);
+        enqueueDecisionEmail(targetUserId, grant, false, reason);
     }
 
     /** FR-AUTH-08's other half: an admin cannot approve or reject anyone
@@ -159,5 +164,16 @@ public class VerificationService {
                 .findFirst()
                 .filter(g -> caller.isAdmin())
                 .orElseThrow(() -> DomainException.notFound("A pending registration for this account, at a location you administer,"));
+    }
+
+    /** The welcome (or decline) mail, queued in the same transaction as the decision. */
+    private void enqueueDecisionEmail(UUID userId, RoleGrant grant, boolean approved, String reason) {
+        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put("userId", userId);
+        payload.put("gymId", grant.getGymId());
+        payload.put("role", grant.getRole().name());
+        payload.put("outcome", approved ? "APPROVED" : "REJECTED");
+        payload.put("reason", reason == null ? "" : reason);
+        jobQueueService.enqueue(com.limitbeyond.shared.jobs.JobTypes.ACCESS_DECISION_EMAIL, payload);
     }
 }

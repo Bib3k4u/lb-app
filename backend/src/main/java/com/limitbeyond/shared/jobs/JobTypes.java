@@ -19,6 +19,11 @@ public final class JobTypes {
     /** Tells the gym owner(s) a branch was approved or rejected. */
     public static final String LOCATION_REVIEW_RESULT_EMAIL = "LOCATION_REVIEW_RESULT_EMAIL";
 
+    /** Tells a gym's admins that a member or trainer is asking for access. */
+    public static final String ACCESS_REQUESTED_ADMIN_EMAIL = "ACCESS_REQUESTED_ADMIN_EMAIL";
+    /** Tells a member or trainer their access request was approved (welcome) or declined. */
+    public static final String ACCESS_DECISION_EMAIL = "ACCESS_DECISION_EMAIL";
+
     private JobTypes() {
     }
 }

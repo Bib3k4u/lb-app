@@ -40,6 +40,13 @@ class GymFacadeImpl implements GymFacade {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<String> displayName(UUID gymId) {
+        return rlsContext.withSystemBypass(() -> gymRepository.findById(gymId)
+                .map(g -> g.getTradingName() == null || g.getTradingName().isBlank() ? g.getLegalName() : g.getTradingName()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Optional<PendingGymRegistration> findPendingRegistrationFor(UUID registrantUserId) {
         return rlsContext.withSystemBypass(
                 () -> gymRepository.findTopByRegisteredByUserIdOrderByCreatedAtDesc(registrantUserId)
